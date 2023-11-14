@@ -1,2 +1,2 @@
 # ProjRC
-IST LEIC-A RC Project 2023/2024
+RC @ IST - Project 2023/2024
