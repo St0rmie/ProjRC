@@ -4,6 +4,9 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <optional>
+
+#define MAX_COMMAND_SIZE 1024
 
 /* Command COMMANDes */
 #define COMMAND_LOGIN "login"
@@ -25,6 +28,24 @@
 #define COMMAND_EXIT "exit"
 
 /* Classes */
+
+class CommandHandler{
+   protected:
+        CommandHandler(const char* name,
+                        std::optional<const char*> alias,
+                        const char* description)
+                    : _name{name},
+                    _alias{alias},
+                    _description{description} {}
+
+   public:
+        const char* _name;
+        const std::optional<const char*> _alias;
+        const char* _description;
+        virtual void handle(std::string name) = 0;
+
+};
+
 class CommandManager{
     private:
         std::unordered_map<std::string, std::shared_ptr<CommandHandler>> handlers;
@@ -34,29 +55,11 @@ class CommandManager{
         void waitCommand();
 };
 
-class CommandHandler{
-   protected:
-        CommandHandler(const char* name,
-                        const std::optional<const char*> alias,
-                        const char* description)
-                        : _name{name},
-                        _alias{alias},
-                        _description{description} {}
-
-   public:
-        const char* _name;
-        const std::optional<const char*> _alias;
-        const char* _description;
-        virtual void handle(std::string name);
-
-};
-
-class loginCommand : public CommandHandler {
+class LoginCommand : public CommandHandler {
     virtual void handle(std::string name);
 
     public:
-        loginCommand()
-            : CommandHandler("login",std::nullopt,"Log In for User.") {}
+        LoginCommand(): CommandHandler("login",std::nullopt,"Log In for User.") {}
 };
 
 
