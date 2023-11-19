@@ -69,7 +69,191 @@ void LoginCommand::handle(std::string args){
     std::cout << "[ERROR] Incorrect user id." << std::endl;
     return;
   }
+  if(password.size() > 8){
+    std::cout << "[ERROR] Incorrect password." << std::endl;
+    return;
+  }
 
   // Protocol setup
   std::cout << "LOGGED IN //  USER:"<< user_id <<"// PASSWORD: " << password << std::endl;
+}
+
+void CreateAuctionCommand::handle(std::string args){
+
+  // Parsing the arguments
+  std::stringstream ss(args);
+  std::vector<std::string> parsed_args;
+  std::string arg;
+
+  while(ss >> arg){
+    parsed_args.push_back(arg);
+  }
+
+  if(parsed_args.size() != 4){
+    std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+    return;
+  }
+
+  // Defining the arguments extracted
+  std::string name = parsed_args[0];
+  std::string asset_fname = parsed_args[1];
+  uint32_t start_value = stoi(parsed_args[2]);
+  uint32_t timeactive = stoi(parsed_args[3]);
+
+  // Verifying parameters
+  if(name.size() > 10){
+    std::cout << "[ERROR] Incorrect auction name." << std::endl;
+    return;
+  }
+  if(start_value > 999999 || start_value < 0){
+    std::cout << "[ERROR] Incorrect start value." << std::endl;
+    return;
+  }
+  if(timeactive > 99999 || timeactive < 0){
+    std::cout << "[ERROR] Incorrect time active." << std::endl;
+    return;
+  }
+
+  // Protocol setup (confused about this part)
+}
+
+void CloseAuctionCommand::handle(std::string args){
+
+  // Parsing the arguments
+  std::stringstream ss(args);
+  std::vector<std::string> parsed_args;
+  std::string arg;
+
+  while(ss >> arg){
+    parsed_args.push_back(arg);
+  }
+
+  if(parsed_args.size() != 1){
+    std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+    return;
+  }
+
+  uint32_t a_id = stoi(parsed_args[0]);
+
+  if(a_id > 999 || a_id < 0){
+    std::cout << "[ERROR] Incorrect AID." << std::endl;
+    return;
+  }
+
+  // Protocol setup (confused about this part)
+}
+
+void ListStartedAuctionsCommand(){
+
+  // Dafuq do you do in one without arguments
+
+}
+
+void ListBiddedAuctionsCommand(){
+
+  // Dafuq do you do in one without arguments
+
+}
+
+void ListAllAuctionsCommand(){
+
+  // Dafuq do you do in one without arguments
+
+}
+
+void ShowAssetCommand::handle(std::string args){
+
+  // Parsing the arguments
+  std::stringstream ss(args);
+  std::vector<std::string> parsed_args;
+  std::string arg;
+
+  while(ss >> arg){
+    parsed_args.push_back(arg);
+  }
+
+  if(parsed_args.size() != 1){
+    std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+    return;
+  }
+
+  uint32_t a_id = stoi(parsed_args[0]);
+
+  if(a_id > 999 || a_id < 0){
+    std::cout << "[ERROR] Incorrect AID." << std::endl;
+    return;
+  }
+
+  // Protocol setup (confused about this part)
+}
+
+void BidCommand::handle(std::string args){
+
+  // Parsing the arguments
+  std::stringstream ss(args);
+  std::vector<std::string> parsed_args;
+  std::string arg;
+
+  while(ss >> arg){
+    parsed_args.push_back(arg);
+  }
+
+  if(parsed_args.size() != 2){
+    std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+    return;
+  }
+
+  uint32_t a_id = stoi(parsed_args[0]);
+  uint32_t value = stoi(parsed_args[1]);
+
+  if(a_id > 999 || a_id < 0){
+    std::cout << "[ERROR] Incorrect AID." << std::endl;
+    return;
+  }
+
+  // Protocol setup (confused about this part)
+}
+
+void ShowRecordCommand::handle(std::string args){
+
+  // Parsing the arguments
+  std::stringstream ss(args);
+  std::vector<std::string> parsed_args;
+  std::string arg;
+
+  while(ss >> arg){
+    parsed_args.push_back(arg);
+  }
+
+  if(parsed_args.size() != 1){
+    std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+    return;
+  }
+
+  uint32_t a_id = stoi(parsed_args[0]);
+
+  if(a_id > 999 || a_id < 0){
+    std::cout << "[ERROR] Incorrect AID." << std::endl;
+    return;
+  }
+
+  // Protocol setup (confused about this part)
+}
+
+void LogoutCommand(){
+
+  // Dafuq do you do in one without arguments
+
+}
+
+void UnregisterCommand(){
+
+  // Dafuq do you do in one without arguments
+
+}
+
+void ExitCommand(){
+
+  // Dafuq do you do in one without arguments
+
 }
