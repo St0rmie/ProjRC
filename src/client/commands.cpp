@@ -75,7 +75,7 @@ void LoginCommand::handle(std::string args){
   }
 
   // Protocol setup
-  std::cout << "LOGGED IN //  USER:"<< user_id <<"// PASSWORD: " << password << std::endl;
+  std::cout << "LOGGED IN // USER: " << user_id << " // PASSWORD: " << password << std::endl;
 }
 
 void CreateAuctionCommand::handle(std::string args){
@@ -114,7 +114,8 @@ void CreateAuctionCommand::handle(std::string args){
     return;
   }
 
-  // Protocol setup (confused about this part)
+  // Protocol setup
+  std::cout << "CREATED AUCTION // AUCTION: " << name << " // FILE: " << asset_fname << " // START VALUE: " << start_value << " // TIME ACTIVE: " << timeactive << std::endl;
 }
 
 void CloseAuctionCommand::handle(std::string args){
@@ -140,25 +141,34 @@ void CloseAuctionCommand::handle(std::string args){
     return;
   }
 
-  // Protocol setup (confused about this part)
+  // Protocol setup
+  std::cout << "CLOSED AUCTION // AUCTION: " << a_id << std::endl;
 }
 
-void ListStartedAuctionsCommand(){
+void ListStartedAuctionsCommand::handle(std::string args){
 
-  // Dafuq do you do in one without arguments
+  (void)args;  // unused - no args
 
-}
-
-void ListBiddedAuctionsCommand(){
-
-  // Dafuq do you do in one without arguments
+  // Protocol setup
+  std::cout << "LISTED STARTED AUCTIONS" << std::endl;
 
 }
 
-void ListAllAuctionsCommand(){
+void ListBiddedAuctionsCommand::handle(std::string args){
 
-  // Dafuq do you do in one without arguments
+  (void)args;  // unused - no args
 
+  // Protocol setup
+  std::cout << "LISTED BIDDED AUCTIONS" << std::endl;
+
+}
+
+void ListAllAuctionsCommand::handle(std::string args){
+
+  (void)args;  // unused - no args
+
+  // Protocol setup
+  std::cout << "LISTED ALL AUCTIONS" << std::endl;
 }
 
 void ShowAssetCommand::handle(std::string args){
@@ -184,7 +194,8 @@ void ShowAssetCommand::handle(std::string args){
     return;
   }
 
-  // Protocol setup (confused about this part)
+  // Protocol setup
+  std::cout << "SHOWED IMAGE FILE OF THE ASSET: " << a_id << std::endl;
 }
 
 void BidCommand::handle(std::string args){
@@ -211,7 +222,8 @@ void BidCommand::handle(std::string args){
     return;
   }
 
-  // Protocol setup (confused about this part)
+  // Protocol setup
+  std::cout << "BIDDED ON // AUCTION: " << a_id << " // VALUE: " << value << std::endl;
 }
 
 void ShowRecordCommand::handle(std::string args){
@@ -237,23 +249,30 @@ void ShowRecordCommand::handle(std::string args){
     return;
   }
 
-  // Protocol setup (confused about this part)
+  // Protocol setup
+  std::cout << "SHOWED RECORD // AUCTION: " << a_id << std::endl;
 }
 
-void LogoutCommand(){
+void LogoutCommand::handle(std::string args){
 
-  // Dafuq do you do in one without arguments
+  (void)args;  // unused - no args
 
+  // Protocol setup
+  std::cout << "LOGGED OUT" << std::endl;
 }
 
-void UnregisterCommand(){
+void UnregisterCommand::handle(std::string args){
 
-  // Dafuq do you do in one without arguments
+  (void)args;  // unused - no args
 
+  // Protocol setup
+  std::cout << "UNREGISTERED" << std::endl;
 }
 
-void ExitCommand(){
+void ExitCommand::handle(std::string args){
 
-  // Dafuq do you do in one without arguments
+  (void)args;  // unused - no args
 
+  // Protocol setup
+  std::cout << "EXITED" << std::endl;
 }
