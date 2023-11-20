@@ -4,6 +4,8 @@
 #include <sstream>
 #include <string>
 
+#include "verifications.cpp"
+
 void CommandManager::registerCommand(std::shared_ptr<CommandHandler> handler) {
 	this->handlers.insert({handler->_name, handler});
 	if (handler->_alias) {
@@ -39,7 +41,7 @@ void CommandManager::waitCommand() {
 	auto handler = this->handlers.find(commandName);
 	if (handler == this->handlers.end()) {
 		std::cout << "[ERROR] Unknown Command. Type \"help\" for the list of "
-		             "commands available"
+					 "commands available"
 				  << std::endl;
 		return;
 	}
@@ -63,15 +65,15 @@ void LoginCommand::handle(std::string args) {
 	}
 
 	// Defining the arguments extracted
-	uint32_t user_id = stoi(parsed_args[0]);
+	std::string user_id = parsed_args[0];
 	std::string password = parsed_args[1];
 
 	// Verifying parameters
-	if (user_id > 999999 || user_id < 0) {
+	if (verify_user_id(user_id) == -1) {
 		std::cout << "[ERROR] Incorrect user id." << std::endl;
 		return;
 	}
-	if (password.size() > 8) {
+	if (verify_password(password) == -1) {
 		std::cout << "[ERROR] Incorrect password." << std::endl;
 		return;
 	}
@@ -99,19 +101,24 @@ void CreateAuctionCommand::handle(std::string args) {
 	// Defining the arguments extracted
 	std::string name = parsed_args[0];
 	std::string asset_fname = parsed_args[1];
-	uint32_t start_value = stoi(parsed_args[2]);
-	uint32_t timeactive = stoi(parsed_args[3]);
+	std::string start_value = parsed_args[2];
+	std::string timeactive = parsed_args[3];
 
 	// Verifying parameters
-	if (name.size() > 10) {
+	if (verify_name(name) == -1) {
 		std::cout << "[ERROR] Incorrect auction name." << std::endl;
 		return;
 	}
-	if (start_value > 999999 || start_value < 0) {
+	if (verify_asset_fname(asset_fname) == -1) {
+		std::cout << "[ERROR] Incorrect asset file name." << std::endl;
+		return;
+	}
+
+	if (verify_start_value(start_value) == -1) {
 		std::cout << "[ERROR] Incorrect start value." << std::endl;
 		return;
 	}
-	if (timeactive > 99999 || timeactive < 0) {
+	if (verify_timeactive(timeactive) == -1) {
 		std::cout << "[ERROR] Incorrect time active." << std::endl;
 		return;
 	}
@@ -138,9 +145,9 @@ void CloseAuctionCommand::handle(std::string args) {
 		return;
 	}
 
-	uint32_t a_id = stoi(parsed_args[0]);
+	std::string a_id = parsed_args[0];
 
-	if (a_id > 999 || a_id < 0) {
+	if (verify_a_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
 		return;
 	}
@@ -185,9 +192,9 @@ void ShowAssetCommand::handle(std::string args) {
 		return;
 	}
 
-	uint32_t a_id = stoi(parsed_args[0]);
+	std::string a_id = parsed_args[0];
 
-	if (a_id > 999 || a_id < 0) {
+	if (verify_a_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
 		return;
 	}
@@ -211,11 +218,16 @@ void BidCommand::handle(std::string args) {
 		return;
 	}
 
-	uint32_t a_id = stoi(parsed_args[0]);
+	std::string a_id = parsed_args[0];
 	uint32_t value = stoi(parsed_args[1]);
 
-	if (a_id > 999 || a_id < 0) {
+	if (verify_a_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
+		return;
+	}
+
+	if (verify_value(value) == -1) {
+		std::cout << "[ERROR] Incorrect value." << std::endl;
 		return;
 	}
 
@@ -239,9 +251,9 @@ void ShowRecordCommand::handle(std::string args) {
 		return;
 	}
 
-	uint32_t a_id = stoi(parsed_args[0]);
+	std::string a_id = parsed_args[0];
 
-	if (a_id > 999 || a_id < 0) {
+	if (verify_a_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
 		return;
 	}
