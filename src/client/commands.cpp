@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#include "verifications.cpp"
+#include "shared/verifications.hpp"
 
 void CommandManager::registerCommand(std::shared_ptr<CommandHandler> handler) {
 	this->handlers.insert({handler->_name, handler});

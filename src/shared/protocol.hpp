@@ -103,4 +103,4 @@ class ServerShowRecord : public UdpPacket {};
 class ServerLogout : public UdpPacket {};
 class ServerUnregister : public UdpPacket {};
 
-#endif __PROTOCOL__
+#endif

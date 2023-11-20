@@ -1,3 +1,5 @@
+#include "verifications.hpp"
+
 #include <fstream>
 #include <iostream>
 #include <string>
