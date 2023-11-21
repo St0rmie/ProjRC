@@ -6,7 +6,7 @@ INCLUDE_DIRS := src/client src/server src/
 INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 
 TARGETS = src/client/client src/server/server
-TARGET_EXECS = client GS
+TARGET_EXECS = client
 
 CLIENT_SOURCES := $(wildcard src/client/*.cpp)
 SHARED_SOURCES := $(wildcard src/shared/*.cpp)
@@ -68,5 +68,4 @@ clean:
 	rm -f $(OBJECTS) $(TARGETS) $(TARGET_EXECS) project.zip
 
 package:
-	cp README.md readme.txt
 	zip project.zip $(SOURCES) $(HEADERS) Makefile .clang-format readme.txt

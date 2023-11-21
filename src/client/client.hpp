@@ -1,8 +1,14 @@
 #ifndef __CLIENT__
 #define __CLIENT__
 
-#include "commands.hpp"
+#define LOGGED_OUT -1
 
-void registerCommands(CommandManager &manager);
+class Client {
+   public:
+	int _user_id = LOGGED_OUT;
+	void login(int user_id);
+	void logout();
+	int isLoggedIn();
+};
 
 #endif
