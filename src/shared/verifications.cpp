@@ -14,7 +14,7 @@ int verify_user_id(std::string user_id) {
 	}
 
 	for (int i = 0; i < 6; i++) {
-		if (isdigit(user_id[i]) == false) {
+		if (!isdigit(user_id[i])) {
 			return -1;
 		}
 	}
