@@ -96,7 +96,7 @@ int verify_timeactive(std::string timeactive) {
 	return 0;
 }
 
-int verify_a_id(std::string a_id) {
+int verify_auction_id(std::string a_id) {
 	if (a_id.size() != 3) {
 		return -1;
 	}

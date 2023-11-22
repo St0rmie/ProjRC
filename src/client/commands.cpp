@@ -147,7 +147,7 @@ void CloseAuctionCommand::handle(std::string args) {
 
 	std::string a_id = parsed_args[0];
 
-	if (verify_a_id(a_id) == -1) {
+	if (verify_auction_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
 		return;
 	}
@@ -194,7 +194,7 @@ void ShowAssetCommand::handle(std::string args) {
 
 	std::string a_id = parsed_args[0];
 
-	if (verify_a_id(a_id) == -1) {
+	if (verify_auction_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
 		return;
 	}
@@ -221,7 +221,7 @@ void BidCommand::handle(std::string args) {
 	std::string a_id = parsed_args[0];
 	uint32_t value = stoi(parsed_args[1]);
 
-	if (verify_a_id(a_id) == -1) {
+	if (verify_auction_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
 		return;
 	}
@@ -253,7 +253,7 @@ void ShowRecordCommand::handle(std::string args) {
 
 	std::string a_id = parsed_args[0];
 
-	if (verify_a_id(a_id) == -1) {
+	if (verify_auction_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
 		return;
 	}
