@@ -66,6 +66,12 @@ void LoginCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
+	if (client.isLoggedIn() == true) {
+		std::cout << "[ERROR] Already Logged In. Please logout first."
+				  << std::endl;
+		return;
+	}
+
 	// Defining the arguments extracted
 	std::string user_id = parsed_args[0];
 	std::string password = parsed_args[1];
@@ -91,8 +97,9 @@ void LoginCommand::handle(std::string args, Client &client) {
 	// Check status
 	switch (message_in.status) {
 		case ServerLoginUser::status::OK:
-			std::cout << "[Login] Sucessfully logged in as " << user_id
-					  << std::endl;
+			client.login(convert_user_id(user_id));
+			std::cout << "[Login] Sucessfully logged in as "
+					  << client.getLoggedInUser() << std::endl;
 			break;
 
 		case ServerLoginUser::status::NOK:
@@ -100,9 +107,12 @@ void LoginCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerLoginUser::status::REG:
-		default:
+			client.login(convert_user_id(user_id));
 			std::cout << "[Login] Registered user." << std::endl;
 			break;
+
+		default:
+			throw InvalidMessageException();
 	}
 }
 

@@ -55,8 +55,7 @@ char ProtocolMessage::readAlphabeticalChar(std::stringstream &buffer) {
 std::string ProtocolMessage::readString(std::stringstream &buffer,
                                         uint32_t max_len) {
 	std::string str;
-	uint32_t i = 0;
-	for (uint32_t i; i < max_len; i++) {
+	for (uint32_t i = 0; i < max_len; i++) {
 		char c = (char) buffer.get();
 		if (!buffer.good()) {
 			throw InvalidMessageException();
@@ -67,6 +66,7 @@ std::string ProtocolMessage::readString(std::stringstream &buffer,
 		}
 		str += c;
 	}
+
 	return str;
 }
 
@@ -150,11 +150,8 @@ std::stringstream ServerLoginUser::buildMessage() {
 void ServerLoginUser::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerLoginUser::protocol_code);
-	std::cout << "GET:" << buffer.str() << std::endl;
 	readSpace(buffer);
-	std::cout << "GET:" << buffer.str() << std::endl;
 	std::string status_str = readString(buffer, 3);
-	std::cout << "GET:" << status_str << status_str.length() << std::endl;
 	if (status_str == "OK") {
 		status = OK;
 	} else if (status_str == "NOK") {
@@ -207,7 +204,6 @@ std::string convert_password(std::string string) {
 void send_message(ProtocolMessage &message, int socketfd, struct sockaddr *addr,
                   socklen_t addrlen) {
 	const std::stringstream buffer = message.buildMessage();
-	std::cout << "SEND:" << buffer.str() << std::endl;
 	ssize_t n = sendto(socketfd, buffer.str().c_str(), buffer.str().length(), 0,
 	                   addr, addrlen);
 	if (n == -1) {
