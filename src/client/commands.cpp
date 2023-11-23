@@ -66,6 +66,12 @@ void LoginCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
+	if (client.isLoggedIn() == true) {
+		std::cout << "[ERROR] Already Logged In. Please logout first."
+				  << std::endl;
+		return;
+	}
+
 	// Defining the arguments extracted
 	std::string user_id = parsed_args[0];
 	std::string password = parsed_args[1];
@@ -91,8 +97,9 @@ void LoginCommand::handle(std::string args, Client &client) {
 	// Check status
 	switch (message_in.status) {
 		case ServerLoginUser::status::OK:
-			std::cout << "[Login] Sucessfully logged in as " << user_id
-					  << std::endl;
+			client.login(convert_user_id(user_id), convert_password(password));
+			std::cout << "[Login] Sucessfully logged in as "
+					  << client.getLoggedInUser() << std::endl;
 			break;
 
 		case ServerLoginUser::status::NOK:
@@ -100,9 +107,48 @@ void LoginCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerLoginUser::status::REG:
-		default:
+			client.login(convert_user_id(user_id), convert_password(password));
 			std::cout << "[Login] Registered user." << std::endl;
 			break;
+
+		default:
+			throw InvalidMessageException();
+	}
+}
+
+void LogoutCommand::handle(std::string args, Client &client) {
+	(void) args;
+
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		return;
+	}
+
+	// Populate and send packet
+	ClientLogout message_out;
+	message_out.user_id = client.getLoggedInUser();
+	message_out.password = client.getPassword();
+
+	ServerLogout message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerLogout::status::OK:
+			client.logout();
+			std::cout << "[SUCCESS] Sucessfully logged out" << std::endl;
+			break;
+
+		case ServerLogout::status::NOK:
+			std::cout << "[ERROR] Couldn't logout." << std::endl;
+			break;
+
+		case ServerLogout::status::UNR:
+			std::cout << "[ERROR] Unregistered user." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
 	}
 }
 
@@ -283,13 +329,6 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 
 	// Protocol setup
 	std::cout << "SHOWED RECORD // AUCTION: " << a_id << std::endl;
-}
-
-void LogoutCommand::handle(std::string args, Client &client) {
-	(void) args;  // unused - no args
-
-	// Protocol setup
-	std::cout << "LOGGED OUT" << std::endl;
 }
 
 void UnregisterCommand::handle(std::string args, Client &client) {
