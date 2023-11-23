@@ -98,12 +98,14 @@ void Client::waitForUdpMessage(ProtocolMessage &message) {
 	await_message(message, _udp_socket_fd);
 }
 
-void Client::login(uint32_t user_id) {
+void Client::login(uint32_t user_id, std::string password) {
 	this->_user_id = user_id;
+	this->_password = password;
 }
 
 void Client::logout() {
 	this->_user_id = LOGGED_OUT;
+	this->_password = "";
 }
 
 bool Client::isLoggedIn() {
@@ -112,6 +114,10 @@ bool Client::isLoggedIn() {
 
 int Client::getLoggedInUser() {
 	return _user_id;
+}
+
+std::string Client::getPassword() {
+	return _password;
 }
 
 void printError(std::string error_description) {

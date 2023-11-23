@@ -97,7 +97,7 @@ void LoginCommand::handle(std::string args, Client &client) {
 	// Check status
 	switch (message_in.status) {
 		case ServerLoginUser::status::OK:
-			client.login(convert_user_id(user_id));
+			client.login(convert_user_id(user_id), convert_password(password));
 			std::cout << "[Login] Sucessfully logged in as "
 					  << client.getLoggedInUser() << std::endl;
 			break;
@@ -107,8 +107,44 @@ void LoginCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerLoginUser::status::REG:
-			client.login(convert_user_id(user_id));
+			client.login(convert_user_id(user_id), convert_password(password));
 			std::cout << "[Login] Registered user." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
+}
+
+void LogoutCommand::handle(std::string args, Client &client) {
+	(void) args;
+
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		return;
+	}
+
+	// Populate and send packet
+	ClientLogout message_out;
+	message_out.user_id = client.getLoggedInUser();
+	message_out.password = client.getPassword();
+
+	ServerLogout message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerLogout::status::OK:
+			client.logout();
+			std::cout << "[SUCCESS] Sucessfully logged out" << std::endl;
+			break;
+
+		case ServerLogout::status::NOK:
+			std::cout << "[ERROR] Couldn't logout." << std::endl;
+			break;
+
+		case ServerLogout::status::UNR:
+			std::cout << "[ERROR] Unregistered user." << std::endl;
 			break;
 
 		default:
@@ -293,13 +329,6 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 
 	// Protocol setup
 	std::cout << "SHOWED RECORD // AUCTION: " << a_id << std::endl;
-}
-
-void LogoutCommand::handle(std::string args, Client &client) {
-	(void) args;  // unused - no args
-
-	// Protocol setup
-	std::cout << "LOGGED OUT" << std::endl;
 }
 
 void UnregisterCommand::handle(std::string args, Client &client) {

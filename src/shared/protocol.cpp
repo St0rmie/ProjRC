@@ -116,6 +116,8 @@ std::string ProtocolMessage::readPassword(std::stringstream &buffer) {
 // | Types of protocol messages		 |
 // -----------------------------------
 
+// ---------- LOGIN
+
 std::stringstream ClientLoginUser::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " " << user_id << " " << password << std::endl;
@@ -158,6 +160,158 @@ void ServerLoginUser::readMessage(std::stringstream &buffer) {
 		status = NOK;
 	} else if (status_str == "REG") {
 		status = REG;
+	} else {
+		throw InvalidMessageException();
+	}
+	readDelimiter(buffer);
+}
+
+// ---------- LOGOUT
+
+std::stringstream ClientLogout::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << " " << user_id << " " << password << std::endl;
+	return buffer;
+}
+
+void ClientLogout::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	// Serverbound packets don't read their ID
+	readSpace(buffer);
+	user_id = readUserId(buffer);
+	readSpace(buffer);
+	password = readPassword(buffer);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerLogout::buildMessage() {
+	std::stringstream buffer;
+	if (status == ServerLogout::status::OK) {
+		buffer << "OK";
+	} else if (status == ServerLogout::status::NOK) {
+		buffer << "NOK";
+	} else if (status == ServerLogout::status::UNR) {
+		buffer << "UNR";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerLogout::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerLogout::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	if (status_str == "OK") {
+		status = OK;
+	} else if (status_str == "NOK") {
+		status = NOK;
+	} else if (status_str == "UNR") {
+		status = UNR;
+	} else {
+		throw InvalidMessageException();
+	}
+	readDelimiter(buffer);
+}
+
+// ---------- UNREGISTER
+
+std::stringstream ClientUnregister::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << " " << user_id << " " << password << std::endl;
+	return buffer;
+}
+
+void ClientUnregister::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	// Serverbound packets don't read their ID
+	readSpace(buffer);
+	user_id = readUserId(buffer);
+	readSpace(buffer);
+	password = readPassword(buffer);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerUnregister::buildMessage() {
+	std::stringstream buffer;
+	if (status == ServerUnregister::status::OK) {
+		buffer << "OK";
+	} else if (status == ServerUnregister::status::NOK) {
+		buffer << "NOK";
+	} else if (status == ServerUnregister::status::UNR) {
+		buffer << "UNR";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerUnregister::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerUnregister::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	if (status_str == "OK") {
+		status = OK;
+	} else if (status_str == "NOK") {
+		status = NOK;
+	} else if (status_str == "UNR") {
+		status = UNR;
+	} else {
+		throw InvalidMessageException();
+	}
+	readDelimiter(buffer);
+}
+
+// ---------- LIST MYAUCTIONS
+
+std::stringstream ClientListStartedAuctions::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << " " << user_id << std::endl;
+	return buffer;
+}
+
+void ClientListStartedAuctions::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	// Serverbound packets don't read their ID
+	readSpace(buffer);
+	user_id = readUserId(buffer);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerListStartedAuctions::buildMessage() {
+	std::stringstream buffer;
+	if (status == ServerListStartedAuctions::status::OK) {
+		buffer << "OK";
+		for (std::string auction : auctions) {
+			buffer << " " << auction;
+		}
+	} else if (status == ServerListStartedAuctions::status::NOK) {
+		buffer << "NOK";
+	} else if (status == ServerListStartedAuctions::status::NLG) {
+		buffer << "NLG";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerListStartedAuctions::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerListStartedAuctions::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	if (status_str == "OK") {
+		status = OK;
+		// Read Auction
+	} else if (status_str == "NOK") {
+		status = NOK;
+	} else if (status_str == "NLG") {
+		status = NLG;
 	} else {
 		throw InvalidMessageException();
 	}

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "verifications.hpp"
 
@@ -17,8 +18,14 @@
 #define AUCTION_VALUE_SIZE 5
 #define PASSWORD_SIZE      8
 
-#define CODE_LOGIN_USER   "LIN"
-#define CODE_LOGIN_SERVER "RLI"
+#define CODE_LOGIN_USER        "LIN"
+#define CODE_LOGIN_SERVER      "RLI"
+#define CODE_LOGOUT_USER       "LOU"
+#define CODE_LOGOUT_SERVER     "RLO"
+#define CODE_UNREGISTER_USER   "UNR"
+#define CODE_UNREGISTER_SERVER "RUR"
+#define CODE_LIST_AUC_USER     "LMA"
+#define CODE_LIST_AUC_SERVER   "RMA"
 
 #define UDP_TIMEOUT   5
 #define UDP_MAX_TRIES 5
@@ -102,6 +109,37 @@ class ClientLoginUser : public ProtocolMessage {
 	void readMessage(std::stringstream &buffer);
 };
 
+// Logout (LOU) -> UDP
+class ClientLogout : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_LOGOUT_USER;
+	uint32_t user_id;
+	std::string password;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
+class ClientUnregister : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_UNREGISTER_USER;
+	uint32_t user_id;
+	std::string password;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
+// List started auctions by a specified user (LMA)
+class ClientListStartedAuctions : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_LIST_AUC_USER;
+	uint32_t user_id;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
 // Close Auction (CLS) -> TCP
 class ClientCloseAuction : public ProtocolMessage {
    public:
@@ -111,15 +149,6 @@ class ClientCloseAuction : public ProtocolMessage {
 
 	void buildMessage(int fd);
 	void readMessage(int fd);
-};
-
-// List started auctions by a specified user (LMA)
-class ClientListStartedAuctions : public ProtocolMessage {
-   public:
-	uint32_t user_id;
-
-	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
 };
 
 // List bidded auctions by a specified suer (LMB)
@@ -160,8 +189,6 @@ class ClientBid : public ProtocolMessage {
 };
 
 class ClientShowRecord : public ProtocolMessage {};
-class ClientLogout : public ProtocolMessage {};
-class ClientUnregister : public ProtocolMessage {};
 
 // Server Messages for each command
 class ServerLoginUser : public ProtocolMessage {
@@ -173,16 +200,45 @@ class ServerLoginUser : public ProtocolMessage {
 	std::stringstream buildMessage();
 	void readMessage(std::stringstream &buffer);
 };
+
+class ServerLogout : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_LOGOUT_SERVER;
+	enum status { OK, NOK, UNR };
+
+	status status;
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
+class ServerUnregister : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_UNREGISTER_SERVER;
+	enum status { OK, NOK, UNR };
+
+	status status;
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
+class ServerListStartedAuctions : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_LIST_AUC_SERVER;
+	enum status { OK, NOK, NLG };
+	std::vector<std::string> auctions;
+
+	status status;
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
 class ServerCreateAuction : public ProtocolMessage {};
 class ServerCloseAuction : public ProtocolMessage {};
-class ServerListStartedAuction : public ProtocolMessage {};
 class ServerListBiddedAuction : public ProtocolMessage {};
 class ServerListAllAuctions : public ProtocolMessage {};
 class ServerShowAsset : public ProtocolMessage {};
 class ServerBid : public ProtocolMessage {};
 class ServerShowRecord : public ProtocolMessage {};
-class ServerLogout : public ProtocolMessage {};
-class ServerUnregister : public ProtocolMessage {};
 
 // -----------------------------------
 // | Convert types					 |

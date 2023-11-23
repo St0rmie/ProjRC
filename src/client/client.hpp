@@ -29,6 +29,7 @@ class ResolveHostnameException : public std::runtime_error {
 
 class Client {
 	uint32_t _user_id = LOGGED_OUT;
+	std::string _password = "";
 
 	std::string _hostname = DEFAULT_HOSTNAME;
 	std::string _port = DEFAULT_PORT;
@@ -50,10 +51,11 @@ class Client {
    public:
 	Client(int argc, char* argv[]);
 	~Client();
-	void login(uint32_t user_id);
+	void login(uint32_t user_id, std::string password);
 	void logout();
 	bool isLoggedIn();
 	int getLoggedInUser();
+	std::string getPassword();
 	void sendUdpMessageAndAwaitReply(ProtocolMessage& out_message,
 	                                 ProtocolMessage& in_message);
 	void sendTcpMessageAndAwaitReply(ProtocolMessage& out_message,
