@@ -117,3 +117,18 @@ int verify_value(uint32_t value) {
 
 	return 0;
 }
+
+int verify_port_number(std::string &port) {
+	for (char c : port) {
+		if (!std::isdigit(static_cast<unsigned char>(c))) {
+			return -1;
+		}
+	}
+
+	int32_t parsed_port = std::stoi(port);
+	if (parsed_port <= 0 || parsed_port > 65535) {
+		return -1;
+	}
+
+	return 0;
+}

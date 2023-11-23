@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "client.hpp"
+
 #define MAX_COMMAND_SIZE 1024
 
 /* Command COMMANDS */
@@ -31,15 +33,15 @@
 
 class CommandHandler {
    protected:
-	CommandHandler(const char* name, std::optional<const char*> alias,
-	               const char* description)
+	CommandHandler(const char *name, std::optional<const char *> alias,
+	               const char *description)
 		: _name{name}, _alias{alias}, _description{description} {}
 
    public:
-	const char* _name;
-	const std::optional<const char*> _alias;
-	const char* _description;
-	virtual void handle(std::string name) = 0;
+	const char *_name;
+	const std::optional<const char *> _alias;
+	const char *_description;
+	virtual void handle(std::string name, Client &client) = 0;
 };
 
 class CommandManager {
@@ -48,11 +50,11 @@ class CommandManager {
 
    public:
 	void registerCommand(std::shared_ptr<CommandHandler> handler);
-	void waitCommand();
+	void waitCommand(Client &client);
 };
 
 class LoginCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	LoginCommand()
@@ -60,7 +62,7 @@ class LoginCommand : public CommandHandler {
 };
 
 class CreateAuctionCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	CreateAuctionCommand()
@@ -69,7 +71,7 @@ class CreateAuctionCommand : public CommandHandler {
 };
 
 class CloseAuctionCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	CloseAuctionCommand()
@@ -78,7 +80,7 @@ class CloseAuctionCommand : public CommandHandler {
 };
 
 class ListStartedAuctionsCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	ListStartedAuctionsCommand()
@@ -88,7 +90,7 @@ class ListStartedAuctionsCommand : public CommandHandler {
 };
 
 class ListBiddedAuctionsCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	ListBiddedAuctionsCommand()
@@ -97,7 +99,7 @@ class ListBiddedAuctionsCommand : public CommandHandler {
 };
 
 class ListAllAuctionsCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	ListAllAuctionsCommand()
@@ -105,7 +107,7 @@ class ListAllAuctionsCommand : public CommandHandler {
 };
 
 class ShowAssetCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	ShowAssetCommand()
@@ -114,14 +116,14 @@ class ShowAssetCommand : public CommandHandler {
 };
 
 class BidCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	BidCommand() : CommandHandler("bid", "b", "Place a bid for auction.") {}
 };
 
 class ShowRecordCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	ShowRecordCommand()
@@ -129,7 +131,7 @@ class ShowRecordCommand : public CommandHandler {
 };
 
 class LogoutCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	LogoutCommand()
@@ -137,7 +139,7 @@ class LogoutCommand : public CommandHandler {
 };
 
 class UnregisterCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	UnregisterCommand()
@@ -146,7 +148,7 @@ class UnregisterCommand : public CommandHandler {
 };
 
 class ExitCommand : public CommandHandler {
-	virtual void handle(std::string name);
+	virtual void handle(std::string name, Client &client);
 
    public:
 	ExitCommand()

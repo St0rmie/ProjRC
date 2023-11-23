@@ -4,14 +4,16 @@
 #include <memory>
 #include <string>
 
+#include "client.hpp"
 #include "commands.hpp"
 
 int main(int argc, char *argv[]) {
+	Client client(argc, argv);
 	CommandManager commandManager;
 	registerCommands(commandManager);
 
 	while (!std::cin.eof()) {
-		commandManager.waitCommand();
+		commandManager.waitCommand(client);
 	}
 
 	std::cout << "Bye Bye!" << std::endl;

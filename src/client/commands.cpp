@@ -4,6 +4,8 @@
 #include <sstream>
 #include <string>
 
+#include "client.hpp"
+#include "shared/protocol.hpp"
 #include "shared/verifications.hpp"
 
 void CommandManager::registerCommand(std::shared_ptr<CommandHandler> handler) {
@@ -13,7 +15,7 @@ void CommandManager::registerCommand(std::shared_ptr<CommandHandler> handler) {
 	}
 }
 
-void CommandManager::waitCommand() {
+void CommandManager::waitCommand(Client &client) {
 	std::cout << "> ";
 
 	std::string line;
@@ -46,10 +48,10 @@ void CommandManager::waitCommand() {
 		return;
 	}
 
-	handler->second->handle(line);
+	handler->second->handle(line, client);
 }
 
-void LoginCommand::handle(std::string args) {
+void LoginCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
@@ -78,12 +80,33 @@ void LoginCommand::handle(std::string args) {
 		return;
 	}
 
-	// Protocol setup
-	std::cout << "LOGGED IN // USER: " << user_id
-			  << " // PASSWORD: " << password << std::endl;
+	// Populate and send packet
+	ClientLoginUser message_out;
+	message_out.user_id = convert_user_id(user_id);
+	message_out.password = convert_password(password);
+
+	ServerLoginUser message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerLoginUser::status::OK:
+			std::cout << "[Login] Sucessfully logged in as " << user_id
+					  << std::endl;
+			break;
+
+		case ServerLoginUser::status::NOK:
+			std::cout << "[Login] Couldn't login." << std::endl;
+			break;
+
+		case ServerLoginUser::status::REG:
+		default:
+			std::cout << "[Login] Registered user." << std::endl;
+			break;
+	}
 }
 
-void CreateAuctionCommand::handle(std::string args) {
+void CreateAuctionCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
@@ -130,7 +153,7 @@ void CreateAuctionCommand::handle(std::string args) {
 			  << " // TIME ACTIVE: " << timeactive << std::endl;
 }
 
-void CloseAuctionCommand::handle(std::string args) {
+void CloseAuctionCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
@@ -156,28 +179,28 @@ void CloseAuctionCommand::handle(std::string args) {
 	std::cout << "CLOSED AUCTION // AUCTION: " << a_id << std::endl;
 }
 
-void ListStartedAuctionsCommand::handle(std::string args) {
+void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
 
 	// Protocol setup
 	std::cout << "LISTED STARTED AUCTIONS" << std::endl;
 }
 
-void ListBiddedAuctionsCommand::handle(std::string args) {
+void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
 
 	// Protocol setup
 	std::cout << "LISTED BIDDED AUCTIONS" << std::endl;
 }
 
-void ListAllAuctionsCommand::handle(std::string args) {
+void ListAllAuctionsCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
 
 	// Protocol setup
 	std::cout << "LISTED ALL AUCTIONS" << std::endl;
 }
 
-void ShowAssetCommand::handle(std::string args) {
+void ShowAssetCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
@@ -203,7 +226,7 @@ void ShowAssetCommand::handle(std::string args) {
 	std::cout << "SHOWED IMAGE FILE OF THE ASSET: " << a_id << std::endl;
 }
 
-void BidCommand::handle(std::string args) {
+void BidCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
@@ -236,7 +259,7 @@ void BidCommand::handle(std::string args) {
 			  << std::endl;
 }
 
-void ShowRecordCommand::handle(std::string args) {
+void ShowRecordCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
@@ -262,21 +285,21 @@ void ShowRecordCommand::handle(std::string args) {
 	std::cout << "SHOWED RECORD // AUCTION: " << a_id << std::endl;
 }
 
-void LogoutCommand::handle(std::string args) {
+void LogoutCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
 
 	// Protocol setup
 	std::cout << "LOGGED OUT" << std::endl;
 }
 
-void UnregisterCommand::handle(std::string args) {
+void UnregisterCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
 
 	// Protocol setup
 	std::cout << "UNREGISTERED" << std::endl;
 }
 
-void ExitCommand::handle(std::string args) {
+void ExitCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
 
 	// Protocol setup
