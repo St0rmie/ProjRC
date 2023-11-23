@@ -5,9 +5,11 @@
 #include <unistd.h>
 
 #include <cstring>
+#include <iostream>
 #include <string>
 
 #include "shared/protocol.hpp"
+#include "shared/verifications.hpp"
 
 #define LOGGED_OUT -1
 
@@ -28,6 +30,9 @@ class ResolveHostnameException : public std::runtime_error {
 class Client {
 	int _user_id = LOGGED_OUT;
 
+	std::string _hostname = DEFAULT_HOSTNAME;
+	std::string _port = DEFAULT_PORT;
+
 	int _udp_socket_fd = -1;
 	int _tcp_socket_fd = -1;
 	struct addrinfo* _server_udp_addr = NULL;
@@ -40,14 +45,19 @@ class Client {
 	void sendTcpMessage(ProtocolMessage& message);
 	void waitForTcpMessage(ProtocolMessage& message);
 	void closeTcpSocket();
+	void configClient(int argc, char* argv[]);
 
    public:
-	Client(std::string& hostname, std::string& port);
+	Client(int argc, char* argv[]);
 	~Client();
 	void login(int user_id);
 	void logout();
 	int isLoggedIn();
 	int getLoggedInUser();
+	void sendUdpMessageAndAwaitReply(ProtocolMessage& out_message,
+	                                 ProtocolMessage& in_message);
+	void sendTcpMessageAndAwaitReply(ProtocolMessage& out_message,
+	                                 ProtocolMessage& in_message);
 };
 
 #endif

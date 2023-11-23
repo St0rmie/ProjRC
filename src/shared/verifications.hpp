@@ -11,5 +11,6 @@ int verify_start_value(std::string start_value);
 int verify_timeactive(std::string timeactive);
 int verify_auction_id(std::string a_id);
 int verify_value(uint32_t value);
+int verify_port_number(std::string &port);
 
 #endif

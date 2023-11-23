@@ -1,10 +1,16 @@
 #ifndef __PROTOCOL__
 #define __PROTOCOL__
 
+#include <sys/socket.h>
+
+#include <iostream>
 #include <sstream>
 #include <string>
 
 #include "verifications.hpp"
+
+#define DEFAULT_HOSTNAME "localhost"
+#define DEFAULT_PORT     "58086"
 
 #define USER_ID_SIZE       6
 #define AUCTION_ID_SIZE    3
@@ -13,6 +19,11 @@
 
 #define CODE_LOGIN_USER   "LIN"
 #define CODE_LOGIN_SERVER "RLI"
+
+#define UDP_TIMEOUT   5
+#define UDP_MAX_TRIES 5
+
+#define SOCKET_BUFFER_LEN 512
 
 // Thrown when the MessageID does not match what was expected
 class UnexpectedMessageException : public std::runtime_error {
@@ -31,6 +42,27 @@ class MessageBuildingException : public std::runtime_error {
    public:
 	MessageBuildingException()
 		: std::runtime_error("Message Building error.") {}
+};
+
+// Thrown when the Message couldn't be sent
+class MessageSendException : public std::runtime_error {
+   public:
+	MessageSendException() : std::runtime_error("Message couldn't be sent.") {}
+};
+
+// Thrown when the Message couldn't be sent
+class MessageReceiveException : public std::runtime_error {
+   public:
+	MessageReceiveException()
+		: std::runtime_error("Message couldn't be received.") {}
+};
+
+// Thrown when reading/writing packet exceeds the timeout time.
+class ConnectionTimeoutException : public std::runtime_error {
+   public:
+	ConnectionTimeoutException()
+		: std::runtime_error("Could not connect to the game server. Timeout.") {
+	}
 };
 
 class ProtocolMessage {
@@ -160,4 +192,13 @@ uint32_t convert_user_id(std::string string);
 uint32_t convert_auction_id(std::string string);
 uint32_t convert_auction_value(std::string string);
 std::string convert_password(std::string string);
+
+// -----------------------------------
+// | Send and receive messages		 |
+// -----------------------------------
+
+void send_message(ProtocolMessage &message, int socket,
+                  struct sockaddr *address, socklen_t addrlen);
+
+void await_message(ProtocolMessage &Message, int socket);
 #endif

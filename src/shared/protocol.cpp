@@ -150,8 +150,11 @@ std::stringstream ServerLoginUser::buildMessage() {
 void ServerLoginUser::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerLoginUser::protocol_code);
+	std::cout << "GET:" << buffer.str() << std::endl;
 	readSpace(buffer);
+	std::cout << "GET:" << buffer.str() << std::endl;
 	std::string status_str = readString(buffer, 3);
+	std::cout << "GET:" << status_str << status_str.length() << std::endl;
 	if (status_str == "OK") {
 		status = OK;
 	} else if (status_str == "NOK") {
@@ -169,14 +172,14 @@ void ServerLoginUser::readMessage(std::stringstream &buffer) {
 // -----------------------------------
 
 uint32_t convert_user_id(std::string string) {
-	if (verify_user_id(string) == 0) {
+	if (verify_user_id(string) == -1) {
 		throw InvalidMessageException();
 	}
 	return std::stoi(string);
 }
 
 uint32_t convert_auction_id(std::string string) {
-	if (verify_auction_id(string) == 0) {
+	if (verify_auction_id(string) == -1) {
 		throw InvalidMessageException();
 	}
 	return std::stoi(string);
@@ -184,15 +187,59 @@ uint32_t convert_auction_id(std::string string) {
 
 uint32_t convert_auction_value(std::string string) {
 	uint32_t value = std::stoi(string);
-	if (verify_value(value) == 0) {
+	if (verify_value(value) == -1) {
 		throw InvalidMessageException();
 	}
 	return value;
 }
 
 std::string convert_password(std::string string) {
-	if (verify_password(string) == 0) {
+	if (verify_password(string) == -1) {
 		throw InvalidMessageException();
 	}
 	return string;
+}
+
+// -----------------------------------
+// | Send and receive messages		 |
+// -----------------------------------
+
+void send_message(ProtocolMessage &message, int socketfd, struct sockaddr *addr,
+                  socklen_t addrlen) {
+	const std::stringstream buffer = message.buildMessage();
+	std::cout << "SEND:" << buffer.str() << std::endl;
+	ssize_t n = sendto(socketfd, buffer.str().c_str(), buffer.str().length(), 0,
+	                   addr, addrlen);
+	if (n == -1) {
+		throw MessageSendException();
+	}
+}
+
+void await_message(ProtocolMessage &message, int socketfd) {
+	fd_set file_descriptors;
+	FD_ZERO(&file_descriptors);
+	FD_SET(socketfd, &file_descriptors);
+
+	struct timeval timeout;
+	timeout.tv_sec = UDP_TIMEOUT;  // wait for a response before throwing
+	timeout.tv_usec = 0;
+
+	int ready_fd =
+		select(socketfd + 1, &file_descriptors, NULL, NULL, &timeout);
+	if (ready_fd == -1) {
+		throw MessageReceiveException();
+	} else if (ready_fd == 0) {
+		throw MessageReceiveException();
+	}
+
+	std::stringstream data;
+	char buffer[SOCKET_BUFFER_LEN];
+
+	ssize_t n = recvfrom(socketfd, buffer, SOCKET_BUFFER_LEN, 0, NULL, NULL);
+	if (n == -1) {
+		throw MessageReceiveException();
+	}
+
+	data.write(buffer, n);
+	message.readMessage(data);
 }
