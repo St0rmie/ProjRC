@@ -365,7 +365,7 @@ void send_message(ProtocolMessage &message, int socketfd, struct sockaddr *addr,
 	}
 }
 
-void await_message(ProtocolMessage &message, int socketfd) {
+void await_udp_message(ProtocolMessage &message, int socketfd) {
 	fd_set file_descriptors;
 	FD_ZERO(&file_descriptors);
 	FD_SET(socketfd, &file_descriptors);
@@ -391,5 +391,19 @@ void await_message(ProtocolMessage &message, int socketfd) {
 	}
 
 	data.write(buffer, n);
+	message.readMessage(data);
+}
+
+void await_tcp_message(ProtocolMessage &message, int socketfd) {
+	std::stringstream data;
+	char buffer[SOCKET_BUFFER_LEN];
+	ssize_t bytes_read;
+	while ((bytes_read = recv(socketfd, &buffer, SOCKET_BUFFER_LEN, 0) > 0)) {
+		if (bytes_read == -1) {
+			throw MessageReceiveException();
+		}
+
+		data.write(buffer, bytes_read);
+	};
 	message.readMessage(data);
 }

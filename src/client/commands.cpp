@@ -119,6 +119,11 @@ void LoginCommand::handle(std::string args, Client &client) {
 void LogoutCommand::handle(std::string args, Client &client) {
 	(void) args;
 
+	if (args.length() > 0) {
+		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
+
 	if (client.isLoggedIn() == false) {
 		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
 		return;
@@ -150,6 +155,53 @@ void LogoutCommand::handle(std::string args, Client &client) {
 		default:
 			throw InvalidMessageException();
 	}
+}
+
+void UnregisterCommand::handle(std::string args, Client &client) {
+	if (args.length() > 0) {
+		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
+
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		return;
+	}
+
+	// Populate and send packet
+	ClientUnregister message_out;
+	message_out.user_id = client.getLoggedInUser();
+	message_out.password = client.getPassword();
+
+	ServerUnregister message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerUnregister::status::OK:
+			client.logout();
+			std::cout << "[SUCCESS] Sucessfully unregister." << std::endl;
+			break;
+
+		case ServerUnregister::status::NOK:
+			std::cout << "[ERROR] Not logged in, hence couldn't unregister."
+					  << std::endl;
+			break;
+
+		case ServerUnregister::status::UNR:
+			std::cout << "[ERROR] Unregistered user." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
+}
+
+void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
+	(void) args;  // unused - no args
+
+	// Protocol setup
+	std::cout << "LISTED STARTED AUCTIONS" << std::endl;
 }
 
 void CreateAuctionCommand::handle(std::string args, Client &client) {
@@ -223,13 +275,6 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 
 	// Protocol setup
 	std::cout << "CLOSED AUCTION // AUCTION: " << a_id << std::endl;
-}
-
-void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
-	(void) args;  // unused - no args
-
-	// Protocol setup
-	std::cout << "LISTED STARTED AUCTIONS" << std::endl;
 }
 
 void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
@@ -329,13 +374,6 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 
 	// Protocol setup
 	std::cout << "SHOWED RECORD // AUCTION: " << a_id << std::endl;
-}
-
-void UnregisterCommand::handle(std::string args, Client &client) {
-	(void) args;  // unused - no args
-
-	// Protocol setup
-	std::cout << "UNREGISTERED" << std::endl;
 }
 
 void ExitCommand::handle(std::string args, Client &client) {

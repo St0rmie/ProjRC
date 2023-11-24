@@ -30,6 +30,11 @@
 #define UDP_TIMEOUT   5
 #define UDP_MAX_TRIES 5
 
+#define TCP_READ_TIMEOUT_SECONDS   20
+#define TCP_READ_TIMEOUT_USECONDS  0
+#define TCP_WRITE_TIMEOUT_SECONDS  60
+#define TCP_WRITE_TIMEOUT_USECONDS 0
+
 #define SOCKET_BUFFER_LEN 512
 
 // Thrown when the MessageID does not match what was expected
@@ -91,6 +96,18 @@ class ProtocolMessage {
 
    public:
 	virtual std::stringstream buildMessage() = 0;
+	virtual void readMessage(std::stringstream &buffer) = 0;
+};
+
+class UdpMessage : public ProtocolMessage {
+   public:
+	virtual std::stringstream buildMessage() = 0;
+	virtual void readMessage(std::stringstream &buffer) = 0;
+};
+
+class TcpMessage : public ProtocolMessage {
+   public:
+	virtual std::stringstream buildMessageAndWrite(int fd) = 0;
 	virtual void readMessage(std::stringstream &buffer) = 0;
 };
 
@@ -256,5 +273,6 @@ std::string convert_password(std::string string);
 void send_message(ProtocolMessage &message, int socket,
                   struct sockaddr *address, socklen_t addrlen);
 
-void await_message(ProtocolMessage &Message, int socket);
+void await_udp_message(ProtocolMessage &Message, int socketfd);
+void await_tcp_message(ProtocolMessage &Message, int socketfd);
 #endif
