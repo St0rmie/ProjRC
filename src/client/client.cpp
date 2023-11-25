@@ -95,8 +95,78 @@ void Client::sendUdpMessage(ProtocolMessage &message) {
 }
 
 void Client::waitForUdpMessage(ProtocolMessage &message) {
-	await_message(message, _udp_socket_fd);
+	await_udp_message(message, _udp_socket_fd);
 }
+
+void Client::sendTcpMessageAndAwaitReply(ProtocolMessage &out_message,
+                                         ProtocolMessage &in_message) {
+	try {
+		openTcpSocket();
+		sendTcpMessage(out_message);
+		waitForTcpMessage(in_message);
+	} catch (...) {
+		closeTcpSocket();
+	}
+	closeTcpSocket();
+}
+
+void Client::openTcpSocket() {
+	this->_tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_tcp_socket_fd == -1) {
+		throw SocketException();
+	}
+
+	struct timeval read_timeout;
+	read_timeout.tv_sec = TCP_READ_TIMEOUT_SECONDS;
+	read_timeout.tv_usec = TCP_READ_TIMEOUT_USECONDS;
+	int errcode = setsockopt(this->_tcp_socket_fd, SOL_SOCKET, SO_RCVTIMEO,
+	                         &read_timeout, sizeof(read_timeout));
+	if (errcode < 0) {
+		throw SocketException();
+	}
+
+	struct timeval write_timeout;
+	write_timeout.tv_sec = TCP_WRITE_TIMEOUT_SECONDS;
+	write_timeout.tv_usec = TCP_WRITE_TIMEOUT_USECONDS;
+	errcode = setsockopt(this->_tcp_socket_fd, SOL_SOCKET, SO_SNDTIMEO,
+	                     &write_timeout, sizeof(write_timeout));
+	if (errcode < 0) {
+		throw SocketException();
+	}
+}
+
+void Client::sendTcpMessage(ProtocolMessage &message) {
+	ssize_t n = connect(_tcp_socket_fd, _server_tcp_addr->ai_addr,
+	                    _server_tcp_addr->ai_addrlen);
+	if (n == -1) {
+		throw ConnectionTimeoutException();
+	}
+	const char *message_str = message.buildMessage().str().c_str();
+	size_t bytes_to_send = strlen(message_str);
+	size_t bytes_sent = 0;
+	while (bytes_sent < bytes_to_send) {
+		ssize_t sent = write(_tcp_socket_fd, message_str + bytes_sent,
+		                     bytes_to_send - bytes_sent);
+		if (sent < 0) {
+			throw MessageSendException();
+		}
+		bytes_sent += sent;
+	}
+}
+
+void Client::waitForTcpMessage(ProtocolMessage &message) {
+	await_tcp_message(message, _tcp_socket_fd);
+};
+
+void Client::closeTcpSocket() {
+	if (close(this->_tcp_socket_fd) != 0) {
+		if (errno == EBADF) {
+			// was already closed
+			return;
+		}
+		throw SocketException();
+	}
+};
 
 void Client::login(uint32_t user_id, std::string password) {
 	this->_user_id = user_id;

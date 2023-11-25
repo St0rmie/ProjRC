@@ -28,12 +28,12 @@ void CommandManager::waitCommand(Client &client) {
 	int splitIndex = line.find(' ');
 
 	std::string commandName;
-	if (splitIndex == line.length() - 1) {
+	if (splitIndex == std::string::npos) {
 		commandName = line;
 		line = "";
 	} else {
 		commandName = line.substr(0, splitIndex);
-		line = line.substr(splitIndex + 1, line.length() - 1);
+		line.erase(0, splitIndex + 1);
 	}
 
 	if (commandName.length() == 0) {
@@ -117,7 +117,10 @@ void LoginCommand::handle(std::string args, Client &client) {
 }
 
 void LogoutCommand::handle(std::string args, Client &client) {
-	(void) args;
+	if (args.length() > 0) {
+		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
 
 	if (client.isLoggedIn() == false) {
 		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
@@ -145,6 +148,88 @@ void LogoutCommand::handle(std::string args, Client &client) {
 
 		case ServerLogout::status::UNR:
 			std::cout << "[ERROR] Unregistered user." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
+}
+
+void UnregisterCommand::handle(std::string args, Client &client) {
+	if (args.length() > 0) {
+		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
+
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		return;
+	}
+
+	// Populate and send packet
+	ClientUnregister message_out;
+	message_out.user_id = client.getLoggedInUser();
+	message_out.password = client.getPassword();
+
+	ServerUnregister message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerUnregister::status::OK:
+			client.logout();
+			std::cout << "[SUCCESS] Sucessfully unregister." << std::endl;
+			break;
+
+		case ServerUnregister::status::NOK:
+			std::cout << "[ERROR] Not logged in, hence couldn't unregister."
+					  << std::endl;
+			break;
+
+		case ServerUnregister::status::UNR:
+			std::cout << "[ERROR] Unregistered user." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
+}
+
+void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
+	if (args.length() > 0) {
+		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
+
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		return;
+	}
+
+	// Populate and send packet
+	ClientListStartedAuctions message_out;
+	message_out.user_id = client.getLoggedInUser();
+
+	ServerListStartedAuctions message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerListStartedAuctions::status::OK:;
+			std::cout << "[SUCCESS] Listing \nAuctions started by user "
+					  << client.getLoggedInUser() << ":" << std::endl;
+			for (std::string auc : message_in.auctions) {
+				std::cout << "\t" << auc << std::endl;
+			}
+			break;
+
+		case ServerListStartedAuctions::status::NOK:
+			std::cout << "[ERROR] User doesn't have ongoing auctions."
+					  << std::endl;
+			break;
+
+		case ServerListStartedAuctions::status::NLG:
+			std::cout << "[ERROR] User not logged in." << std::endl;
 			break;
 
 		default:
@@ -223,13 +308,6 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 
 	// Protocol setup
 	std::cout << "CLOSED AUCTION // AUCTION: " << a_id << std::endl;
-}
-
-void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
-	(void) args;  // unused - no args
-
-	// Protocol setup
-	std::cout << "LISTED STARTED AUCTIONS" << std::endl;
 }
 
 void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
@@ -329,13 +407,6 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 
 	// Protocol setup
 	std::cout << "SHOWED RECORD // AUCTION: " << a_id << std::endl;
-}
-
-void UnregisterCommand::handle(std::string args, Client &client) {
-	(void) args;  // unused - no args
-
-	// Protocol setup
-	std::cout << "UNREGISTERED" << std::endl;
 }
 
 void ExitCommand::handle(std::string args, Client &client) {
