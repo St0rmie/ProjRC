@@ -112,6 +112,36 @@ std::string ProtocolMessage::readPassword(std::stringstream &buffer) {
 	return convert_password(password_str);
 }
 
+std::string ProtocolMessage::readAuctionAndState(std::stringstream &buffer) {
+	if (checkIfOver(buffer) == true) {
+		return "";
+	}
+
+	readSpace(buffer);
+	std::string auction_str = readString(buffer, 3);
+	std::cout << "auctrion str" << std::endl;
+	readSpace(buffer);
+	std::string state_str = readString(buffer, 1);
+	if (state_str == "1") {
+		state_str = "ACTIVE";
+	} else if (state_str == "0") {
+		state_str = "OVER";
+	}
+	std::cout << auction_str + " " + state_str << std::endl;
+	return auction_str + " " + state_str;
+}
+
+bool ProtocolMessage::checkIfOver(std::stringstream &buffer) {
+	char c = '\n';
+	if (readChar(buffer) == c) {
+		buffer.unget();
+		return true;
+	} else {
+		buffer.unget();
+		return false;
+	}
+}
+
 // -----------------------------------
 // | Types of protocol messages		 |
 // -----------------------------------
@@ -307,12 +337,16 @@ void ServerListStartedAuctions::readMessage(std::stringstream &buffer) {
 	std::string status_str = readString(buffer, 3);
 	if (status_str == "OK") {
 		status = OK;
-		// Read Auction
+		std::string auc;
+		while ((auc = readAuctionAndState(buffer)).length() > 0) {
+			ServerListStartedAuctions::auctions.push_back(auc);
+		}
 	} else if (status_str == "NOK") {
 		status = NOK;
 	} else if (status_str == "NLG") {
 		status = NLG;
 	} else {
+		std::cout << "INVALIDA IDSOA" << std::endl;
 		throw InvalidMessageException();
 	}
 	readDelimiter(buffer);

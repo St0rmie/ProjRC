@@ -93,6 +93,8 @@ class ProtocolMessage {
 	uint32_t readAuctionId(std::stringstream &buffer);
 	uint32_t readAuctionValue(std::stringstream &buffer);
 	std::string readPassword(std::stringstream &buffer);
+	std::string readAuctionAndState(std::stringstream &buffer);
+	bool checkIfOver(std::stringstream &buffer);
 
    public:
 	virtual std::stringstream buildMessage() = 0;
