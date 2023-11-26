@@ -352,6 +352,110 @@ void ServerListStartedAuctions::readMessage(std::stringstream &buffer) {
 	readDelimiter(buffer);
 }
 
+// ---------- LIST MYBIDDEDAUCTIONS
+
+std::stringstream ClientListBiddedAuctions::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << " " << user_id << std::endl;
+	return buffer;
+}
+
+void ClientListBiddedAuctions::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	// Serverbound packets don't read their ID
+	readSpace(buffer);
+	user_id = readUserId(buffer);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerListBiddedAuctions::buildMessage() {
+	std::stringstream buffer;
+	if (status == ServerListBiddedAuctions::status::OK) {
+		buffer << "OK";
+		for (std::string auction : auctions) {
+			buffer << " " << auction;
+		}
+	} else if (status == ServerListBiddedAuctions::status::NOK) {
+		buffer << "NOK";
+	} else if (status == ServerListBiddedAuctions::status::NLG) {
+		buffer << "NLG";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerListBiddedAuctions::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerListBiddedAuctions::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	if (status_str == "OK") {
+		status = OK;
+		std::string auc;
+		while ((auc = readAuctionAndState(buffer)).length() > 0) {
+			ServerListBiddedAuctions::auctions.push_back(auc);
+		}
+	} else if (status_str == "NOK") {
+		status = NOK;
+	} else if (status_str == "NLG") {
+		status = NLG;
+	} else {
+		throw InvalidMessageException();
+	}
+	readDelimiter(buffer);
+}
+
+// ---------- LIST ALL AUCTIONS
+
+std::stringstream ClientListAllAuctions::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << std::endl;
+	return buffer;
+}
+
+void ClientListAllAuctions::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	// Serverbound packets don't read their ID
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerListAllAuctions::buildMessage() {
+	std::stringstream buffer;
+	if (status == ServerListAllAuctions::status::OK) {
+		buffer << "OK";
+		for (std::string auction : auctions) {
+			buffer << " " << auction;
+		}
+	} else if (status == ServerListAllAuctions::status::NOK) {
+		buffer << "NOK";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerListAllAuctions::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerListAllAuctions::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	if (status_str == "OK") {
+		status = OK;
+		std::string auc;
+		while ((auc = readAuctionAndState(buffer)).length() > 0) {
+			ServerListAllAuctions::auctions.push_back(auc);
+		}
+	} else if (status_str == "NOK") {
+		status = NOK;
+	} else {
+		throw InvalidMessageException();
+	}
+	readDelimiter(buffer);
+}
+
 // -----------------------------------
 // | Convert types					 |
 // -----------------------------------

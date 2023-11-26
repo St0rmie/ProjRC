@@ -18,14 +18,20 @@
 #define AUCTION_VALUE_SIZE 5
 #define PASSWORD_SIZE      8
 
-#define CODE_LOGIN_USER        "LIN"
-#define CODE_LOGIN_SERVER      "RLI"
-#define CODE_LOGOUT_USER       "LOU"
-#define CODE_LOGOUT_SERVER     "RLO"
-#define CODE_UNREGISTER_USER   "UNR"
-#define CODE_UNREGISTER_SERVER "RUR"
-#define CODE_LIST_AUC_USER     "LMA"
-#define CODE_LIST_AUC_SERVER   "RMA"
+#define CODE_LOGIN_USER         "LIN"
+#define CODE_LOGIN_SERVER       "RLI"
+#define CODE_LOGOUT_USER        "LOU"
+#define CODE_LOGOUT_SERVER      "RLO"
+#define CODE_UNREGISTER_USER    "UNR"
+#define CODE_UNREGISTER_SERVER  "RUR"
+#define CODE_LIST_AUC_USER      "LMA"
+#define CODE_LIST_AUC_SERVER    "RMA"
+#define CODE_LIST_MYB_USER      "LMB"
+#define CODE_LIST_MYB_SERVER    "RMB"
+#define CODE_LIST_ALLAUC_USER   "LST"
+#define CODE_LIST_ALLAUC_SERVER "RLS"
+#define CODE_SHOWREC_USER       "SRC"
+#define CODE_SHOWREC_SERVER     "RRC"
 
 #define UDP_TIMEOUT   5
 #define UDP_MAX_TRIES 5
@@ -171,8 +177,9 @@ class ClientCloseAuction : public ProtocolMessage {
 };
 
 // List bidded auctions by a specified suer (LMB)
-class ClientListBiddedAuction : public ProtocolMessage {
+class ClientListBiddedAuctions : public ProtocolMessage {
    public:
+	std::string protocol_code = CODE_LIST_MYB_USER;
 	uint32_t user_id;
 
 	std::stringstream buildMessage();
@@ -182,6 +189,19 @@ class ClientListBiddedAuction : public ProtocolMessage {
 // List all auctions on the system (LST)
 class ClientListAllAuctions : public ProtocolMessage {
    public:
+	std::string protocol_code = CODE_LIST_ALLAUC_USER;
+	uint32_t user_id;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
+// Show record of an auction on the system
+class ClientShowRecord : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_SHOWREC_USER;
+	uint32_t auction_id;
+
 	std::stringstream buildMessage();
 	void readMessage(std::stringstream &buffer);
 };
@@ -206,8 +226,6 @@ class ClientBid : public ProtocolMessage {
 	void buildMessage(int fd);
 	void readMessage(int fd);
 };
-
-class ClientShowRecord : public ProtocolMessage {};
 
 // Server Messages for each command
 class ServerLoginUser : public ProtocolMessage {
@@ -251,13 +269,43 @@ class ServerListStartedAuctions : public ProtocolMessage {
 	void readMessage(std::stringstream &buffer);
 };
 
+class ServerListBiddedAuctions : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_LIST_MYB_SERVER;
+	enum status { OK, NOK, NLG };
+	std::vector<std::string> auctions;
+
+	status status;
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
+class ServerListAllAuctions : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_LIST_MYB_SERVER;
+	enum status { OK, NOK };
+	std::vector<std::string> auctions;
+
+	status status;
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
+class ServerShowRecord : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_SHOWREC_SERVER;
+	enum status { OK, NOK };
+	std::string auction;
+
+	status status;
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
 class ServerCreateAuction : public ProtocolMessage {};
 class ServerCloseAuction : public ProtocolMessage {};
-class ServerListBiddedAuction : public ProtocolMessage {};
-class ServerListAllAuctions : public ProtocolMessage {};
 class ServerShowAsset : public ProtocolMessage {};
 class ServerBid : public ProtocolMessage {};
-class ServerShowRecord : public ProtocolMessage {};
 
 // -----------------------------------
 // | Convert types					 |

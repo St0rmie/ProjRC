@@ -237,6 +237,134 @@ void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
 	}
 }
 
+void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
+	if (args.length() > 0) {
+		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
+
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		return;
+	}
+
+	// Populate and send packet
+	ClientListBiddedAuctions message_out;
+	message_out.user_id = client.getLoggedInUser();
+
+	ServerListBiddedAuctions message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerListStartedAuctions::status::OK:;
+			std::cout << "[SUCCESS] Listing \nAuctions bidded by user "
+					  << client.getLoggedInUser() << ":" << std::endl;
+			for (std::string auc : message_in.auctions) {
+				std::cout << "\t" << auc << std::endl;
+			}
+			break;
+
+		case ServerListStartedAuctions::status::NOK:
+			std::cout << "[ERROR] User didn't bid on any auctions."
+					  << std::endl;
+			break;
+
+		case ServerListStartedAuctions::status::NLG:
+			std::cout << "[ERROR] User not logged in." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
+}
+
+void ListAllAuctionsCommand::handle(std::string args, Client &client) {
+	if (args.length() > 0) {
+		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
+
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		return;
+	}
+
+	// Populate and send packet
+	ClientListAllAuctions message_out;
+	message_out.user_id = client.getLoggedInUser();
+
+	ServerListAllAuctions message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerListAllAuctions::status::OK:;
+			std::cout
+				<< "[SUCCESS] Listing \nAuctions registered on the server:"
+				<< ":" << std::endl;
+			for (std::string auc : message_in.auctions) {
+				std::cout << "\t" << auc << std::endl;
+			}
+			break;
+
+		case ServerListAllAuctions::status::NOK:
+			std::cout << "[ERROR] There aren't any auctions on the system yet."
+					  << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
+}
+
+void ShowRecordCommand::handle(std::string args, Client &client) {
+	// Parsing the arguments
+	std::stringstream ss(args);
+	std::vector<std::string> parsed_args;
+	std::string arg;
+
+	while (ss >> arg) {
+		parsed_args.push_back(arg);
+	}
+
+	if (parsed_args.size() != 1) {
+		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
+
+	std::string a_id = parsed_args[0];
+
+	if (verify_auction_id(a_id) == -1) {
+		std::cout << "[ERROR] Incorrect AID." << std::endl;
+		return;
+	}
+
+	// Populate and send packet
+	ClientShowRecord message_out;
+	message_out.auction_id = convert_auction_id(a_id);
+
+	ServerShowRecord message_in;
+	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerShowRecord::status::OK:;
+			std::cout
+				<< "[SUCCESS] Listing \nAuctions registered on the server:"
+				<< ":" << std::endl;
+			break;
+
+		case ServerShowRecord::status::NOK:
+			std::cout << "[ERROR] There aren't any auctions on the system yet."
+					  << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
+}
+
 void CreateAuctionCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
@@ -310,20 +438,6 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 	std::cout << "CLOSED AUCTION // AUCTION: " << a_id << std::endl;
 }
 
-void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
-	(void) args;  // unused - no args
-
-	// Protocol setup
-	std::cout << "LISTED BIDDED AUCTIONS" << std::endl;
-}
-
-void ListAllAuctionsCommand::handle(std::string args, Client &client) {
-	(void) args;  // unused - no args
-
-	// Protocol setup
-	std::cout << "LISTED ALL AUCTIONS" << std::endl;
-}
-
 void ShowAssetCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
@@ -381,32 +495,6 @@ void BidCommand::handle(std::string args, Client &client) {
 	// Protocol setup
 	std::cout << "BIDDED ON // AUCTION: " << a_id << " // VALUE: " << value
 			  << std::endl;
-}
-
-void ShowRecordCommand::handle(std::string args, Client &client) {
-	// Parsing the arguments
-	std::stringstream ss(args);
-	std::vector<std::string> parsed_args;
-	std::string arg;
-
-	while (ss >> arg) {
-		parsed_args.push_back(arg);
-	}
-
-	if (parsed_args.size() != 1) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
-		return;
-	}
-
-	std::string a_id = parsed_args[0];
-
-	if (verify_auction_id(a_id) == -1) {
-		std::cout << "[ERROR] Incorrect AID." << std::endl;
-		return;
-	}
-
-	// Protocol setup
-	std::cout << "SHOWED RECORD // AUCTION: " << a_id << std::endl;
 }
 
 void ExitCommand::handle(std::string args, Client &client) {
