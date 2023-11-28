@@ -19,6 +19,15 @@ void ProtocolMessage::readChar(std::stringstream &buffer, char c) {
 	}
 }
 
+bool ProtocolMessage::readCharEqual(std::stringstream &buffer, char c) {
+	if (readChar(buffer) != c) {
+		buffer.unget();
+		return false;
+	} else {
+		return true;
+	}
+}
+
 void ProtocolMessage::readMessageId(std::stringstream &buffer,
                                     std::string protocol_code) {
 	char current_char;
@@ -140,6 +149,23 @@ bool ProtocolMessage::checkIfOver(std::stringstream &buffer) {
 		buffer.unget();
 		return false;
 	}
+}
+
+date ProtocolMessage::readDate(std::stringstream &buffer) {
+	date date;
+	date.year = stoi(readString(buffer, 4));
+	readChar(buffer, ':');
+	date.month = stoi(readString(buffer,2));
+	readChar(buffer, ':');
+	date.day = stoi(readString(buffer,2));
+	readChar(buffer, ' ');
+	date.hours = stoi(readString(buffer,2));
+	readChar(buffer, ':');
+	date.minutes = stoi(readString(buffer,2));
+	readChar(buffer, ':');
+	date.seconds = stoi(readString(buffer,2));
+
+	return date;
 }
 
 // -----------------------------------
@@ -450,6 +476,72 @@ void ServerListAllAuctions::readMessage(std::stringstream &buffer) {
 		}
 	} else if (status_str == "NOK") {
 		status = NOK;
+	} else {
+		throw InvalidMessageException();
+	}
+	readDelimiter(buffer);
+}
+
+// ---------- SHOW RECORD
+
+std::stringstream ClientShowRecord::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << " " << auction_id << std::endl;
+	return buffer;
+}
+
+void ClientShowRecord::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readSpace(buffer);
+	auction_id = readAuctionId(buffer);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerShowRecord::buildMessage() {
+	std::stringstream buffer;
+	if (status == ServerShowRecord::status::OK) {
+		buffer << "OK";
+		for (std::string bid : bids) {
+			buffer << "\n" << bid;
+		}
+	} else if (status == ServerShowRecord::status::NOK) {
+		buffer << "NOK";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerShowRecord::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerShowRecord::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	if (status_str == "OK") {
+		status = OK;
+		host_UID = readUserId(buffer);
+		readSpace(buffer);
+		auction_name = readString(buffer, MAX_AUCTION_NAME_SIZE);
+		readSpace(buffer);
+		asset_fname = readString(buffer, MAX_AUCTION_NAME_SIZE);
+		readSpace(buffer);
+		start_value = readAuctionValue(buffer);
+		readSpace(buffer);
+		start_date_time = readDate(buffer);
+		readSpace(buffer);
+		timeactive = stoi(readString(buffer, 6));
+		readDelimiter(buffer);
+		while(readCharEqual(buffer,'B')){
+			bid bid;
+			readSpace(buffer);
+			bid.bidder_UID = readUserId(buffer);
+			readSpace(buffer);
+		};
+
+	} else if (status_str == "NOK") {
+		status = NOK;
+		readDelimiter(buffer);
 	} else {
 		throw InvalidMessageException();
 	}
