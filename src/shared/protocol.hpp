@@ -16,6 +16,8 @@
 #define USER_ID_SIZE       6
 #define AUCTION_ID_SIZE    3
 #define AUCTION_VALUE_SIZE 5
+#define MAX_AUCTION_NAME_SIZE 1024
+#define MAX_TIMEACTIVE_SIZE	6
 #define PASSWORD_SIZE      8
 
 #define CODE_LOGIN_USER         "LIN"
@@ -42,6 +44,22 @@
 #define TCP_WRITE_TIMEOUT_USECONDS 0
 
 #define SOCKET_BUFFER_LEN 512
+
+typedef struct {
+	int year;
+	int month;
+	int day;
+	int hours;
+	int minutes;
+	int seconds;
+} date;
+
+typedef struct {
+	uint32_t bidder_UID;
+	uint32_t bid_value;
+	date bid_date_time;
+	uint32_t bid_sec_time;
+} bid;
 
 // Thrown when the MessageID does not match what was expected
 class UnexpectedMessageException : public std::runtime_error {
@@ -87,6 +105,7 @@ class ProtocolMessage {
    protected:
 	char readChar(std::stringstream &buffer);
 	void readChar(std::stringstream &buffer, char chr);
+	bool readCharEqual(std::stringstream &buffer, char chr);
 	void readMessageId(std::stringstream &buffer, std::string protocol_code);
 	void readSpace(std::stringstream &buffer);
 	char readAlphabeticalChar(std::stringstream &buffer);
@@ -101,6 +120,8 @@ class ProtocolMessage {
 	std::string readPassword(std::stringstream &buffer);
 	std::string readAuctionAndState(std::stringstream &buffer);
 	bool checkIfOver(std::stringstream &buffer);
+	date readDate(std::stringstream &buffer);
+	void parseDate(date date ,std::string date_str);
 
    public:
 	virtual std::stringstream buildMessage() = 0;
@@ -294,10 +315,16 @@ class ServerListAllAuctions : public ProtocolMessage {
 class ServerShowRecord : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_SHOWREC_SERVER;
-	enum status { OK, NOK };
-	std::string auction;
-
+	enum status { OK, NOK, ERR };
+	uint32_t host_UID;
+	std::string auction_name;
+	std::string asset_fname;
+	uint32_t start_value;
+	date start_date_time;
+	uint32_t timeactive;
+	std::vector<bid> bids;
 	status status;
+
 	std::stringstream buildMessage();
 	void readMessage(std::stringstream &buffer);
 };
