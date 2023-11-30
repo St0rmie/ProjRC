@@ -128,7 +128,6 @@ std::string ProtocolMessage::readAuctionAndState(std::stringstream &buffer) {
 
 	readSpace(buffer);
 	std::string auction_str = readString(buffer, 3);
-	std::cout << "auctrion str" << std::endl;
 	readSpace(buffer);
 	std::string state_str = readString(buffer, 1);
 	if (state_str == "1") {
@@ -136,8 +135,7 @@ std::string ProtocolMessage::readAuctionAndState(std::stringstream &buffer) {
 	} else if (state_str == "0") {
 		state_str = "OVER";
 	}
-	std::cout << auction_str + " " + state_str << std::endl;
-	return auction_str + " " + state_str;
+	return "AID: " + auction_str + " --- STATUS: " + state_str;
 }
 
 bool ProtocolMessage::checkIfOver(std::stringstream &buffer) {
@@ -372,7 +370,6 @@ void ServerListStartedAuctions::readMessage(std::stringstream &buffer) {
 	} else if (status_str == "NLG") {
 		status = NLG;
 	} else {
-		std::cout << "INVALIDA IDSOA" << std::endl;
 		throw InvalidMessageException();
 	}
 	readDelimiter(buffer);
@@ -500,9 +497,12 @@ void ClientShowRecord::readMessage(std::stringstream &buffer) {
 std::stringstream ServerShowRecord::buildMessage() {
 	std::stringstream buffer;
 	if (status == ServerShowRecord::status::OK) {
-		buffer << "OK";
-		for (std::string bid : bids) {
-			buffer << "\n" << bid;
+		buffer << "OK" << "\n";
+		for (bid bid : bids) {
+			buffer << "B " << bid.bidder_UID;
+			buffer << " " << bid.bid_value;
+			buffer << " " << convert_date_to_str(bid.bid_date_time);
+			buffer << " " << bid.bid_sec_time;
 		}
 	} else if (status == ServerShowRecord::status::NOK) {
 		buffer << "NOK";
@@ -537,7 +537,19 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 			readSpace(buffer);
 			bid.bidder_UID = readUserId(buffer);
 			readSpace(buffer);
+			bid.bid_date_time = readDate(buffer);
+			readSpace(buffer);
+			bid.bid_sec_time = stoi(readString(buffer,6));
+			readDelimiter(buffer);
+			bids.push_back(bid);
 		};
+		if(readCharEqual(buffer,'E')){
+			readSpace(buffer);
+			end_date_time = readDate(buffer);
+			readSpace(buffer);
+			end_sec_time = stoi(readString(buffer,6));
+			readDelimiter(buffer);
+		}
 
 	} else if (status_str == "NOK") {
 		status = NOK;
@@ -581,6 +593,16 @@ std::string convert_password(std::string string) {
 	return string;
 }
 
+std::string convert_date_to_str(date date){
+	std::string date_str;
+	date_str += date.year + ":" + date.month;
+	date_str += ":" + date.day;
+	date_str += " ";
+	date_str += date.hours + ":" + date.minutes;
+	date_str += ":" + date.seconds;
+	return date_str;
+}
+
 // -----------------------------------
 // | Send and receive messages		 |
 // -----------------------------------
@@ -607,16 +629,19 @@ void await_udp_message(ProtocolMessage &message, int socketfd) {
 	int ready_fd =
 		select(socketfd + 1, &file_descriptors, NULL, NULL, &timeout);
 	if (ready_fd == -1) {
+		std::cout << "A\n";
 		throw MessageReceiveException();
 	} else if (ready_fd == 0) {
+		std::cout << "B\n";
 		throw MessageReceiveException();
 	}
 
 	std::stringstream data;
-	char buffer[SOCKET_BUFFER_LEN];
+	char buffer[UDP_SOCKET_BUFFER_LEN];
 
-	ssize_t n = recvfrom(socketfd, buffer, SOCKET_BUFFER_LEN, 0, NULL, NULL);
+	ssize_t n = recvfrom(socketfd, buffer, UDP_SOCKET_BUFFER_LEN, 0, NULL, NULL);
 	if (n == -1) {
+		std::cout << "C\n";
 		throw MessageReceiveException();
 	}
 
