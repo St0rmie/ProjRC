@@ -35,7 +35,7 @@
 #define CODE_SHOWREC_USER       "SRC"
 #define CODE_SHOWREC_SERVER     "RRC"
 
-#define UDP_TIMEOUT   5
+#define UDP_TIMEOUT   30
 #define UDP_MAX_TRIES 5
 
 #define TCP_READ_TIMEOUT_SECONDS   20
@@ -43,6 +43,7 @@
 #define TCP_WRITE_TIMEOUT_SECONDS  60
 #define TCP_WRITE_TIMEOUT_USECONDS 0
 
+#define UDP_SOCKET_BUFFER_LEN 8196
 #define SOCKET_BUFFER_LEN 512
 
 typedef struct {
@@ -323,6 +324,8 @@ class ServerShowRecord : public ProtocolMessage {
 	date start_date_time;
 	uint32_t timeactive;
 	std::vector<bid> bids;
+	date end_date_time;
+	uint32_t end_sec_time;
 	status status;
 
 	std::stringstream buildMessage();
@@ -342,6 +345,7 @@ uint32_t convert_user_id(std::string string);
 uint32_t convert_auction_id(std::string string);
 uint32_t convert_auction_value(std::string string);
 std::string convert_password(std::string string);
+std::string convert_date_to_str(date date);
 
 // -----------------------------------
 // | Send and receive messages		 |
