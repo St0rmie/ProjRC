@@ -8,59 +8,9 @@
 #include <string>
 #include <vector>
 
+#include "config.hpp"
+#include "utils.hpp"
 #include "verifications.hpp"
-
-#define DEFAULT_HOSTNAME "localhost"
-#define DEFAULT_PORT     "58086"
-
-#define USER_ID_SIZE          6
-#define AUCTION_ID_SIZE       3
-#define AUCTION_VALUE_SIZE    5
-#define MAX_AUCTION_NAME_SIZE 1024
-#define MAX_TIMEACTIVE_SIZE   6
-#define PASSWORD_SIZE         8
-
-#define CODE_LOGIN_USER         "LIN"
-#define CODE_LOGIN_SERVER       "RLI"
-#define CODE_LOGOUT_USER        "LOU"
-#define CODE_LOGOUT_SERVER      "RLO"
-#define CODE_UNREGISTER_USER    "UNR"
-#define CODE_UNREGISTER_SERVER  "RUR"
-#define CODE_LIST_AUC_USER      "LMA"
-#define CODE_LIST_AUC_SERVER    "RMA"
-#define CODE_LIST_MYB_USER      "LMB"
-#define CODE_LIST_MYB_SERVER    "RMB"
-#define CODE_LIST_ALLAUC_USER   "LST"
-#define CODE_LIST_ALLAUC_SERVER "RLS"
-#define CODE_SHOWREC_USER       "SRC"
-#define CODE_SHOWREC_SERVER     "RRC"
-
-#define UDP_TIMEOUT   30
-#define UDP_MAX_TRIES 5
-
-#define TCP_READ_TIMEOUT_SECONDS   20
-#define TCP_READ_TIMEOUT_USECONDS  0
-#define TCP_WRITE_TIMEOUT_SECONDS  60
-#define TCP_WRITE_TIMEOUT_USECONDS 0
-
-#define UDP_SOCKET_BUFFER_LEN 8196
-#define SOCKET_BUFFER_LEN     512
-
-typedef struct {
-	int year;
-	int month;
-	int day;
-	int hours;
-	int minutes;
-	int seconds;
-} date;
-
-typedef struct {
-	uint32_t bidder_UID;
-	uint32_t bid_value;
-	date bid_date_time;
-	uint32_t bid_sec_time;
-} bid;
 
 // Thrown when the MessageID does not match what was expected
 class UnexpectedMessageException : public std::runtime_error {
@@ -121,8 +71,8 @@ class ProtocolMessage {
 	std::string readPassword(std::stringstream &buffer);
 	std::string readAuctionAndState(std::stringstream &buffer);
 	bool checkIfOver(std::stringstream &buffer);
-	date readDate(std::stringstream &buffer);
-	void parseDate(date date, std::string date_str);
+	datetime readDate(std::stringstream &buffer);
+	void parseDate(datetime date, std::string date_str);
 
    public:
 	virtual std::stringstream buildMessage() = 0;
@@ -321,10 +271,10 @@ class ServerShowRecord : public ProtocolMessage {
 	std::string auction_name;
 	std::string asset_fname;
 	uint32_t start_value;
-	date start_date_time;
+	datetime start_date_time;
 	uint32_t timeactive;
 	std::vector<bid> bids;
-	date end_date_time;
+	datetime end_date_time;
 	uint32_t end_sec_time;
 	status status;
 
@@ -336,16 +286,6 @@ class ServerCreateAuction : public ProtocolMessage {};
 class ServerCloseAuction : public ProtocolMessage {};
 class ServerShowAsset : public ProtocolMessage {};
 class ServerBid : public ProtocolMessage {};
-
-// -----------------------------------
-// | Convert types					 |
-// -----------------------------------
-
-uint32_t convert_user_id(std::string string);
-uint32_t convert_auction_id(std::string string);
-uint32_t convert_auction_value(std::string string);
-std::string convert_password(std::string string);
-std::string convert_date_to_str(date date);
 
 // -----------------------------------
 // | Send and receive messages		 |
