@@ -521,6 +521,7 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 	readMessageId(buffer, ServerShowRecord::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, 3);
+	readSpace(buffer);
 	if (status_str == "OK") {
 		status = OK;
 		host_UID = readUserId(buffer);
@@ -534,7 +535,7 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 		start_date_time = readDate(buffer);
 		readSpace(buffer);
 		timeactive = stoi(readString(buffer, 6));
-		readDelimiter(buffer);
+		readSpace(buffer);
 		while (readCharEqual(buffer, 'B')) {
 			bid bid;
 			readSpace(buffer);
@@ -560,7 +561,6 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 	} else {
 		throw InvalidMessageException();
 	}
-	readDelimiter(buffer);
 }
 
 // -----------------------------------
