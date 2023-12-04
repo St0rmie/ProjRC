@@ -149,20 +149,19 @@ bool ProtocolMessage::checkIfOver(std::stringstream &buffer) {
 	}
 }
 
-date ProtocolMessage::readDate(std::stringstream &buffer) {
-	date date;
-	date.year = stoi(readString(buffer, 4));
+datetime ProtocolMessage::readDate(std::stringstream &buffer) {
+	datetime date;
+	date.year = readString(buffer, 4);
 	readChar(buffer, '-');
-	date.month = stoi(readString(buffer, 2));
+	date.month = readString(buffer, 2);
 	readChar(buffer, '-');
-	date.day = stoi(readString(buffer, 2));
+	date.day = readString(buffer, 2);
 	readChar(buffer, ' ');
-	date.hours = stoi(readString(buffer, 2));
+	date.hours = readString(buffer, 2);
 	readChar(buffer, ':');
-	date.minutes = stoi(readString(buffer, 2));
+	date.minutes = readString(buffer, 2);
 	readChar(buffer, ':');
-	date.seconds = stoi(readString(buffer, 2));
-
+	date.seconds = readString(buffer, 2);
 	return date;
 }
 
@@ -541,10 +540,12 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 			readSpace(buffer);
 			bid.bidder_UID = readUserId(buffer);
 			readSpace(buffer);
+			bid.bid_value = stoi(readString(buffer, 6));
+			readSpace(buffer);
 			bid.bid_date_time = readDate(buffer);
 			readSpace(buffer);
 			bid.bid_sec_time = stoi(readString(buffer, 6));
-			readDelimiter(buffer);
+			readSpace(buffer);
 			bids.push_back(bid);
 		};
 		if (readCharEqual(buffer, 'E')) {
@@ -564,49 +565,6 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 }
 
 // -----------------------------------
-// | Convert types					 |
-// -----------------------------------
-
-uint32_t convert_user_id(std::string string) {
-	if (verify_user_id(string) == -1) {
-		throw InvalidMessageException();
-	}
-	return std::stoi(string);
-}
-
-uint32_t convert_auction_id(std::string string) {
-	if (verify_auction_id(string) == -1) {
-		throw InvalidMessageException();
-	}
-	return std::stoi(string);
-}
-
-uint32_t convert_auction_value(std::string string) {
-	uint32_t value = std::stoi(string);
-	if (verify_value(value) == -1) {
-		throw InvalidMessageException();
-	}
-	return value;
-}
-
-std::string convert_password(std::string string) {
-	if (verify_password(string) == -1) {
-		throw InvalidMessageException();
-	}
-	return string;
-}
-
-std::string convert_date_to_str(date date) {
-	std::string date_str;
-	date_str += date.year + ":" + date.month;
-	date_str += ":" + date.day;
-	date_str += " ";
-	date_str += date.hours + ":" + date.minutes;
-	date_str += ":" + date.seconds;
-	return date_str;
-}
-
-// -----------------------------------
 // | Send and receive messages		 |
 // -----------------------------------
 
@@ -618,7 +576,6 @@ void send_message(ProtocolMessage &message, int socketfd, struct sockaddr *addr,
 	if (n == -1) {
 		throw MessageSendException();
 	}
-	std::cout << buffer.str() << std::endl;
 }
 
 void await_udp_message(ProtocolMessage &message, int socketfd) {
@@ -648,7 +605,6 @@ void await_udp_message(ProtocolMessage &message, int socketfd) {
 	}
 
 	data.write(buffer, n);
-	std::cout << data.str() << std::endl;
 	message.readMessage(data);
 }
 

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "client.hpp"
+#include "output.hpp"
 #include "shared/protocol.hpp"
 #include "shared/verifications.hpp"
 
@@ -350,13 +351,7 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 	// Check status
 	switch (message_in.status) {
 		case ServerShowRecord::status::OK:;
-			std::cout << "[SUCCESS] Showing record for auction " << a_id
-					  << "\n\tHost ID:\t" << message_in.host_UID
-					  << "\n\tAuction Name:\t" << message_in.auction_name
-					  << "\n\tAsset File Name\t:" << message_in.asset_fname
-					  << "\n\tStart Value\t:" << message_in.start_value
-					  << "\n\tStart Date Time\t"
-					  << "asdas" << std::endl;
+			printRecord(a_id, message_in);
 			break;
 
 		case ServerShowRecord::status::NOK:

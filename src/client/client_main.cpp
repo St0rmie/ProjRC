@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 		commandManager.waitCommand(client);
 	}
 
-	std::cout << "Bye Bye!" << std::endl;
+	std::cout << "[QUIT] Shutting Down." << std::endl;
 }
 
 void registerCommands(CommandManager &manager) {
