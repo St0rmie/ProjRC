@@ -13,12 +13,12 @@
 #define DEFAULT_HOSTNAME "localhost"
 #define DEFAULT_PORT     "58086"
 
-#define USER_ID_SIZE       6
-#define AUCTION_ID_SIZE    3
-#define AUCTION_VALUE_SIZE 5
+#define USER_ID_SIZE          6
+#define AUCTION_ID_SIZE       3
+#define AUCTION_VALUE_SIZE    5
 #define MAX_AUCTION_NAME_SIZE 1024
-#define MAX_TIMEACTIVE_SIZE	6
-#define PASSWORD_SIZE      8
+#define MAX_TIMEACTIVE_SIZE   6
+#define PASSWORD_SIZE         8
 
 #define CODE_LOGIN_USER         "LIN"
 #define CODE_LOGIN_SERVER       "RLI"
@@ -44,7 +44,7 @@
 #define TCP_WRITE_TIMEOUT_USECONDS 0
 
 #define UDP_SOCKET_BUFFER_LEN 8196
-#define SOCKET_BUFFER_LEN 512
+#define SOCKET_BUFFER_LEN     512
 
 typedef struct {
 	int year;
@@ -122,7 +122,7 @@ class ProtocolMessage {
 	std::string readAuctionAndState(std::stringstream &buffer);
 	bool checkIfOver(std::stringstream &buffer);
 	date readDate(std::stringstream &buffer);
-	void parseDate(date date ,std::string date_str);
+	void parseDate(date date, std::string date_str);
 
    public:
 	virtual std::stringstream buildMessage() = 0;
@@ -304,7 +304,7 @@ class ServerListBiddedAuctions : public ProtocolMessage {
 
 class ServerListAllAuctions : public ProtocolMessage {
    public:
-	std::string protocol_code = CODE_LIST_MYB_SERVER;
+	std::string protocol_code = CODE_LIST_ALLAUC_SERVER;
 	enum status { OK, NOK };
 	std::vector<std::string> auctions;
 
