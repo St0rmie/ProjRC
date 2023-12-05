@@ -94,8 +94,8 @@ void Client::sendUdpMessageAndAwaitReply(ProtocolMessage &out_message,
 }
 
 void Client::sendUdpMessage(ProtocolMessage &message) {
-	send_message(message, _udp_socket_fd, _server_udp_addr->ai_addr,
-	             _server_udp_addr->ai_addrlen);
+	send_udp_message(message, _udp_socket_fd, _server_udp_addr->ai_addr,
+	                 _server_udp_addr->ai_addrlen);
 }
 
 void Client::waitForUdpMessage(ProtocolMessage &message) {

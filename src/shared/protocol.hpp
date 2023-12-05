@@ -2,7 +2,9 @@
 #define __PROTOCOL__
 
 #include <sys/socket.h>
+#include <unistd.h>
 
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -178,6 +180,23 @@ class ClientShowRecord : public ProtocolMessage {
 	void readMessage(std::stringstream &buffer);
 };
 
+class ClientOpenAuction : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_OPEN_AUC_CLIENT;
+	uint32_t auction_id;
+	uint32_t user_id;
+	std::string password;
+	uint32_t start_value;
+	uint32_t timeactive;
+	std::string name;
+	std::string assetf_name;
+	size_t fsize;
+	std::stringstream fdata;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
 // Show asset of a specified auction (SAS)
 class ClientShowAsset : public ProtocolMessage {
    public:
@@ -282,7 +301,17 @@ class ServerShowRecord : public ProtocolMessage {
 	void readMessage(std::stringstream &buffer);
 };
 
-class ServerCreateAuction : public ProtocolMessage {};
+class ServerOpenAuction : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_OPEN_AUC_SERVER;
+	enum status { OK, NOK, ERR };
+	uint32_t auction_id;
+	status status;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
 class ServerCloseAuction : public ProtocolMessage {};
 class ServerShowAsset : public ProtocolMessage {};
 class ServerBid : public ProtocolMessage {};
@@ -291,8 +320,8 @@ class ServerBid : public ProtocolMessage {};
 // | Send and receive messages		 |
 // -----------------------------------
 
-void send_message(ProtocolMessage &message, int socket,
-                  struct sockaddr *address, socklen_t addrlen);
+void send_udp_message(ProtocolMessage &message, int socket,
+                      struct sockaddr *address, socklen_t addrlen);
 
 void await_udp_message(ProtocolMessage &Message, int socketfd);
 void await_tcp_message(ProtocolMessage &Message, int socketfd);
