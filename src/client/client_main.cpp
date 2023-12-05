@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
 void registerCommands(CommandManager &manager) {
 	manager.registerCommand(std::make_shared<LoginCommand>());
-	manager.registerCommand(std::make_shared<CreateAuctionCommand>());
+	manager.registerCommand(std::make_shared<OpenAuctionCommand>());
 	manager.registerCommand(std::make_shared<CloseAuctionCommand>());
 	manager.registerCommand(std::make_shared<ListStartedAuctionsCommand>());
 	manager.registerCommand(std::make_shared<ListBiddedAuctionsCommand>());

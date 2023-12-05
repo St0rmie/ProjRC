@@ -5,6 +5,8 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include <fstream>
+#include <iostream>
 
 #include "client.hpp"
 
@@ -61,11 +63,11 @@ class LoginCommand : public CommandHandler {
 		: CommandHandler("login", std::nullopt, "Log In for User.") {}
 };
 
-class CreateAuctionCommand : public CommandHandler {
+class OpenAuctionCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
    public:
-	CreateAuctionCommand()
+	OpenAuctionCommand()
 		: CommandHandler("open", std::nullopt, "Open a new auction for User.") {
 	}
 };

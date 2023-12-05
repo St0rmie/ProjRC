@@ -35,3 +35,7 @@ void printRecord(std::string aid, ServerShowRecord message) {
 	std::cout << "--------------------------------------------------\n"
 			  << "END RECORD\n";
 }
+
+void printOpenAuction(ServerOpenAuction message){
+	std::cout << "[SUCCESS] Auction " << message.auction_id << " opened." << std::endl;
+}

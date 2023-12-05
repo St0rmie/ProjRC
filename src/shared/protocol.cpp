@@ -599,16 +599,9 @@ void ClientOpenAuction::readMessage(std::stringstream &buffer) {
 
 std::stringstream ServerOpenAuction::buildMessage() {
 	std::stringstream buffer;
-	if (status == ServerShowRecord::status::OK) {
-		buffer << "OK"
-			   << "\n";
-		for (bid bid : bids) {
-			buffer << "B " << bid.bidder_UID;
-			buffer << " " << bid.bid_value;
-			buffer << " " << convert_date_to_str(bid.bid_date_time);
-			buffer << " " << bid.bid_sec_time;
-		}
-	} else if (status == ServerShowRecord::status::NOK) {
+	if (status == ServerOpenAuction::status::OK) {
+		buffer << "OK "<< auction_id;
+	} else if (status == ServerOpenAuction::status::NOK) {
 		buffer << "NOK";
 	} else {
 		throw MessageBuildingException();
@@ -619,45 +612,14 @@ std::stringstream ServerOpenAuction::buildMessage() {
 
 void ServerOpenAuction::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
-	readMessageId(buffer, ServerShowRecord::protocol_code);
+	readMessageId(buffer, ServerOpenAuction::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, 3);
 	readSpace(buffer);
 	if (status_str == "OK") {
 		status = OK;
-		host_UID = readUserId(buffer);
-		readSpace(buffer);
-		auction_name = readString(buffer, MAX_AUCTION_NAME_SIZE);
-		readSpace(buffer);
-		asset_fname = readString(buffer, MAX_AUCTION_NAME_SIZE);
-		readSpace(buffer);
-		start_value = readAuctionValue(buffer);
-		readSpace(buffer);
-		start_date_time = readDate(buffer);
-		readSpace(buffer);
-		timeactive = stoi(readString(buffer, 6));
-		readSpace(buffer);
-		while (readCharEqual(buffer, 'B')) {
-			bid bid;
-			readSpace(buffer);
-			bid.bidder_UID = readUserId(buffer);
-			readSpace(buffer);
-			bid.bid_value = stoi(readString(buffer, 6));
-			readSpace(buffer);
-			bid.bid_date_time = readDate(buffer);
-			readSpace(buffer);
-			bid.bid_sec_time = stoi(readString(buffer, 6));
-			readSpace(buffer);
-			bids.push_back(bid);
-		};
-		if (readCharEqual(buffer, 'E')) {
-			readSpace(buffer);
-			end_date_time = readDate(buffer);
-			readSpace(buffer);
-			end_sec_time = stoi(readString(buffer, 6));
-			readDelimiter(buffer);
-		}
-
+		auction_id = readAuctionId(buffer);
+		readDelimiter(buffer);
 	} else if (status_str == "NOK") {
 		status = NOK;
 		readDelimiter(buffer);
@@ -665,6 +627,8 @@ void ServerOpenAuction::readMessage(std::stringstream &buffer) {
 		throw InvalidMessageException();
 	}
 }
+
+
 
 // -----------------------------------
 // | Send and receive messages		 |
