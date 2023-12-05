@@ -7,9 +7,11 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 #include "shared/protocol.hpp"
 #include "shared/verifications.hpp"
+#include "shared/config.hpp"
 
 #define LOGGED_OUT -1
 

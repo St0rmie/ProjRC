@@ -364,7 +364,7 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 	}
 }
 
-void CreateAuctionCommand::handle(std::string args, Client &client) {
+void OpenAuctionCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
@@ -404,11 +404,50 @@ void CreateAuctionCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
+	// Opening file and reading contents
+	std::ifstream file("assets/"+asset_fname);
+	int file_size;
+	if(file){
+		file_buffer.seekg(0, file_buffer.end);
+   		file_size = file_buffer.tellg();
+        file.close();
+	}
+
 	// Protocol setup
-	std::cout << "CREATED AUCTION // AUCTION: " << name
-			  << " // FILE: " << asset_fname
-			  << " // START VALUE: " << start_value
-			  << " // TIME ACTIVE: " << timeactive << std::endl;
+	// Populate and send message
+	ClientOpenAuction message_out;
+	message_out.user_id = client.getLoggedInUser();
+	message_out.password = client.getPassword();
+	message_out.name = name;
+	message_out.start_value = convert_auction_value(start_value);
+	message_out.timeactive = stoi(timeactive);
+	message_out.assetf_name = asset_fname;
+	message_out.fsize = file_size;
+	message_out.fdata.write(file_buffer.str().c_str(), file_size);
+
+	ServerOpenAuction message_in;
+	client.sendTcpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerOpenAuction::status::OK:
+			printOpenAuction(message_in);
+			break;
+
+		case ServerOpenAuction::status::NOK:
+			std::cout << "[ERROR] Couldn't start auction."
+					  << std::endl;
+			break;
+
+		case ServerOpenAuction::status::NLG:
+		std::cout << "[ERROR] Not logged in." << std::endl;
+
+		case ServerOpenAuction::status::ERR:
+			std::cout << "[ERROR] Wrong result." << std::endl;
+
+		default:
+			throw InvalidMessageException();
+	}
 }
 
 void CloseAuctionCommand::handle(std::string args, Client &client) {

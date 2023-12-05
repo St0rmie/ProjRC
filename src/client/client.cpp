@@ -146,11 +146,11 @@ void Client::sendTcpMessage(ProtocolMessage &message) {
 		throw ConnectionTimeoutException();
 	}
 	const char *message_str = message.buildMessage().str().c_str();
+	std::cout << message_str << std::endl;
 	size_t bytes_to_send = strlen(message_str);
 	size_t bytes_sent = 0;
 	while (bytes_sent < bytes_to_send) {
-		ssize_t sent = write(_tcp_socket_fd, message_str + bytes_sent,
-		                     bytes_to_send - bytes_sent);
+		ssize_t sent = write(_tcp_socket_fd, message_str + bytes_sent, bytes_to_send - bytes_sent);
 		if (sent < 0) {
 			throw MessageSendException();
 		}

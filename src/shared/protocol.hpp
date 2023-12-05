@@ -183,7 +183,6 @@ class ClientShowRecord : public ProtocolMessage {
 class ClientOpenAuction : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_OPEN_AUC_CLIENT;
-	uint32_t auction_id;
 	uint32_t user_id;
 	std::string password;
 	uint32_t start_value;
@@ -304,7 +303,7 @@ class ServerShowRecord : public ProtocolMessage {
 class ServerOpenAuction : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_OPEN_AUC_SERVER;
-	enum status { OK, NOK, ERR };
+	enum status { OK, NOK, NLG, ERR };
 	uint32_t auction_id;
 	status status;
 

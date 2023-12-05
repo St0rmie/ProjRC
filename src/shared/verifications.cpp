@@ -53,13 +53,15 @@ int verify_name(std::string name) {
 int verify_asset_fname(std::string asset_fname) {
 	std::ifstream file;
 
-	file.open(asset_fname);
+	file.open("assets/" + asset_fname);
 
 	if (file) {
+		file.close();
 		return 0;
 	}
 
 	else {
+		file.close();
 		return -1;
 	}
 }
