@@ -564,12 +564,114 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 	}
 }
 
+// ---------- OPEN AUCTION
+
+std::stringstream ClientOpenAuction::buildMessage() {
+	std::stringstream buffer;
+	char uid[4];
+	sprintf(uid, "%03d", user_id);
+	buffer << protocol_code << " " << user_id << " " << password << " " << name
+		   << " " << start_value << " " << timeactive << " " << assetf_name
+		   << " " << fsize << " " << fdata.str() << std::endl;
+	return buffer;
+}
+
+void ClientOpenAuction::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readSpace(buffer);
+	user_id = readUserId(buffer);
+	readSpace(buffer);
+	password = readPassword(buffer);
+	readSpace(buffer);
+	name = readString(buffer, MAX_AUCTION_NAME_SIZE);
+	readSpace(buffer);
+	start_value = readAuctionValue(buffer);
+	readSpace(buffer);
+	timeactive = stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
+	readSpace(buffer);
+	assetf_name = readString(buffer, MAX_FILENAME_SIZE);
+	readSpace(buffer);
+	size_t fsize = (size_t) stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
+	readSpace(buffer);
+	fdata.write(readString(buffer, fsize).c_str(), fsize);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerOpenAuction::buildMessage() {
+	std::stringstream buffer;
+	if (status == ServerShowRecord::status::OK) {
+		buffer << "OK"
+			   << "\n";
+		for (bid bid : bids) {
+			buffer << "B " << bid.bidder_UID;
+			buffer << " " << bid.bid_value;
+			buffer << " " << convert_date_to_str(bid.bid_date_time);
+			buffer << " " << bid.bid_sec_time;
+		}
+	} else if (status == ServerShowRecord::status::NOK) {
+		buffer << "NOK";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerOpenAuction::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerShowRecord::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	readSpace(buffer);
+	if (status_str == "OK") {
+		status = OK;
+		host_UID = readUserId(buffer);
+		readSpace(buffer);
+		auction_name = readString(buffer, MAX_AUCTION_NAME_SIZE);
+		readSpace(buffer);
+		asset_fname = readString(buffer, MAX_AUCTION_NAME_SIZE);
+		readSpace(buffer);
+		start_value = readAuctionValue(buffer);
+		readSpace(buffer);
+		start_date_time = readDate(buffer);
+		readSpace(buffer);
+		timeactive = stoi(readString(buffer, 6));
+		readSpace(buffer);
+		while (readCharEqual(buffer, 'B')) {
+			bid bid;
+			readSpace(buffer);
+			bid.bidder_UID = readUserId(buffer);
+			readSpace(buffer);
+			bid.bid_value = stoi(readString(buffer, 6));
+			readSpace(buffer);
+			bid.bid_date_time = readDate(buffer);
+			readSpace(buffer);
+			bid.bid_sec_time = stoi(readString(buffer, 6));
+			readSpace(buffer);
+			bids.push_back(bid);
+		};
+		if (readCharEqual(buffer, 'E')) {
+			readSpace(buffer);
+			end_date_time = readDate(buffer);
+			readSpace(buffer);
+			end_sec_time = stoi(readString(buffer, 6));
+			readDelimiter(buffer);
+		}
+
+	} else if (status_str == "NOK") {
+		status = NOK;
+		readDelimiter(buffer);
+	} else {
+		throw InvalidMessageException();
+	}
+}
+
 // -----------------------------------
 // | Send and receive messages		 |
 // -----------------------------------
 
-void send_message(ProtocolMessage &message, int socketfd, struct sockaddr *addr,
-                  socklen_t addrlen) {
+void send_udp_message(ProtocolMessage &message, int socketfd,
+                      struct sockaddr *addr, socklen_t addrlen) {
 	const std::stringstream buffer = message.buildMessage();
 	ssize_t n = sendto(socketfd, buffer.str().c_str(), buffer.str().length(), 0,
 	                   addr, addrlen);
@@ -612,12 +714,14 @@ void await_tcp_message(ProtocolMessage &message, int socketfd) {
 	std::stringstream data;
 	char buffer[SOCKET_BUFFER_LEN];
 	ssize_t bytes_read;
-	while ((bytes_read = recv(socketfd, &buffer, SOCKET_BUFFER_LEN, 0) > 0)) {
+	memset(buffer, 0, SOCKET_BUFFER_LEN);
+	while ((bytes_read = read(socketfd, &buffer, SOCKET_BUFFER_LEN)) > 0) {
 		if (bytes_read == -1) {
 			throw MessageReceiveException();
 		}
 
 		data.write(buffer, bytes_read);
+		memset(buffer, 0, SOCKET_BUFFER_LEN);
 	};
 	message.readMessage(data);
 }

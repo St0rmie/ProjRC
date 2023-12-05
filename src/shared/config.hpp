@@ -8,8 +8,10 @@
 #define AUCTION_ID_SIZE       3
 #define AUCTION_VALUE_SIZE    5
 #define MAX_AUCTION_NAME_SIZE 1024
+#define MAX_FILENAME_SIZE     1024
 #define MAX_TIMEACTIVE_SIZE   6
 #define PASSWORD_SIZE         8
+#define MAX_LENGTH_TIMEACTIVE 20
 
 #define CODE_LOGIN_USER         "LIN"
 #define CODE_LOGIN_SERVER       "RLI"
@@ -25,6 +27,8 @@
 #define CODE_LIST_ALLAUC_SERVER "RLS"
 #define CODE_SHOWREC_USER       "SRC"
 #define CODE_SHOWREC_SERVER     "RRC"
+#define CODE_OPEN_AUC_CLIENT    "OPA"
+#define CODE_OPEN_AUC_SERVER    "ROA"
 
 #define UDP_TIMEOUT   30
 #define UDP_MAX_TRIES 5
