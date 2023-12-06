@@ -29,6 +29,8 @@
 #define CODE_SHOWREC_SERVER     "RRC"
 #define CODE_OPEN_AUC_CLIENT    "OPA"
 #define CODE_OPEN_AUC_SERVER    "ROA"
+#define CODE_CLOSE_AUC_CLIENT   "CLS"
+#define CODE_CLOSE_AUC_SERVER   "RCL"
 
 #define UDP_TIMEOUT   30
 #define UDP_MAX_TRIES 5

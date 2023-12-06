@@ -139,17 +139,6 @@ class ClientListStartedAuctions : public ProtocolMessage {
 	void readMessage(std::stringstream &buffer);
 };
 
-// Close Auction (CLS) -> TCP
-class ClientCloseAuction : public ProtocolMessage {
-   public:
-	uint32_t user_id;
-	std::string password;
-	uint32_t auction_id;
-
-	void buildMessage(int fd);
-	void readMessage(int fd);
-};
-
 // List bidded auctions by a specified suer (LMB)
 class ClientListBiddedAuctions : public ProtocolMessage {
    public:
@@ -196,13 +185,25 @@ class ClientOpenAuction : public ProtocolMessage {
 	void readMessage(std::stringstream &buffer);
 };
 
+// Close Auction (CLS) -> TCP
+class ClientCloseAuction : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_CLOSE_AUC_CLIENT;
+	uint32_t user_id;
+	std::string password;
+	uint32_t auction_id;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
+
 // Show asset of a specified auction (SAS)
 class ClientShowAsset : public ProtocolMessage {
    public:
 	uint32_t auction_id;
 
-	void buildMessage(int fd);
-	void readMessage(int fd);
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
 };
 
 // A user bids on an auction (BID)
@@ -213,8 +214,8 @@ class ClientBid : public ProtocolMessage {
 	uint32_t auction_id;
 	uint32_t value;
 
-	void buildMessage(int fd);
-	void readMessage(int fd);
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
 };
 
 // Server Messages for each command
@@ -311,7 +312,15 @@ class ServerOpenAuction : public ProtocolMessage {
 	void readMessage(std::stringstream &buffer);
 };
 
-class ServerCloseAuction : public ProtocolMessage {};
+class ServerCloseAuction : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_CLOSE_AUC_SERVER;
+	enum status { OK, NLG, EAU, EOW, END, ERR };
+	status status;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
 class ServerShowAsset : public ProtocolMessage {};
 class ServerBid : public ProtocolMessage {};
 
