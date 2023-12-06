@@ -87,51 +87,16 @@ void sendFile(int connection_fd, std::filesystem::path file_path) {
 	}
 }
 
-void readAndSaveToFile(const int fd, const std::string &file_name,
-                       const size_t file_size, const std::string directory) {
-	std::ofstream file(file_name);
-
+void saveToFile(std::string file_name, std::string path,
+                std::string file_data) {
+	std::string full_path = path + file_name;
+	std::ofstream file;
+	file.open(full_path, std::ofstream::trunc);
 	if (!file.good()) {
 		throw FileException();
 	}
 
-	size_t remaining_size = file_size;
-	size_t to_read;
-	ssize_t n;
-	char buffer[SOCKET_BUFFER_LEN];
-
-	bool skip_stdin = false;
-	while (remaining_size > 0) {
-		fd_set file_descriptors;
-		FD_ZERO(&file_descriptors);
-		FD_SET(fd, &file_descriptors);
-
-		struct timeval timeout;
-		timeout.tv_sec = TCP_READ_TIMEOUT_SECONDS;
-		timeout.tv_usec = 0;
-
-		int ready_fd = select(fd + 1, &file_descriptors, NULL, NULL, &timeout);
-		if (ready_fd == -1) {
-			perror("select");
-			throw ConnectionTimeoutException();
-		} else if (FD_ISSET(fd, &file_descriptors)) {
-			// Read from socket
-			to_read = std::min(remaining_size, (size_t) SOCKET_BUFFER_LEN);
-			n = read(fd, buffer, to_read);
-			if (n <= 0) {
-				file.close();
-				throw MessageReceiveException();
-			}
-			file.write(buffer, n);
-			if (!file.good()) {
-				file.close();
-				throw FileException();
-			}
-			remaining_size -= (size_t) n;
-		} else {
-			throw ConnectionTimeoutException();
-		}
-	}
+	file << file_data << std::endl;
 
 	file.close();
 }

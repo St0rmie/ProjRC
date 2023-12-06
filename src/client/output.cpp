@@ -46,3 +46,8 @@ void printCloseAuction(ClientCloseAuction message) {
 	std::cout << "[SUCCESS] Auction " << message.auction_id << " closed."
 			  << std::endl;
 }
+
+void printShowAsset(ClientShowAsset message) {
+	std::cout << "[SUCCESS] Retrieved " << message.auction_id << " asset."
+			  << std::endl;
+}

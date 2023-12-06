@@ -75,6 +75,7 @@ class ProtocolMessage {
 	bool checkIfOver(std::stringstream &buffer);
 	datetime readDate(std::stringstream &buffer);
 	void parseDate(datetime date, std::string date_str);
+	std::string readFile(std::stringstream &buffer, uint32_t max_len);
 
    public:
 	virtual std::stringstream buildMessage() = 0;
@@ -200,6 +201,7 @@ class ClientCloseAuction : public ProtocolMessage {
 // Show asset of a specified auction (SAS)
 class ClientShowAsset : public ProtocolMessage {
    public:
+	std::string protocol_code = CODE_SHOW_ASSET_CLIENT;
 	uint32_t auction_id;
 
 	std::stringstream buildMessage();
@@ -321,7 +323,18 @@ class ServerCloseAuction : public ProtocolMessage {
 	std::stringstream buildMessage();
 	void readMessage(std::stringstream &buffer);
 };
-class ServerShowAsset : public ProtocolMessage {};
+class ServerShowAsset : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_SHOW_ASSET_SERVER;
+	enum status { OK, NOK, ERR };
+	std::string fname;
+	size_t fsize;
+	std::string fdata;
+	status status;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
 class ServerBid : public ProtocolMessage {};
 
 // -----------------------------------
