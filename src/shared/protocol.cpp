@@ -165,6 +165,20 @@ datetime ProtocolMessage::readDate(std::stringstream &buffer) {
 	return date;
 }
 
+std::string ProtocolMessage::readFile(std::stringstream &buffer,
+                                      uint32_t max_len) {
+	std::string str;
+	for (uint32_t i = 0; i < max_len; i++) {
+		char c = (char) buffer.get();
+		if (!buffer.good()) {
+			throw InvalidMessageException();
+		}
+		str += c;
+	}
+
+	return str;
+}
+
 // -----------------------------------
 // | Types of protocol messages		 |
 // -----------------------------------
@@ -688,6 +702,64 @@ void ServerCloseAuction::readMessage(std::stringstream &buffer) {
 		status = END;
 	} else if (status_str == "ERR") {
 		status = ERR;
+	} else {
+		throw InvalidMessageException();
+	}
+}
+
+// ---------- SHOW ASSET
+
+std::stringstream ClientShowAsset::buildMessage() {
+	std::stringstream buffer;
+	char aid[4];
+	sprintf(aid, "%03d", auction_id);
+	buffer << protocol_code << " " << aid << std::endl;
+	return buffer;
+}
+
+void ClientShowAsset::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readSpace(buffer);
+	auction_id = readAuctionId(buffer);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerShowAsset::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << " ";
+	if (status == ServerShowAsset::status::OK) {
+		buffer << "OK " << fname << " " << fsize << " " << fdata;
+	} else if (status == ServerShowAsset::status::NOK) {
+		buffer << "NOK";
+	} else if (status == ServerShowAsset::status::ERR) {
+		buffer << "ERR";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerShowAsset::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerShowAsset::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	if (status_str == "OK") {
+		status = OK;
+		readSpace(buffer);
+		fname = readString(buffer, MAX_FILENAME_SIZE);
+		readSpace(buffer);
+		fsize = stol(readString(buffer, MAX_LENGTH_TIMEACTIVE));
+		readSpace(buffer);
+		fdata = readFile(buffer, fsize);
+		readDelimiter(buffer);
+	} else if (status_str == "NOK") {
+		status = NOK;
+		readDelimiter(buffer);
+	} else if (status_str == "ERR") {
+		status = ERR;
+		readDelimiter(buffer);
 	} else {
 		throw InvalidMessageException();
 	}

@@ -534,7 +534,32 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 	}
 
 	// Protocol setup
-	std::cout << "SHOWED IMAGE FILE OF THE ASSET: " << a_id << std::endl;
+	// Protocol setup
+	// Populate and send message
+	ClientShowAsset message_out;
+	message_out.auction_id = stoi(a_id);
+
+	ServerShowAsset message_in;
+	client.sendTcpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerShowAsset::status::OK:
+			printShowAsset(message_out);
+			saveToFile(message_in.fname, "assets/", message_in.fdata);
+			break;
+
+		case ServerShowAsset::status::NOK:
+			std::cout << "[ERROR] Auction doesn't exist." << std::endl;
+			break;
+
+		case ServerCloseAuction::status::ERR:
+			std::cout << "[ERROR] Wrong result." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
 }
 
 void BidCommand::handle(std::string args, Client &client) {
