@@ -571,7 +571,6 @@ std::stringstream ClientOpenAuction::buildMessage() {
 	buffer << protocol_code << " " << user_id << " " << password << " " << name
 		   << " " << start_value << " " << timeactive << " " << assetf_name
 		   << " " << fsize << " " << fdata << std::endl;
-	std::cout << buffer.str().length() << std::endl;
 	return buffer;
 }
 
@@ -622,6 +621,73 @@ void ServerOpenAuction::readMessage(std::stringstream &buffer) {
 	} else if (status_str == "NOK") {
 		status = NOK;
 		readDelimiter(buffer);
+	} else {
+		throw InvalidMessageException();
+	}
+}
+
+// ---------- CLOSE AUCTION
+
+std::stringstream ClientCloseAuction::buildMessage() {
+	std::stringstream buffer;
+	char aid[4];
+	sprintf(aid, "%03d", auction_id);
+	buffer << protocol_code << " " << user_id << " " << password << " " << aid
+		   << std::endl;
+	return buffer;
+}
+
+void ClientCloseAuction::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readSpace(buffer);
+	user_id = readUserId(buffer);
+	readSpace(buffer);
+	password = readPassword(buffer);
+	readSpace(buffer);
+	auction_id = readAuctionId(buffer);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerCloseAuction::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << " ";
+	if (status == ServerCloseAuction::status::OK) {
+		buffer << "OK";
+	} else if (status == ServerCloseAuction::status::NLG) {
+		buffer << "NLG";
+	} else if (status == ServerCloseAuction::status::EAU) {
+		buffer << "EAU";
+	} else if (status == ServerCloseAuction::status::EOW) {
+		buffer << "EOW";
+	} else if (status == ServerCloseAuction::status::END) {
+		buffer << "END";
+	} else if (status == ServerCloseAuction::status::ERR) {
+		buffer << "ERR";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerCloseAuction::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerCloseAuction::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, 3);
+	readDelimiter(buffer);
+	if (status_str == "OK") {
+		status = OK;
+	} else if (status_str == "NLG") {
+		status = NLG;
+	} else if (status_str == "EAU") {
+		status = EAU;
+	} else if (status_str == "EOW") {
+		status = EOW;
+	} else if (status_str == "END") {
+		status = END;
+	} else if (status_str == "ERR") {
+		status = ERR;
 	} else {
 		throw InvalidMessageException();
 	}
@@ -684,7 +750,5 @@ void await_tcp_message(ProtocolMessage &message, int socketfd) {
 		data.write(buffer, bytes_read);
 		memset(buffer, 0, SOCKET_BUFFER_LEN);
 	};
-	std::cout << data.str() << std::endl;
-
 	message.readMessage(data);
 }

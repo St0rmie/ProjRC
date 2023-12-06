@@ -470,7 +470,45 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 	}
 
 	// Protocol setup
-	std::cout << "CLOSED AUCTION // AUCTION: " << a_id << std::endl;
+	// Populate and send message
+	ClientCloseAuction message_out;
+	message_out.user_id = client.getLoggedInUser();
+	message_out.password = client.getPassword();
+	message_out.auction_id = stoi(a_id);
+
+	ServerCloseAuction message_in;
+	client.sendTcpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerCloseAuction::status::OK:
+			printCloseAuction(message_out);
+			break;
+
+		case ServerCloseAuction::status::NLG:
+			std::cout << "[ERROR] Not logged in." << std::endl;
+			break;
+
+		case ServerCloseAuction::status::EAU:
+			std::cout << "[ERROR] Auction doesn't exist." << std::endl;
+			break;
+
+		case ServerCloseAuction::status::EOW:
+			std::cout << "[ERROR] Auction doesn't belong to this user."
+					  << std::endl;
+			break;
+
+		case ServerCloseAuction::status::END:
+			std::cout << "[ERROR] Auction already ended" << std::endl;
+			break;
+
+		case ServerCloseAuction::status::ERR:
+			std::cout << "[ERROR] Wrong result." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
 }
 
 void ShowAssetCommand::handle(std::string args, Client &client) {
