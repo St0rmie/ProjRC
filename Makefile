@@ -62,7 +62,7 @@ server: src/server/server
 	cp src/server/server server
 
 client: 
-	$(CXX) -o client $(CXXFLAGS) $(CLIENT_SOURCES) $(SHARED_SOURCES) $(CLIENT_HEADERS) $(SHARED_HEADERS)
+	$(CXX) -g -o client.out $(CXXFLAGS) $(CLIENT_SOURCES) $(SHARED_SOURCES) $(CLIENT_HEADERS) $(SHARED_HEADERS)
 
 clean:
 	rm -f $(OBJECTS) $(TARGETS) $(TARGET_EXECS) project.zip
