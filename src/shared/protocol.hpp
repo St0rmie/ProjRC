@@ -211,6 +211,7 @@ class ClientShowAsset : public ProtocolMessage {
 // A user bids on an auction (BID)
 class ClientBid : public ProtocolMessage {
    public:
+	std::string protocol_code = CODE_BID_CLIENT;
 	uint32_t user_id;
 	std::string password;
 	uint32_t auction_id;
@@ -323,6 +324,7 @@ class ServerCloseAuction : public ProtocolMessage {
 	std::stringstream buildMessage();
 	void readMessage(std::stringstream &buffer);
 };
+
 class ServerShowAsset : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_SHOW_ASSET_SERVER;
@@ -335,7 +337,16 @@ class ServerShowAsset : public ProtocolMessage {
 	std::stringstream buildMessage();
 	void readMessage(std::stringstream &buffer);
 };
-class ServerBid : public ProtocolMessage {};
+
+class ServerBid : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_BID_SERVER;
+	enum status { NOK, NLG, ACC, REF, ILG, ERR };
+	status status;
+
+	std::stringstream buildMessage();
+	void readMessage(std::stringstream &buffer);
+};
 
 // -----------------------------------
 // | Send and receive messages		 |

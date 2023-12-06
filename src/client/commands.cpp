@@ -534,7 +534,6 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 	}
 
 	// Protocol setup
-	// Protocol setup
 	// Populate and send message
 	ClientShowAsset message_out;
 	message_out.auction_id = stoi(a_id);
@@ -591,8 +590,45 @@ void BidCommand::handle(std::string args, Client &client) {
 	}
 
 	// Protocol setup
-	std::cout << "BIDDED ON // AUCTION: " << a_id << " // VALUE: " << value
-			  << std::endl;
+	// Populate and send message
+	ClientBid message_out;
+	message_out.user_id = client.getLoggedInUser();
+	message_out.password = client.getPassword();
+	message_out.auction_id = stoi(a_id);
+	message_out.value = value;
+
+	ServerBid message_in;
+	client.sendTcpMessageAndAwaitReply(message_out, message_in);
+
+	// Check status
+	switch (message_in.status) {
+		case ServerBid::status::NOK:
+			printError("Auction isn't active.");
+			break;
+
+		case ServerBid::status::NLG:
+			printError("User not logged in.");
+			break;
+
+		case ServerBid::status::ACC:
+			printBid(message_out);
+			break;
+
+		case ServerBid::status::REF:
+			printError("A larger bid was already placed.");
+			break;
+
+		case ServerBid::status::ILG:
+			printError("A auction host user can't bid on his own auction.");
+			break;
+
+		case ServerBid::status::ERR:
+			std::cout << "[ERROR] Wrong result." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
 }
 
 void ExitCommand::handle(std::string args, Client &client) {

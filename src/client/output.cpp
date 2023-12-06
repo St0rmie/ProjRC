@@ -2,7 +2,7 @@
 
 void printRecord(std::string aid, ServerShowRecord message) {
 	std::cout << "[SUCCESS] Showing record for auction " << aid
-			  << "--------------------------------------------------\n"
+			  << "\n--------------------------------------------------"
 			  << "\n\tHost ID:\t\t" << message.host_UID
 			  << "\n\tAuction Name:\t\t" << message.auction_name
 			  << "\n\tAsset File Name:\t" << message.asset_fname
@@ -50,4 +50,17 @@ void printCloseAuction(ClientCloseAuction message) {
 void printShowAsset(ClientShowAsset message) {
 	std::cout << "[SUCCESS] Retrieved " << message.auction_id << " asset."
 			  << std::endl;
+}
+
+void printBid(ClientBid message) {
+	std::cout << "[SUCCESS] Bidded " << message.value << " on auction "
+			  << message.auction_id << "." << std::endl;
+}
+
+void printError(std::string str) {
+	std::cout << "[ERROR] " << str << std::endl;
+}
+
+void printSuccess(std::string success_description) {
+	std::cout << "[SUCCESS] " << success_description << std::endl;
 }
