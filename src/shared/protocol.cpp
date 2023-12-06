@@ -534,28 +534,28 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 		start_date_time = readDate(buffer);
 		readSpace(buffer);
 		timeactive = stoi(readString(buffer, 6));
-		readSpace(buffer);
-		while (readCharEqual(buffer, 'B')) {
-			bid bid;
-			readSpace(buffer);
-			bid.bidder_UID = readUserId(buffer);
-			readSpace(buffer);
-			bid.bid_value = stoi(readString(buffer, 6));
-			readSpace(buffer);
-			bid.bid_date_time = readDate(buffer);
-			readSpace(buffer);
-			bid.bid_sec_time = stoi(readString(buffer, 6));
-			readSpace(buffer);
-			bids.push_back(bid);
-		};
-		if (readCharEqual(buffer, 'E')) {
-			readSpace(buffer);
-			end_date_time = readDate(buffer);
-			readSpace(buffer);
-			end_sec_time = stoi(readString(buffer, 6));
-			readDelimiter(buffer);
+		if (readCharEqual(buffer, ' ')) {
+			while (readCharEqual(buffer, 'B')) {
+				bid bid;
+				readSpace(buffer);
+				bid.bidder_UID = readUserId(buffer);
+				readSpace(buffer);
+				bid.bid_value = stoi(readString(buffer, 6));
+				readSpace(buffer);
+				bid.bid_date_time = readDate(buffer);
+				readSpace(buffer);
+				bid.bid_sec_time = stoi(readString(buffer, 6));
+				readSpace(buffer);
+				bids.push_back(bid);
+			};
+			if (readCharEqual(buffer, 'E')) {
+				readSpace(buffer);
+				end_date_time = readDate(buffer);
+				readSpace(buffer);
+				end_sec_time = stoi(readString(buffer, 6));
+				readDelimiter(buffer);
+			}
 		}
-
 	} else if (status_str == "NOK") {
 		status = NOK;
 		readDelimiter(buffer);
@@ -568,11 +568,10 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 
 std::stringstream ClientOpenAuction::buildMessage() {
 	std::stringstream buffer;
-	char uid[4];
-	sprintf(uid, "%03d", user_id);
 	buffer << protocol_code << " " << user_id << " " << password << " " << name
 		   << " " << start_value << " " << timeactive << " " << assetf_name
-		   << " " << fsize << " " << fdata.str() << std::endl;
+		   << " " << fsize << " " << fdata << std::endl;
+	std::cout << buffer.str().length() << std::endl;
 	return buffer;
 }
 
@@ -593,14 +592,14 @@ void ClientOpenAuction::readMessage(std::stringstream &buffer) {
 	readSpace(buffer);
 	size_t fsize = (size_t) stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
 	readSpace(buffer);
-	fdata.write(readString(buffer, fsize).c_str(), fsize);
+	fdata = readString(buffer, fsize);
 	readDelimiter(buffer);
 }
 
 std::stringstream ServerOpenAuction::buildMessage() {
 	std::stringstream buffer;
 	if (status == ServerOpenAuction::status::OK) {
-		buffer << "OK "<< auction_id;
+		buffer << "OK " << auction_id;
 	} else if (status == ServerOpenAuction::status::NOK) {
 		buffer << "NOK";
 	} else {
@@ -627,8 +626,6 @@ void ServerOpenAuction::readMessage(std::stringstream &buffer) {
 		throw InvalidMessageException();
 	}
 }
-
-
 
 // -----------------------------------
 // | Send and receive messages		 |
@@ -687,5 +684,7 @@ void await_tcp_message(ProtocolMessage &message, int socketfd) {
 		data.write(buffer, bytes_read);
 		memset(buffer, 0, SOCKET_BUFFER_LEN);
 	};
+	std::cout << data.str() << std::endl;
+
 	message.readMessage(data);
 }

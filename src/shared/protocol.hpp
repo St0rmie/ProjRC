@@ -190,7 +190,7 @@ class ClientOpenAuction : public ProtocolMessage {
 	std::string name;
 	std::string assetf_name;
 	size_t fsize;
-	std::stringstream fdata;
+	std::string fdata;
 
 	std::stringstream buildMessage();
 	void readMessage(std::stringstream &buffer);
@@ -293,7 +293,7 @@ class ServerShowRecord : public ProtocolMessage {
 	uint32_t timeactive;
 	std::vector<bid> bids;
 	datetime end_date_time;
-	uint32_t end_sec_time;
+	uint32_t end_sec_time = 0;
 	status status;
 
 	std::stringstream buildMessage();

@@ -404,14 +404,8 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	// Opening file and reading contents
-	std::ifstream file("assets/"+asset_fname);
-	int file_size;
-	if(file){
-		file_buffer.seekg(0, file_buffer.end);
-   		file_size = file_buffer.tellg();
-        file.close();
-	}
+	// Path to file
+	std::string pathname = "assets/" + asset_fname;
 
 	// Protocol setup
 	// Populate and send message
@@ -422,8 +416,12 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	message_out.start_value = convert_auction_value(start_value);
 	message_out.timeactive = stoi(timeactive);
 	message_out.assetf_name = asset_fname;
-	message_out.fsize = file_size;
-	message_out.fdata.write(file_buffer.str().c_str(), file_size);
+	message_out.fsize = getFileSize(pathname);
+	if (message_out.fsize == -1) {
+		throw FileException();
+		return;
+	}
+	message_out.fdata = readFromFile(pathname, message_out.fsize);
 
 	ServerOpenAuction message_in;
 	client.sendTcpMessageAndAwaitReply(message_out, message_in);
@@ -435,12 +433,11 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerOpenAuction::status::NOK:
-			std::cout << "[ERROR] Couldn't start auction."
-					  << std::endl;
+			std::cout << "[ERROR] Couldn't start auction." << std::endl;
 			break;
 
 		case ServerOpenAuction::status::NLG:
-		std::cout << "[ERROR] Not logged in." << std::endl;
+			std::cout << "[ERROR] Not logged in." << std::endl;
 
 		case ServerOpenAuction::status::ERR:
 			std::cout << "[ERROR] Wrong result." << std::endl;

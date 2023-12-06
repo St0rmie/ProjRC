@@ -1,9 +1,9 @@
 #ifndef __UTILS__
 #define __UTILS__
 
-#include <string>
 #include <filesystem>
 #include <fstream>
+#include <string>
 
 #include "verifications.hpp"
 
@@ -50,7 +50,9 @@ std::string convert_date_to_str(datetime date);
 // -----------------------------------
 
 void sendFile(int connection_fd, std::filesystem::path file_path);
-void readAndSaveToFile(const int fd, const std::string &file_name, const size_t file_size);
+void readAndSaveToFile(const int fd, const std::string &file_name,
+                       const size_t file_size);
+std::string readFromFile(std::string pathname, int size);
 uint32_t getFileSize(std::filesystem::path file_path);
 
 #endif
