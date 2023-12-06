@@ -112,7 +112,7 @@ uint32_t ProtocolMessage::readAuctionId(std::stringstream &buffer) {
 }
 
 uint32_t ProtocolMessage::readAuctionValue(std::stringstream &buffer) {
-	std::string value_str = readString(buffer, AUCTION_VALUE_SIZE);
+	std::string value_str = readString(buffer, MAX_AUCTION_VALUE_SIZE);
 	return convert_auction_value(value_str);
 }
 
@@ -127,7 +127,7 @@ std::string ProtocolMessage::readAuctionAndState(std::stringstream &buffer) {
 	}
 
 	readSpace(buffer);
-	std::string auction_str = readString(buffer, 3);
+	std::string auction_str = readString(buffer, AUCTION_ID_SIZE);
 	readSpace(buffer);
 	std::string state_str = readString(buffer, 1);
 	if (state_str == "1") {
@@ -167,6 +167,11 @@ datetime ProtocolMessage::readDate(std::stringstream &buffer) {
 
 std::string ProtocolMessage::readFile(std::stringstream &buffer,
                                       uint32_t max_len) {
+	if (max_len > MAX_FILE_SIZE) {
+		throw FileException();
+		return "";
+	}
+
 	std::string str;
 	for (uint32_t i = 0; i < max_len; i++) {
 		char c = (char) buffer.get();
@@ -220,7 +225,7 @@ void ServerLoginUser::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerLoginUser::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	if (status_str == "OK") {
 		status = OK;
 	} else if (status_str == "NOK") {
@@ -270,7 +275,7 @@ void ServerLogout::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerLogout::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	if (status_str == "OK") {
 		status = OK;
 	} else if (status_str == "NOK") {
@@ -320,7 +325,7 @@ void ServerUnregister::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerUnregister::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	if (status_str == "OK") {
 		status = OK;
 	} else if (status_str == "NOK") {
@@ -371,7 +376,7 @@ void ServerListStartedAuctions::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerListStartedAuctions::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	if (status_str == "OK") {
 		status = OK;
 		std::string auc;
@@ -426,7 +431,7 @@ void ServerListBiddedAuctions::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerListBiddedAuctions::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	if (status_str == "OK") {
 		status = OK;
 		std::string auc;
@@ -477,7 +482,7 @@ void ServerListAllAuctions::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerListAllAuctions::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	if (status_str == "OK") {
 		status = OK;
 		std::string auc;
@@ -533,7 +538,7 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerShowRecord::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	readSpace(buffer);
 	if (status_str == "OK") {
 		status = OK;
@@ -541,24 +546,26 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 		readSpace(buffer);
 		auction_name = readString(buffer, MAX_AUCTION_NAME_SIZE);
 		readSpace(buffer);
-		asset_fname = readString(buffer, MAX_AUCTION_NAME_SIZE);
+		asset_fname = readString(buffer, MAX_FILENAME_SIZE);
 		readSpace(buffer);
 		start_value = readAuctionValue(buffer);
 		readSpace(buffer);
 		start_date_time = readDate(buffer);
 		readSpace(buffer);
-		timeactive = stoi(readString(buffer, 6));
+		timeactive = stoi(readString(buffer, MAX_TIMEACTIVE_SIZE));
 		if (readCharEqual(buffer, ' ')) {
 			while (readCharEqual(buffer, 'B')) {
 				bid bid;
 				readSpace(buffer);
 				bid.bidder_UID = readUserId(buffer);
 				readSpace(buffer);
-				bid.bid_value = stoi(readString(buffer, 6));
+				bid.bid_value =
+					stoi(readString(buffer, MAX_AUCTION_VALUE_SIZE));
 				readSpace(buffer);
 				bid.bid_date_time = readDate(buffer);
 				readSpace(buffer);
-				bid.bid_sec_time = stoi(readString(buffer, 6));
+				bid.bid_sec_time =
+					stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
 				readSpace(buffer);
 				bids.push_back(bid);
 			};
@@ -566,7 +573,7 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 				readSpace(buffer);
 				end_date_time = readDate(buffer);
 				readSpace(buffer);
-				end_sec_time = stoi(readString(buffer, 6));
+				end_sec_time = stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
 				readDelimiter(buffer);
 			}
 		}
@@ -626,7 +633,7 @@ void ServerOpenAuction::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerOpenAuction::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	readSpace(buffer);
 	if (status_str == "OK") {
 		status = OK;
@@ -688,7 +695,7 @@ void ServerCloseAuction::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerCloseAuction::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	readDelimiter(buffer);
 	if (status_str == "OK") {
 		status = OK;
@@ -744,7 +751,7 @@ void ServerShowAsset::readMessage(std::stringstream &buffer) {
 	buffer >> std::noskipws;
 	readMessageId(buffer, ServerShowAsset::protocol_code);
 	readSpace(buffer);
-	std::string status_str = readString(buffer, 3);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
 	if (status_str == "OK") {
 		status = OK;
 		readSpace(buffer);
@@ -756,6 +763,78 @@ void ServerShowAsset::readMessage(std::stringstream &buffer) {
 		readDelimiter(buffer);
 	} else if (status_str == "NOK") {
 		status = NOK;
+		readDelimiter(buffer);
+	} else if (status_str == "ERR") {
+		status = ERR;
+		readDelimiter(buffer);
+	} else {
+		throw InvalidMessageException();
+	}
+}
+
+// ---------- BID
+
+std::stringstream ClientBid::buildMessage() {
+	std::stringstream buffer;
+	char aid[4];
+	sprintf(aid, "%03d", auction_id);
+	buffer << protocol_code << " " << user_id << " " << password << " " << aid
+		   << " " << value << std::endl;
+	return buffer;
+}
+
+void ClientBid::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readSpace(buffer);
+	user_id = readUserId(buffer);
+	readSpace(buffer);
+	password = readPassword(buffer);
+	readSpace(buffer);
+	auction_id = readAuctionId(buffer);
+	readSpace(buffer);
+	value = readAuctionValue(buffer);
+	readDelimiter(buffer);
+}
+
+std::stringstream ServerBid::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << " ";
+	if (status == ServerBid::status::NOK) {
+		buffer << "NOK";
+	} else if (status == ServerBid::status::NLG) {
+		buffer << "NLG";
+	} else if (status == ServerBid::status::ACC) {
+		buffer << "ACC";
+	} else if (status == ServerBid::status::REF) {
+		buffer << "REF";
+	} else if (status == ServerBid::status::ILG) {
+		buffer << "ILG";
+	} else {
+		throw MessageBuildingException();
+	}
+	buffer << std::endl;
+	return buffer;
+}
+
+void ServerBid::readMessage(std::stringstream &buffer) {
+	buffer >> std::noskipws;
+	readMessageId(buffer, ServerBid::protocol_code);
+	readSpace(buffer);
+	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
+	if (status_str == "NOK") {
+		status = NOK;
+		readDelimiter(buffer);
+	} else if (status_str == "NLG") {
+		status = NLG;
+		readDelimiter(buffer);
+	} else if (status_str == "ACC") {
+		status = ACC;
+		readDelimiter(buffer);
+	} else if (status_str == "REF") {
+		status = REF;
+		readDelimiter(buffer);
+	} else if (status_str == "ILG") {
+		status = ILG;
 		readDelimiter(buffer);
 	} else if (status_str == "ERR") {
 		status = ERR;

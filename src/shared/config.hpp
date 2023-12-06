@@ -4,14 +4,16 @@
 #define DEFAULT_HOSTNAME "localhost"
 #define DEFAULT_PORT     "58086"
 
-#define USER_ID_SIZE          6
-#define AUCTION_ID_SIZE       3
-#define AUCTION_VALUE_SIZE    5
-#define MAX_AUCTION_NAME_SIZE 1024
-#define MAX_FILENAME_SIZE     1024
-#define MAX_TIMEACTIVE_SIZE   6
-#define PASSWORD_SIZE         8
-#define MAX_LENGTH_TIMEACTIVE 20
+#define USER_ID_SIZE           6  // ist-id
+#define AUCTION_ID_SIZE        3
+#define MAX_AUCTION_VALUE_SIZE 6
+#define MAX_AUCTION_NAME_SIZE  10
+#define MAX_FILENAME_SIZE      24
+#define MAX_FILE_SIZE          10 * 1000 * 1000  // 10 MB
+#define MAX_TIMEACTIVE_SIZE    6
+#define PASSWORD_SIZE          8
+#define MAX_LENGTH_TIMEACTIVE  5
+#define MAX_STATUS_SIZE        3
 
 #define CODE_LOGIN_USER         "LIN"
 #define CODE_LOGIN_SERVER       "RLI"
@@ -33,6 +35,8 @@
 #define CODE_CLOSE_AUC_SERVER   "RCL"
 #define CODE_SHOW_ASSET_CLIENT  "SAS"
 #define CODE_SHOW_ASSET_SERVER  "RSA"
+#define CODE_BID_CLIENT         "BID"
+#define CODE_BID_SERVER         "RBD"
 
 #define UDP_TIMEOUT   30
 #define UDP_MAX_TRIES 5

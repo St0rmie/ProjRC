@@ -187,18 +187,10 @@ bool Client::isLoggedIn() {
 	return (_user_id != LOGGED_OUT);
 }
 
-int Client::getLoggedInUser() {
+uint32_t Client::getLoggedInUser() {
 	return _user_id;
 }
 
 std::string Client::getPassword() {
 	return _password;
-}
-
-void printError(std::string error_description) {
-	std::cout << "[ERROR] " << error_description << std::endl;
-}
-
-void printSuccess(std::string success_description) {
-	std::cout << "[SUCCESS] " << success_description << std::endl;
 }

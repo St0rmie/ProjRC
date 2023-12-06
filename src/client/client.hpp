@@ -56,7 +56,7 @@ class Client {
 	void login(uint32_t user_id, std::string password);
 	void logout();
 	bool isLoggedIn();
-	int getLoggedInUser();
+	uint32_t getLoggedInUser();
 	std::string getPassword();
 	void sendUdpMessageAndAwaitReply(ProtocolMessage& out_message,
 	                                 ProtocolMessage& in_message);
