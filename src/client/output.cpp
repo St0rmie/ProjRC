@@ -29,8 +29,8 @@ void printRecord(std::string aid, ServerShowRecord message) {
 		std::cout << "--------------------------------------------------\n"
 				  << "END\tEnd Date\tEnd Time\tEnd Elapsed\n"
 				  << "--------------------------------------------------\n";
-		std::cout << "   \t" << extractDate(message.end_date_time) << "\t"
-				  << extractTime(message.end_date_time) << "\t\t"
+		std::cout << "OVER\t" << extractDate(message.end_date_time) << "\t"
+				  << extractTime(message.end_date_time) << "\t"
 				  << message.end_sec_time << std::endl;
 	}
 	std::cout << "--------------------------------------------------\n"
@@ -47,9 +47,12 @@ void printCloseAuction(ClientCloseAuction message) {
 			  << std::endl;
 }
 
-void printShowAsset(ClientShowAsset message) {
-	std::cout << "[SUCCESS] Retrieved " << message.auction_id << " asset."
-			  << std::endl;
+void printShowAsset(ClientShowAsset message_c, ServerShowAsset message_s) {
+	std::cout << "[SUCCESS] Retrieved " << message_c.auction_id
+			  << " auction's asset.\n\tFile Name: " << message_s.fname
+			  << std::setprecision(3) << std::fixed
+			  << "\n\tFile Size: " << (float) message_s.fsize / (1000000)
+			  << " MB" << std::endl;
 }
 
 void printBid(ClientBid message) {

@@ -544,7 +544,7 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 	// Check status
 	switch (message_in.status) {
 		case ServerShowAsset::status::OK:
-			printShowAsset(message_out);
+			printShowAsset(message_out, message_in);
 			saveToFile(message_in.fname, "assets/", message_in.fdata);
 			break;
 

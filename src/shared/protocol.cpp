@@ -4,23 +4,25 @@
 // | Reading functions				 |
 // -----------------------------------
 
-char ProtocolMessage::readChar(std::stringstream &buffer) {
+char ProtocolMessage::readChar(MessageAdapter &buffer) {
 	char c;
-	buffer >> c;
+	c = buffer.get();
 	if (!buffer.good()) {
 		throw InvalidMessageException();
 	}
 	return c;
 }
 
-void ProtocolMessage::readChar(std::stringstream &buffer, char c) {
-	if (readChar(buffer) != c) {
+void ProtocolMessage::readChar(MessageAdapter &buffer, char c) {
+	char read = readChar(buffer);
+	if (read != c) {
 		throw InvalidMessageException();
 	}
 }
 
-bool ProtocolMessage::readCharEqual(std::stringstream &buffer, char c) {
-	if (readChar(buffer) != c) {
+bool ProtocolMessage::readCharEqual(MessageAdapter &buffer, char c) {
+	char read = readChar(buffer);
+	if (read != c) {
 		buffer.unget();
 		return false;
 	} else {
@@ -28,12 +30,12 @@ bool ProtocolMessage::readCharEqual(std::stringstream &buffer, char c) {
 	}
 }
 
-void ProtocolMessage::readMessageId(std::stringstream &buffer,
+void ProtocolMessage::readMessageId(MessageAdapter &buffer,
                                     std::string protocol_code) {
 	char current_char;
 	int i = 0;
 	while (protocol_code[i] != '\0') {
-		buffer >> current_char;
+		current_char = readChar(buffer);
 		if (!buffer.good() || current_char != protocol_code[i]) {
 			throw UnexpectedMessageException();
 		}
@@ -41,19 +43,15 @@ void ProtocolMessage::readMessageId(std::stringstream &buffer,
 	}
 }
 
-void ProtocolMessage::readSpace(std::stringstream &buffer) {
+void ProtocolMessage::readSpace(MessageAdapter &buffer) {
 	readChar(buffer, ' ');
 }
 
-void ProtocolMessage::readDelimiter(std::stringstream &buffer) {
+void ProtocolMessage::readDelimiter(MessageAdapter &buffer) {
 	readChar(buffer, '\n');
-	buffer.peek();
-	if (!buffer.eof()) {
-		throw InvalidMessageException();
-	}
 }
 
-char ProtocolMessage::readAlphabeticalChar(std::stringstream &buffer) {
+char ProtocolMessage::readAlphabeticalChar(MessageAdapter &buffer) {
 	char c = readChar(buffer);
 	if (!isalpha((unsigned char) c)) {
 		throw InvalidMessageException();
@@ -61,7 +59,7 @@ char ProtocolMessage::readAlphabeticalChar(std::stringstream &buffer) {
 	return (char) tolower((unsigned char) c);
 }
 
-std::string ProtocolMessage::readString(std::stringstream &buffer,
+std::string ProtocolMessage::readString(MessageAdapter &buffer,
                                         uint32_t max_len) {
 	std::string str;
 	for (uint32_t i = 0; i < max_len; i++) {
@@ -79,7 +77,7 @@ std::string ProtocolMessage::readString(std::stringstream &buffer,
 	return str;
 }
 
-std::string ProtocolMessage::readAlphabeticalString(std::stringstream &buffer,
+std::string ProtocolMessage::readAlphabeticalString(MessageAdapter &buffer,
                                                     uint32_t max_len) {
 	std::string str = readString(buffer, max_len);
 	for (uint32_t i = 0; i < str.length(); ++i) {
@@ -92,36 +90,35 @@ std::string ProtocolMessage::readAlphabeticalString(std::stringstream &buffer,
 	return str;
 }
 
-uint32_t ProtocolMessage::readInt(std::stringstream &buffer) {
-	int64_t i;
-	buffer >> i;
+uint32_t ProtocolMessage::readInt(MessageAdapter &buffer) {
+	int64_t i = buffer.get();
 	if (!buffer.good() || i < 0 || i > INT32_MAX) {
 		throw InvalidMessageException();
 	}
 	return (uint32_t) i;
 }
 
-uint32_t ProtocolMessage::readUserId(std::stringstream &buffer) {
+uint32_t ProtocolMessage::readUserId(MessageAdapter &buffer) {
 	std::string id_str = readString(buffer, USER_ID_SIZE);
 	return convert_user_id(id_str);
 }
 
-uint32_t ProtocolMessage::readAuctionId(std::stringstream &buffer) {
+uint32_t ProtocolMessage::readAuctionId(MessageAdapter &buffer) {
 	std::string id_str = readString(buffer, AUCTION_ID_SIZE);
 	return convert_auction_id(id_str);
 }
 
-uint32_t ProtocolMessage::readAuctionValue(std::stringstream &buffer) {
+uint32_t ProtocolMessage::readAuctionValue(MessageAdapter &buffer) {
 	std::string value_str = readString(buffer, MAX_AUCTION_VALUE_SIZE);
 	return convert_auction_value(value_str);
 }
 
-std::string ProtocolMessage::readPassword(std::stringstream &buffer) {
+std::string ProtocolMessage::readPassword(MessageAdapter &buffer) {
 	std::string password_str = readString(buffer, PASSWORD_SIZE);
 	return convert_password(password_str);
 }
 
-std::string ProtocolMessage::readAuctionAndState(std::stringstream &buffer) {
+std::string ProtocolMessage::readAuctionAndState(MessageAdapter &buffer) {
 	if (checkIfOver(buffer) == true) {
 		return "";
 	}
@@ -138,7 +135,7 @@ std::string ProtocolMessage::readAuctionAndState(std::stringstream &buffer) {
 	return "AID: " + auction_str + " --- STATUS: " + state_str;
 }
 
-bool ProtocolMessage::checkIfOver(std::stringstream &buffer) {
+bool ProtocolMessage::checkIfOver(MessageAdapter &buffer) {
 	char c = '\n';
 	if (readChar(buffer) == c) {
 		buffer.unget();
@@ -149,7 +146,7 @@ bool ProtocolMessage::checkIfOver(std::stringstream &buffer) {
 	}
 }
 
-datetime ProtocolMessage::readDate(std::stringstream &buffer) {
+datetime ProtocolMessage::readDate(MessageAdapter &buffer) {
 	datetime date;
 	date.year = readString(buffer, 4);
 	readChar(buffer, '-');
@@ -165,7 +162,7 @@ datetime ProtocolMessage::readDate(std::stringstream &buffer) {
 	return date;
 }
 
-std::string ProtocolMessage::readFile(std::stringstream &buffer,
+std::string ProtocolMessage::readFile(MessageAdapter &buffer,
                                       uint32_t max_len) {
 	if (max_len > MAX_FILE_SIZE) {
 		throw FileException();
@@ -196,8 +193,7 @@ std::stringstream ClientLoginUser::buildMessage() {
 	return buffer;
 }
 
-void ClientLoginUser::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientLoginUser::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readSpace(buffer);
 	user_id = readUserId(buffer);
@@ -221,8 +217,7 @@ std::stringstream ServerLoginUser::buildMessage() {
 	return buffer;
 }
 
-void ServerLoginUser::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerLoginUser::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerLoginUser::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -246,8 +241,7 @@ std::stringstream ClientLogout::buildMessage() {
 	return buffer;
 }
 
-void ClientLogout::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientLogout::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readSpace(buffer);
 	user_id = readUserId(buffer);
@@ -271,8 +265,7 @@ std::stringstream ServerLogout::buildMessage() {
 	return buffer;
 }
 
-void ServerLogout::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerLogout::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerLogout::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -296,8 +289,7 @@ std::stringstream ClientUnregister::buildMessage() {
 	return buffer;
 }
 
-void ClientUnregister::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientUnregister::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readSpace(buffer);
 	user_id = readUserId(buffer);
@@ -321,8 +313,7 @@ std::stringstream ServerUnregister::buildMessage() {
 	return buffer;
 }
 
-void ServerUnregister::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerUnregister::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerUnregister::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -346,8 +337,7 @@ std::stringstream ClientListStartedAuctions::buildMessage() {
 	return buffer;
 }
 
-void ClientListStartedAuctions::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientListStartedAuctions::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readSpace(buffer);
 	user_id = readUserId(buffer);
@@ -372,8 +362,7 @@ std::stringstream ServerListStartedAuctions::buildMessage() {
 	return buffer;
 }
 
-void ServerListStartedAuctions::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerListStartedAuctions::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerListStartedAuctions::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -401,8 +390,7 @@ std::stringstream ClientListBiddedAuctions::buildMessage() {
 	return buffer;
 }
 
-void ClientListBiddedAuctions::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readSpace(buffer);
 	user_id = readUserId(buffer);
@@ -427,8 +415,7 @@ std::stringstream ServerListBiddedAuctions::buildMessage() {
 	return buffer;
 }
 
-void ServerListBiddedAuctions::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerListBiddedAuctions::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -456,8 +443,7 @@ std::stringstream ClientListAllAuctions::buildMessage() {
 	return buffer;
 }
 
-void ClientListAllAuctions::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientListAllAuctions::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readDelimiter(buffer);
 }
@@ -478,8 +464,7 @@ std::stringstream ServerListAllAuctions::buildMessage() {
 	return buffer;
 }
 
-void ServerListAllAuctions::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerListAllAuctions::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerListAllAuctions::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -507,8 +492,7 @@ std::stringstream ClientShowRecord::buildMessage() {
 	return buffer;
 }
 
-void ClientShowRecord::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientShowRecord::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	auction_id = readAuctionId(buffer);
 	readDelimiter(buffer);
@@ -534,8 +518,8 @@ std::stringstream ServerShowRecord::buildMessage() {
 	return buffer;
 }
 
-void ServerShowRecord::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerShowRecord::readMessage(MessageAdapter &buffer) {
+	bool skip;
 	readMessageId(buffer, ServerShowRecord::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -566,8 +550,11 @@ void ServerShowRecord::readMessage(std::stringstream &buffer) {
 				readSpace(buffer);
 				bid.bid_sec_time =
 					stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
-				readSpace(buffer);
 				bids.push_back(bid);
+				skip = readCharEqual(buffer, ' ');
+				if (!skip) {
+					break;
+				}
 			};
 			if (readCharEqual(buffer, 'E')) {
 				readSpace(buffer);
@@ -595,8 +582,7 @@ std::stringstream ClientOpenAuction::buildMessage() {
 	return buffer;
 }
 
-void ClientOpenAuction::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	user_id = readUserId(buffer);
 	readSpace(buffer);
@@ -629,8 +615,7 @@ std::stringstream ServerOpenAuction::buildMessage() {
 	return buffer;
 }
 
-void ServerOpenAuction::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerOpenAuction::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerOpenAuction::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -658,8 +643,7 @@ std::stringstream ClientCloseAuction::buildMessage() {
 	return buffer;
 }
 
-void ClientCloseAuction::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientCloseAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	user_id = readUserId(buffer);
 	readSpace(buffer);
@@ -691,8 +675,7 @@ std::stringstream ServerCloseAuction::buildMessage() {
 	return buffer;
 }
 
-void ServerCloseAuction::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerCloseAuction::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerCloseAuction::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -724,8 +707,7 @@ std::stringstream ClientShowAsset::buildMessage() {
 	return buffer;
 }
 
-void ClientShowAsset::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientShowAsset::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	auction_id = readAuctionId(buffer);
 	readDelimiter(buffer);
@@ -747,8 +729,7 @@ std::stringstream ServerShowAsset::buildMessage() {
 	return buffer;
 }
 
-void ServerShowAsset::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerShowAsset::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerShowAsset::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -757,7 +738,7 @@ void ServerShowAsset::readMessage(std::stringstream &buffer) {
 		readSpace(buffer);
 		fname = readString(buffer, MAX_FILENAME_SIZE);
 		readSpace(buffer);
-		fsize = stol(readString(buffer, MAX_LENGTH_TIMEACTIVE));
+		fsize = stol(readString(buffer, MAX_FILE_SIZE_LENGTH));
 		readSpace(buffer);
 		fdata = readFile(buffer, fsize);
 		readDelimiter(buffer);
@@ -783,8 +764,7 @@ std::stringstream ClientBid::buildMessage() {
 	return buffer;
 }
 
-void ClientBid::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ClientBid::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	user_id = readUserId(buffer);
 	readSpace(buffer);
@@ -816,8 +796,7 @@ std::stringstream ServerBid::buildMessage() {
 	return buffer;
 }
 
-void ServerBid::readMessage(std::stringstream &buffer) {
-	buffer >> std::noskipws;
+void ServerBid::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerBid::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
@@ -885,7 +864,8 @@ void await_udp_message(ProtocolMessage &message, int socketfd) {
 	}
 
 	data.write(buffer, n);
-	message.readMessage(data);
+	StreamMessage strm_message(data);
+	message.readMessage(strm_message);
 }
 
 void await_tcp_message(ProtocolMessage &message, int socketfd) {
@@ -893,13 +873,14 @@ void await_tcp_message(ProtocolMessage &message, int socketfd) {
 	char buffer[SOCKET_BUFFER_LEN];
 	ssize_t bytes_read;
 	memset(buffer, 0, SOCKET_BUFFER_LEN);
-	while ((bytes_read = read(socketfd, &buffer, SOCKET_BUFFER_LEN)) > 0) {
-		if (bytes_read == -1) {
-			throw MessageReceiveException();
-		}
+	/*while ((bytes_read = read(socketfd, &buffer, SOCKET_BUFFER_LEN)) > 0) {
+	    if (bytes_read == -1) {
+	        throw MessageReceiveException();
+	    }
 
-		data.write(buffer, bytes_read);
-		memset(buffer, 0, SOCKET_BUFFER_LEN);
-	};
-	message.readMessage(data);
+	    data.write(buffer, bytes_read);
+	    memset(buffer, 0, SOCKET_BUFFER_LEN);
+	};*/
+	TcpMessage tcp_message(socketfd);
+	message.readMessage(tcp_message);
 }

@@ -10,6 +10,7 @@
 #define MAX_AUCTION_NAME_SIZE  10
 #define MAX_FILENAME_SIZE      24
 #define MAX_FILE_SIZE          10 * 1000 * 1000  // 10 MB
+#define MAX_FILE_SIZE_LENGTH   8
 #define MAX_TIMEACTIVE_SIZE    6
 #define PASSWORD_SIZE          8
 #define MAX_LENGTH_TIMEACTIVE  5
