@@ -54,44 +54,96 @@ class ConnectionTimeoutException : public std::runtime_error {
 	}
 };
 
+class MessageAdapter {
+   public:
+	virtual char get() = 0;
+	virtual bool good() = 0;
+	virtual void unget() = 0;
+};
+
+class StreamMessage : public MessageAdapter {
+   private:
+	std::stringstream &_stream;
+
+   public:
+	StreamMessage(std::stringstream &stream) : _stream(stream){};
+	char get() {
+		return (char) _stream.get();
+	};
+	bool good() {
+		return _stream.good();
+	};
+	void unget() {
+		_stream.unget();
+	};
+};
+
+class TcpMessage : public MessageAdapter {
+   private:
+	int _fd;
+	std::vector<char> _buffer;
+	char _last;
+
+   public:
+	TcpMessage(int fd) : _fd(fd){};
+	void fillBuffer() {
+		char buf[SOCKET_BUFFER_LEN];
+		ssize_t n = read(_fd, &buf, SOCKET_BUFFER_LEN);
+
+		if (n == -1) {
+			throw InvalidMessageException();
+		}
+
+		for (int i = n - 1; i >= 0; i--) {
+			_buffer.push_back(buf[i]);
+		}
+	}
+	char get() {
+		if (_buffer.size() == 0) {
+			fillBuffer();
+		}
+
+		_last = _buffer.back();
+		_buffer.pop_back();
+
+		return _last;
+	};
+
+	bool good() {
+		return true;
+	};
+
+	void unget() {
+		_buffer.push_back(_last);
+	};
+};
+
 class ProtocolMessage {
    protected:
-	char readChar(std::stringstream &buffer);
-	void readChar(std::stringstream &buffer, char chr);
-	bool readCharEqual(std::stringstream &buffer, char chr);
-	void readMessageId(std::stringstream &buffer, std::string protocol_code);
-	void readSpace(std::stringstream &buffer);
-	char readAlphabeticalChar(std::stringstream &buffer);
-	void readDelimiter(std::stringstream &buffer);
-	std::string readString(std::stringstream &buffer, uint32_t max_len);
-	std::string readAlphabeticalString(std::stringstream &buffer,
+	char readChar(MessageAdapter &buffer);
+	void readChar(MessageAdapter &buffer, char chr);
+	bool readCharEqual(MessageAdapter &buffer, char chr);
+	void readMessageId(MessageAdapter &buffer, std::string protocol_code);
+	void readSpace(MessageAdapter &buffer);
+	char readAlphabeticalChar(MessageAdapter &buffer);
+	void readDelimiter(MessageAdapter &buffer);
+	std::string readString(MessageAdapter &buffer, uint32_t max_len);
+	std::string readAlphabeticalString(MessageAdapter &buffer,
 	                                   uint32_t max_len);
-	uint32_t readInt(std::stringstream &buffer);
-	uint32_t readUserId(std::stringstream &buffer);
-	uint32_t readAuctionId(std::stringstream &buffer);
-	uint32_t readAuctionValue(std::stringstream &buffer);
-	std::string readPassword(std::stringstream &buffer);
-	std::string readAuctionAndState(std::stringstream &buffer);
-	bool checkIfOver(std::stringstream &buffer);
-	datetime readDate(std::stringstream &buffer);
+	uint32_t readInt(MessageAdapter &buffer);
+	uint32_t readUserId(MessageAdapter &buffer);
+	uint32_t readAuctionId(MessageAdapter &buffer);
+	uint32_t readAuctionValue(MessageAdapter &buffer);
+	std::string readPassword(MessageAdapter &buffer);
+	std::string readAuctionAndState(MessageAdapter &buffer);
+	bool checkIfOver(MessageAdapter &buffer);
+	datetime readDate(MessageAdapter &buffer);
 	void parseDate(datetime date, std::string date_str);
-	std::string readFile(std::stringstream &buffer, uint32_t max_len);
+	std::string readFile(MessageAdapter &buffer, uint32_t max_len);
 
    public:
 	virtual std::stringstream buildMessage() = 0;
-	virtual void readMessage(std::stringstream &buffer) = 0;
-};
-
-class UdpMessage : public ProtocolMessage {
-   public:
-	virtual std::stringstream buildMessage() = 0;
-	virtual void readMessage(std::stringstream &buffer) = 0;
-};
-
-class TcpMessage : public ProtocolMessage {
-   public:
-	virtual std::stringstream buildMessageAndWrite(int fd) = 0;
-	virtual void readMessage(std::stringstream &buffer) = 0;
+	virtual void readMessage(MessageAdapter &buffer) = 0;
 };
 
 // -----------------------------------
@@ -106,7 +158,7 @@ class ClientLoginUser : public ProtocolMessage {
 	std::string password;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // Logout (LOU) -> UDP
@@ -117,7 +169,7 @@ class ClientLogout : public ProtocolMessage {
 	std::string password;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ClientUnregister : public ProtocolMessage {
@@ -127,7 +179,7 @@ class ClientUnregister : public ProtocolMessage {
 	std::string password;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // List started auctions by a specified user (LMA)
@@ -137,7 +189,7 @@ class ClientListStartedAuctions : public ProtocolMessage {
 	uint32_t user_id;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // List bidded auctions by a specified suer (LMB)
@@ -147,7 +199,7 @@ class ClientListBiddedAuctions : public ProtocolMessage {
 	uint32_t user_id;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // List all auctions on the system (LST)
@@ -157,7 +209,7 @@ class ClientListAllAuctions : public ProtocolMessage {
 	uint32_t user_id;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // Show record of an auction on the system
@@ -167,7 +219,7 @@ class ClientShowRecord : public ProtocolMessage {
 	uint32_t auction_id;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ClientOpenAuction : public ProtocolMessage {
@@ -183,7 +235,7 @@ class ClientOpenAuction : public ProtocolMessage {
 	std::string fdata;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // Close Auction (CLS) -> TCP
@@ -195,7 +247,7 @@ class ClientCloseAuction : public ProtocolMessage {
 	uint32_t auction_id;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // Show asset of a specified auction (SAS)
@@ -205,7 +257,7 @@ class ClientShowAsset : public ProtocolMessage {
 	uint32_t auction_id;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // A user bids on an auction (BID)
@@ -218,7 +270,7 @@ class ClientBid : public ProtocolMessage {
 	uint32_t value;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // Server Messages for each command
@@ -229,7 +281,7 @@ class ServerLoginUser : public ProtocolMessage {
 
 	status status;
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerLogout : public ProtocolMessage {
@@ -239,7 +291,7 @@ class ServerLogout : public ProtocolMessage {
 
 	status status;
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerUnregister : public ProtocolMessage {
@@ -249,7 +301,7 @@ class ServerUnregister : public ProtocolMessage {
 
 	status status;
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerListStartedAuctions : public ProtocolMessage {
@@ -260,7 +312,7 @@ class ServerListStartedAuctions : public ProtocolMessage {
 
 	status status;
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerListBiddedAuctions : public ProtocolMessage {
@@ -271,7 +323,7 @@ class ServerListBiddedAuctions : public ProtocolMessage {
 
 	status status;
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerListAllAuctions : public ProtocolMessage {
@@ -282,7 +334,7 @@ class ServerListAllAuctions : public ProtocolMessage {
 
 	status status;
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerShowRecord : public ProtocolMessage {
@@ -301,7 +353,7 @@ class ServerShowRecord : public ProtocolMessage {
 	status status;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerOpenAuction : public ProtocolMessage {
@@ -312,7 +364,7 @@ class ServerOpenAuction : public ProtocolMessage {
 	status status;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerCloseAuction : public ProtocolMessage {
@@ -322,7 +374,7 @@ class ServerCloseAuction : public ProtocolMessage {
 	status status;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerShowAsset : public ProtocolMessage {
@@ -335,7 +387,7 @@ class ServerShowAsset : public ProtocolMessage {
 	status status;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 class ServerBid : public ProtocolMessage {
@@ -345,7 +397,7 @@ class ServerBid : public ProtocolMessage {
 	status status;
 
 	std::stringstream buildMessage();
-	void readMessage(std::stringstream &buffer);
+	void readMessage(MessageAdapter &buffer);
 };
 
 // -----------------------------------
