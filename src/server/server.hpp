@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 
+#include "database.hpp"
 #include "shared/protocol.hpp"
 #include "shared/utils.hpp"
 
@@ -26,6 +27,7 @@ class Server {
 	std::string _hostname = DEFAULT_HOSTNAME;
 	std::string _port = DEFAULT_PORT;
 	bool verbose = true;
+	Database database;
 
 	void resolveServerAddress(std::string& hostname, std::string& port);
 	void sendUdpMessage(ProtocolMessage& message);
@@ -41,8 +43,9 @@ class Server {
 	int tcp_socket_fd = -1;
 	struct addrinfo* server_udp_addr = NULL;
 	struct addrinfo* server_tcp_addr = NULL;
-	Server(int argc, char* argv[]);
-	~Server();
+	Server(int argc, char* argv[]) {
+		database.CreateBaseDir();
+	};
 	void sendUdpMessage(ProtocolMessage& out_message, Address& addr_from);
 	void sendTcpMessage();
 };

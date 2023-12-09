@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 		std::cerr << "Failed to fork process." << std::endl;
 		exit(EXIT_FAILURE);
 	} else {
-		processTCP(server, requestManager);
+		// processTCP(server, requestManager);
 		std::cout << "[QUIT] Shutting Down." << std::endl;
 	}
 	return EXIT_SUCCESS;

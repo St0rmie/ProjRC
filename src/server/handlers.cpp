@@ -97,3 +97,43 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	send_udp_message(message_out, address.socket,
 	                 (struct sockaddr *) &address.addr, address.size);
 }
+
+void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
+                               Address &address) {
+	ClientShowRecord message_in;
+	ServerShowRecord message_out;
+	try {
+		message_in.readMessage(message);
+
+		// DATABASE OPERATIONS
+	} catch (...) {
+		std::cout << "Failed to handle login request." << std::endl;
+	}
+
+	send_udp_message(message_out, address.socket,
+	                 (struct sockaddr *) &address.addr, address.size);
+}
+
+void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
+                                Address &address) {
+	ClientOpenAuction message_in;
+	ServerOpenAuction message_out;
+}
+
+void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
+                                 Address &address) {
+	ClientCloseAuction message_in;
+	ServerCloseAuction message_out;
+}
+
+void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
+                              Address &address) {
+	ClientShowAsset message_in;
+	ServerShowAsset message_out;
+}
+
+void BidRequest::handle(MessageAdapter &message, Server &server,
+                        Address &address) {
+	ClientBid message_in;
+	ServerBid message_out;
+}
