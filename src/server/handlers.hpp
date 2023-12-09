@@ -2,40 +2,16 @@
 #define __ SERVER_HANDLERS__
 
 #include <string>
-#include <unordered_map>
 
 #include "database.hpp"
 #include "server.hpp"
+#include "shared/protocol.hpp"
 
 // Thrown when an viable handler is not found
 class UnknownHandlerException : public std::runtime_error {
    public:
 	UnknownHandlerException()
 		: std::runtime_error("[Error] An unrecoverable exception occured.") {}
-};
-
-class RequestHandler {
-   protected:
-	RequestHandler(const char *protocol_code) : _protocol_code{protocol_code} {}
-
-   public:
-	const char *_protocol_code;
-	virtual void handle(MessageAdapter &message, Server &server,
-	                    Address &address) = 0;
-};
-
-class RequestManager {
-   private:
-	std::unordered_map<std::string, std::shared_ptr<RequestHandler>>
-		_udp_handlers;
-	std::unordered_map<std::string, std::shared_ptr<RequestHandler>>
-		_tcp_handlers;
-
-   public:
-	void registerRequestHandlers(RequestManager &manager);
-	void registerRequest(std::shared_ptr<RequestHandler> handler, int type);
-	void callHandlerRequest(MessageAdapter &message, Server &client,
-	                        Address &address, int type);
 };
 
 class LoginRequest : public RequestHandler {
@@ -125,7 +101,5 @@ class UnregisterRequest : public RequestHandler {
    public:
 	UnregisterRequest() : RequestHandler(CODE_UNREGISTER_USER) {}
 };
-
-void registerRequestHandlers(RequestManager &manager);
 
 #endif

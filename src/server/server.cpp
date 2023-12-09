@@ -6,24 +6,6 @@
 
 #include "handlers.hpp"
 
-int main(int argc, char *argv[]) {
-	Server server(argc, argv);
-	RequestManager requestManager;
-	registerRequestHandlers(requestManager);
-
-	pid_t c_pid = fork();
-	if (c_pid == 0) {
-		processUDP(server, requestManager);
-	} else if (c_pid == -1) {
-		std::cerr << "Failed to fork process." << std::endl;
-		exit(EXIT_FAILURE);
-	} else {
-		processTCP(server, requestManager);
-		std::cout << "[QUIT] Shutting Down." << std::endl;
-	}
-	return EXIT_SUCCESS;
-}
-
 void processUDP(Server &server, RequestManager &manager) {
 	int ex_trial;
 	while (true) {
@@ -74,3 +56,21 @@ void wait_for_udp_message(Server &server, RequestManager &manager) {
 }
 
 void processTCP(Server &server, RequestManager &manager) {}
+
+int main(int argc, char *argv[]) {
+	Server server(argc, argv);
+	RequestManager requestManager;
+	registerRequestHandlers(requestManager);
+
+	pid_t c_pid = fork();
+	if (c_pid == 0) {
+		processUDP(server, requestManager);
+	} else if (c_pid == -1) {
+		std::cerr << "Failed to fork process." << std::endl;
+		exit(EXIT_FAILURE);
+	} else {
+		processTCP(server, requestManager);
+		std::cout << "[QUIT] Shutting Down." << std::endl;
+	}
+	return EXIT_SUCCESS;
+}
