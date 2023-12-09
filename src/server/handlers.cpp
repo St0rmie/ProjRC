@@ -1,6 +1,6 @@
 #include "handlers.hpp"
 
-#include "protocol.hpp"
+#include "shared/protocol.hpp"
 
 void LoginRequest::handle(MessageAdapter &message, Server &server,
                           Address &address) {
