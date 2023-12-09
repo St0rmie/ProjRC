@@ -3,6 +3,8 @@
 
 #include <netdb.h>
 
+#include <unordered_map>
+
 #include "shared/protocol.hpp"
 #include "shared/utils.hpp"
 
@@ -45,5 +47,33 @@ class Server {
 	void sendUdpMessage(ProtocolMessage& out_message, Address& addr_from);
 	void sendTcpMessage();
 };
+
+class RequestHandler {
+   protected:
+	RequestHandler(const char* protocol_code) : _protocol_code{protocol_code} {}
+
+   public:
+	const char* _protocol_code;
+	virtual void handle(MessageAdapter& message, Server& server,
+	                    Address& address) = 0;
+};
+
+class RequestManager {
+   private:
+	std::unordered_map<std::string, std::shared_ptr<RequestHandler>>
+		_udp_handlers;
+	std::unordered_map<std::string, std::shared_ptr<RequestHandler>>
+		_tcp_handlers;
+
+   public:
+	void registerRequestHandlers(RequestManager& manager);
+	void registerRequest(std::shared_ptr<RequestHandler> handler, int type);
+	void callHandlerRequest(MessageAdapter& message, Server& client,
+	                        Address& address, int type);
+};
+
+void processUDP(Server& server, RequestManager& manager);
+void processTCP(Server& server, RequestManager& manager);
+void wait_for_udp_message(Server& server, RequestManager& manager);
 
 #endif

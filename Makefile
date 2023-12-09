@@ -5,8 +5,8 @@ LD = g++
 INCLUDE_DIRS := src/client src/server src/
 INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 
-TARGETS = src/client/client src/server/server
-TARGET_EXECS = client
+TARGETS = src/client/user src/server/server
+TARGET_EXECS = user AS
 
 CLIENT_SOURCES := $(wildcard src/client/*.cpp)
 SHARED_SOURCES := $(wildcard src/shared/*.cpp)
@@ -29,6 +29,23 @@ LDFLAGS = -std=c++17
 CXXFLAGS += $(INCLUDES)
 LDFLAGS += $(INCLUDES)
 
+vpath # clears VPATH
+vpath %.hpp $(INCLUDE_DIRS)
+
+# Run `make OPTIM=no` to disable -O3
+ifeq ($(strip $(OPTIM)), no)
+	CXXFLAGS += -O0
+else
+	CXXFLAGS += -O3
+endif
+
+# Run `make DEBUG=true` to run with debug symbols
+ifeq ($(strip $(DEBUG)), yes)
+	CXXFLAGS += -g
+endif
+
+#LDFLAGS = -fsanitize=address -lasan
+
 #CXXFLAGS += -fdiagnostics-color=always
 #CXXFLAGS += -Wall
 #CXXFLAGS += -Werror
@@ -45,7 +62,10 @@ LDFLAGS += $(INCLUDES)
 #CXXFLAGS += -Wundef
 #CXXFLAGS += -Wunreachable-code
 #CXXFLAGS += -Wunused
-LDFLAGS += -pthread
+#LDFLAGS += -pthread
+
+
+.PHONY: all clean fmt fmt-check package
 
 all: $(TARGET_EXECS)
 
@@ -56,16 +76,18 @@ fmt-check: $(SOURCES) $(HEADERS)
 	clang-format -n --Werror $^
 
 src/server/server: $(SERVER_OBJECTS) $(SERVER_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS)
-src/client/client: $(CLIENT_OBJECTS) $(CLIENT_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS)
 
-server: src/server/server
-	cp src/server/server server
-
-client: 
-	$(CXX) -g -o client.out $(CXXFLAGS) $(CLIENT_SOURCES) $(SHARED_SOURCES) $(CLIENT_HEADERS) $(SHARED_HEADERS)
+AS: $(SERVER_OBJECTS) $(SERVER_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS)
+	$(CC) -o AS $(LDFLAGS) $(CXXFLAGS) $(CLIENT_OBJECTS) $(CLIENT_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS) 
+user: $(CLIENT_OBJECTS) $(CLIENT_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS)
+	$(CC) -o user $(LDFLAGS) $(CXXFLAGS) $(CLIENT_OBJECTS) $(CLIENT_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS) 
 
 clean:
 	rm -f $(OBJECTS) $(TARGETS) $(TARGET_EXECS) project.zip
 
+clean-gamedata:
+	rm -rf .gamedata
+
 package:
-	zip project.zip $(SOURCES) $(HEADERS) Makefile .clang-format readme.txt
+	cp README.md readme.txt
+	zip project.zip $(SOURCES) $(HEADERS) Makefile .clang-format readme.txt *.xlsx

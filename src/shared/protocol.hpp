@@ -130,6 +130,7 @@ class TcpMessage : public MessageAdapter {
 		for (int i = 0; i < n; i++) {
 			str.push_back(get());
 		}
+		return str;
 	}
 };
 
