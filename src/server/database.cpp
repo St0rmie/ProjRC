@@ -197,7 +197,7 @@ int RegisterBid(std::string user_id, std::string a_id) {
 }
 
 /* Returns -1 if logout doesn't exist, 0 if it does*/
-int CheckLogoutExists(const char *login_id_fname) {
+int CheckLoginExists(const char *login_id_fname) {
 	if (access(login_id_fname, F_OK) == 0) {
 		return 0;
 	} else {
@@ -226,7 +226,7 @@ int EraseLogin(std::string user_id) {
 
 	const char *login_id_fname = login_id_name.c_str();
 
-	if (CheckLogoutExists(login_id_fname) == -1) {
+	if (CheckLoginExists(login_id_fname) == -1) {
 		return 2;
 	}
 
@@ -319,7 +319,7 @@ int CreateStartFile(std::string a_id, std::string user_id, std::string name,
 
 	FILE *fp;
 	time_t fulltime;
-	char current_date = GetCurrentDate();
+	std::string current_date = GetCurrentDate();
 	uint32_t current_time = time(&fulltime);
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
@@ -371,10 +371,12 @@ int CreateEndFile(std::string a_id) {
 	}
 
 	FILE *fp;
+	Start start;
 	time_t fulltime;
-	char current_date = GetCurrentDate();
+	std::string current_date = GetCurrentDate();
 	uint32_t current_time = time(&fulltime);
-	uint32_t start_time = GetStartTime(a_id);
+	GetStart(a_id, start);
+	uint32_t start_time = start.current_time;
 	uint32_t time_passed = start_time - current_time;
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
@@ -446,12 +448,13 @@ int CreateBidFile(std::string a_id, std::string user_id, std::string value) {
 	if (verify_auction_id(a_id) == -1) {
 		return -1;
 	}
-
+	Start start;
 	FILE *fp;
 	time_t fulltime;
-	char current_date = GetCurrentDate();
+	std::string current_date = GetCurrentDate();
 	uint32_t current_time = time(&fulltime);
-	uint32_t start_time = GetStartTime(a_id);
+	GetStart(a_id, start);
+	uint32_t start_time = start.current_time;
 	uint32_t time_passed = start_time - current_time;
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
@@ -483,10 +486,6 @@ int CreateBidFile(std::string a_id, std::string user_id, std::string value) {
 }
 
 int GetStart(std::string a_id, Start &result) {
-	if (verify_auction_id(a_id) == -1) {
-		return -1;
-	}
-
 	FILE *fp;
 	char content[200];
 
@@ -530,49 +529,7 @@ int GetStart(std::string a_id, Start &result) {
 	return 0;
 }
 
-int GetStartTime(std::string a_id) {
-	if (verify_auction_id(a_id) == -1) {
-		return -1;
-	}
-
-	Start result = GetStart(a_id);
-
-	return result.current_time;
-}
-
-int GetStartTimeactive(std::string a_id, std::string &result) {
-	if (verify_auction_id(a_id) == -1) {
-		return -1;
-	}
-
-	if (GetStart(a_id, result) == -1) {
-		return
-	};
-
-	return 0;
-}
-
-std::string GetStartName(std::string a_id) {
-	if (verify_auction_id(a_id) == -1) {
-		return "";
-	}
-
-	Start result = GetStart(a_id);
-
-	return result.name;
-}
-
-std::string GetStartValue(std::string a_id) {
-	if (verify_auction_id(a_id) == -1) {
-		return "";
-	}
-
-	Start result = GetStart(a_id);
-
-	return result.start_value;
-}
-
-Bid GetBid(std::string bid_fname) {
+int GetBid(std::string bid_fname, Bid &result) {
 	Bid result;
 
 	FILE *fp;
@@ -582,8 +539,7 @@ Bid GetBid(std::string bid_fname) {
 
 	fp = fopen(bif_file_name, "r");
 	if (fp == NULL) {
-		result.valid = false;
-		return result;
+		return -1;
 	}
 
 	fgets(content, 100, fp);
@@ -597,8 +553,7 @@ Bid GetBid(std::string bid_fname) {
 	}
 
 	if (parsed_content.size() != 5) {
-		result.valid = false;
-		return result;
+		return -1;
 	}
 
 	result.user_id = parsed_content[0];
@@ -611,40 +566,26 @@ Bid GetBid(std::string bid_fname) {
 
 	fclose(fp);
 
-	return result;
+	return 0;
 }
 
-std::string GetBidName(std::string bid_fname) {
-	Bid result = GetBid(bid_fname);
-
-	return result.user_id;
-}
-
-std::string GetBidValue(std::string bid_fname) {
-	Bid result = GetBid(bid_fname);
-
-	return result.value;
-}
-
-std::string GetBidDate(std::string bid_fname) {
-	Bid result = GetBid(bid_fname);
-
-	return result.current_date;
-}
-
-char GetCurrentDate() {
+std::string GetCurrentDate() {
 	time_t fulltime;
 	struct tm *current_time;
 	char time_str[20];
+	char *current_date;
 	time(&fulltime);  // Get current time in seconds starting at 1970
 	current_time = gmtime(&fulltime);  // Convert time to YYYY−MM−DD HH:MM:SS
-	return ("%4d-%02d-%02d %02d:%02d:%02d", current_time->tm_year + 1900,
-	        current_time->tm_year + 1, current_time->tm_mday,
-	        current_time->tm_hour, current_time->tm_min, current_time->tm_sec);
+	sprintf(current_date, "%4d-%02d-%02d %02d:%02d:%02d",
+	        current_time->tm_year + 1900, current_time->tm_year + 1,
+	        current_time->tm_mday, current_time->tm_hour, current_time->tm_min,
+	        current_time->tm_sec);
+	std::string str(current_date);
+	return current_date;
 }
 
 // 1 is logged in, 0 is not logged in, -1 is error
-uint32_t UserLoggedIn(std::string user_id) {
+int UserLoggedIn(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -667,7 +608,7 @@ uint32_t UserLoggedIn(std::string user_id) {
 }
 
 // 1 it is, 0 is not, -1 is error
-uint32_t UserRegistered(std::string user_id) {
+int UserRegistered(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -690,7 +631,7 @@ uint32_t UserRegistered(std::string user_id) {
 }
 
 // 1 it is, 0 is not, -1 is error
-uint32_t CorrectPassword(std::string user_id, std::string password) {
+int CorrectPassword(std::string user_id, std::string password) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -785,7 +726,7 @@ std::stringstream GetAssetData(std::string a_id, std::string asset_fname) {
     Ver outros commandos
     */
 
-uint32_t CreateBaseDir() {
+int CreateBaseDir() {
 	const char *asdir = "ASDIR";
 	const char *users = "ASDIR/USERS";
 	const char *auctions = "ASDIR/AUCTIONS";
@@ -803,8 +744,8 @@ uint32_t CreateBaseDir() {
 	}
 }
 
-uint32_t LoginUser(std::string user_id, std::string password) {
-	uint32_t created_user = CreateUserDir(user_id);
+int LoginUser(std::string user_id, std::string password) {
+	int created_user = CreateUserDir(user_id);
 
 	if (created_user == -1) {
 		return -1;  // Incorrect login
@@ -825,8 +766,8 @@ uint32_t LoginUser(std::string user_id, std::string password) {
 	return 0;  // New user registered
 }
 
-uint32_t Logout(std::string user_id) {
-	uint32_t removed_login = EraseLogin(user_id);
+int Logout(std::string user_id) {
+	int removed_login = EraseLogin(user_id);
 
 	if (removed_login == -1) {
 		return -1;  // Unknown user
@@ -841,8 +782,8 @@ uint32_t Logout(std::string user_id) {
 	}
 }
 
-uint32_t Unregister(std::string user_id) {
-	uint32_t erased_password = ErasePassword(user_id);
+int Unregister(std::string user_id) {
+	int erased_password = ErasePassword(user_id);
 
 	if (erased_password == -1) {
 		return -1;  // Incorrect unregister attempt
@@ -857,15 +798,15 @@ uint32_t Unregister(std::string user_id) {
 	}
 }
 
-uint32_t Open(std::string user_id, std::string name, std::string asset_fname,
-              std::string start_value, std::string timeactive) {
+int Open(std::string user_id, std::string name, std::string asset_fname,
+         std::string start_value, std::string timeactive) {
 	// need to determine a way to make an AID and finish other opening stuff
 
 	return 0;
 }
 
-uint32_t Close(std::string a_id) {
-	uint32_t ended = CreateEndFile(a_id);
+int Close(std::string a_id) {
+	int ended = CreateEndFile(a_id);
 
 	if (ended == -1) {
 		return -1;  // Error
@@ -886,18 +827,17 @@ std::string ShowRecord(std::string a_id) {
 	}
 
 	time_t fulltime;
+	Start start;
 	uint32_t finished;
 	uint32_t n = 0;
 
-	std::string name = GetStartName(a_id);
-	std::string value = GetStartValue(a_id);
-	uint32_t start_time = GetStartTime(a_id);
+	GetStart(a_id, start);
+	std::string name = start.name;
+	std::string value = start.start_value;
+	uint32_t start_time = start.current_time;
 	uint32_t current_time = time(&fulltime);
 	uint32_t time_passed = start_time - current_time;
-	std::string timeactive;
-	if (GetStartTimeactive(a_id, timeactive) == -1) {
-		gi
-	};
+	uint32_t timeactive = stoi(start.timeactive);
 	uint32_t overtime = time_passed - timeactive;
 
 	std::string content = name + " ";
@@ -920,23 +860,17 @@ std::string ShowRecord(std::string a_id) {
 
 	std::string bid_fname;
 
-	std::string bid_user_id;
-	std::string bid_value;
-	std::string bid_date;
-
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
 		n++;
 		bid_fname = entry.path();
+		Bid bid;
+		GetBid(bid_fname, bid);
 
-		bid_user_id = GetBidName(bid_fname);
-		bid_value = GetBidValue(bid_fname);
-		bid_date = GetBidDate(bid_fname);
-
-		content += bid_user_id;
+		content += bid.user_id;
 		content += " ";
-		content += bid_value;
+		content += bid.value;
 		content += " ";
-		content += bid_date;
+		content += bid.current_date;
 		content += "\n";
 
 		if (n = 50) {
