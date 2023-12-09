@@ -19,7 +19,7 @@
 
 namespace fs = std::filesystem;
 
-int CheckUserExisted(const char *user_id_dirname) {
+int Database::CheckUserExisted(const char *user_id_dirname) {
 	DIR *dir = opendir(user_id_dirname);
 
 	if (dir) {
@@ -33,7 +33,7 @@ int CheckUserExisted(const char *user_id_dirname) {
 }
 
 /* Returns -1 if failed, 0 if sucessful, 2 if user already existed*/
-int CreateUserDir(std::string user_id) {
+int Database::CreateUserDir(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -69,7 +69,7 @@ int CreateUserDir(std::string user_id) {
 	return 0;
 }
 
-int CreateAuctionDir(std::string a_id) {
+int Database::CreateAuctionDir(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
 		return -1;
 	}
@@ -97,7 +97,7 @@ int CreateAuctionDir(std::string a_id) {
 	return 0;
 }
 
-int CreateLogin(std::string user_id) {
+int Database::CreateLogin(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -120,7 +120,7 @@ int CreateLogin(std::string user_id) {
 	return 0;
 }
 
-int CreatePassword(std::string user_id, std::string password) {
+int Database::CreatePassword(std::string user_id, std::string password) {
 	if (verify_password(password) == -1) {
 		return -1;
 	}
@@ -146,7 +146,7 @@ int CreatePassword(std::string user_id, std::string password) {
 	return 0;
 }
 
-int RegisterHost(std::string user_id, std::string a_id) {
+int Database::RegisterHost(std::string user_id, std::string a_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -172,7 +172,7 @@ int RegisterHost(std::string user_id, std::string a_id) {
 	return 0;
 }
 
-int RegisterBid(std::string user_id, std::string a_id) {
+int Database::RegisterBid(std::string user_id, std::string a_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -199,7 +199,7 @@ int RegisterBid(std::string user_id, std::string a_id) {
 }
 
 /* Returns -1 if logout doesn't exist, 0 if it does*/
-int CheckLoginExists(const char *login_id_fname) {
+int Database::CheckLoginExists(const char *login_id_fname) {
 	if (access(login_id_fname, F_OK) == 0) {
 		return 0;
 	} else {
@@ -208,7 +208,7 @@ int CheckLoginExists(const char *login_id_fname) {
 }
 
 /* Returns -1 if failed, 0 if sucessful, 2 if user is logged out*/
-int EraseLogin(std::string user_id) {
+int Database::EraseLogin(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -238,7 +238,7 @@ int EraseLogin(std::string user_id) {
 }
 
 /* Returns -1 if password doesn't exist, 0 if it does*/
-int CheckPasswordExists(const char *password_fname) {
+int Database::CheckPasswordExists(const char *password_fname) {
 	if (access(password_fname, F_OK) == 0) {
 		return 0;
 	} else {
@@ -247,7 +247,7 @@ int CheckPasswordExists(const char *password_fname) {
 }
 
 /* Returns -1 if failed, 0 if sucessful, 2 if unknown user*/
-int ErasePassword(std::string user_id) {
+int Database::ErasePassword(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -276,7 +276,7 @@ int ErasePassword(std::string user_id) {
 	return 0;
 }
 
-int CheckAssetFile(std::string asset_fname) {
+int Database::CheckAssetFile(std::string asset_fname) {
 	if (verify_asset_fname(asset_fname) == -1) {
 		return -1;
 	}
@@ -292,9 +292,9 @@ int CheckAssetFile(std::string asset_fname) {
 	return (filestat.st_size);
 }
 
-int CreateStartFile(std::string a_id, std::string user_id, std::string name,
-                    std::string asset_fname, std::string start_value,
-                    std::string timeactive) {
+int Database::CreateStartFile(std::string a_id, std::string user_id,
+                              std::string name, std::string asset_fname,
+                              std::string start_value, std::string timeactive) {
 	if (verify_timeactive(timeactive) == -1) {
 		return -1;
 	}
@@ -358,7 +358,7 @@ int CreateStartFile(std::string a_id, std::string user_id, std::string name,
 }
 
 /* Returns -1 if end doesn't exist, 0 if it does*/
-int CheckEndExists(const char *end_fname) {
+int Database::CheckEndExists(const char *end_fname) {
 	if (access(end_fname, F_OK) == 0) {
 		return 0;
 	} else {
@@ -367,7 +367,7 @@ int CheckEndExists(const char *end_fname) {
 }
 
 /* Returns -1 if failed, 0 if sucessful, 2 if already ended*/
-int CreateEndFile(std::string a_id) {
+int Database::CreateEndFile(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
 		return -1;
 	}
@@ -409,7 +409,7 @@ int CreateEndFile(std::string a_id) {
 	return 0;
 }
 
-int CreateAssetFile(std::string a_id, std::string asset_fname) {
+int Database::CreateAssetFile(std::string a_id, std::string asset_fname) {
 	if (CheckAssetFile(asset_fname) == -1) {
 		return -1;
 	}
@@ -438,7 +438,8 @@ int CreateAssetFile(std::string a_id, std::string asset_fname) {
 	return 0;
 }
 
-int CreateBidFile(std::string a_id, std::string user_id, std::string value) {
+int Database::CreateBidFile(std::string a_id, std::string user_id,
+                            std::string value) {
 	if (verify_value(stoi(value)) == -1) {
 		return -1;
 	}
@@ -487,7 +488,7 @@ int CreateBidFile(std::string a_id, std::string user_id, std::string value) {
 	return 0;
 }
 
-int GetStart(std::string a_id, Start &result) {
+int Database::GetStart(std::string a_id, Start &result) {
 	FILE *fp;
 	char content[200];
 
@@ -533,7 +534,7 @@ int GetStart(std::string a_id, Start &result) {
 	return 0;
 }
 
-int GetBid(std::string bid_fname, Bid &result) {
+int Database::GetBid(std::string bid_fname, Bid &result) {
 	FILE *fp;
 	char content[200];
 
@@ -573,7 +574,7 @@ int GetBid(std::string bid_fname, Bid &result) {
 	return 0;
 }
 
-std::string GetCurrentDate() {
+std::string Database::GetCurrentDate() {
 	time_t fulltime;
 	struct tm *current_time;
 	char time_str[20];
@@ -589,7 +590,7 @@ std::string GetCurrentDate() {
 }
 
 // 1 is logged in, 0 is not logged in, -1 is error
-int UserLoggedIn(std::string user_id) {
+int Database::UserLoggedIn(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -614,7 +615,7 @@ int UserLoggedIn(std::string user_id) {
 }
 
 // 1 it is, 0 is not, -1 is error
-int UserRegistered(std::string user_id) {
+int Database::UserRegistered(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -639,7 +640,7 @@ int UserRegistered(std::string user_id) {
 }
 
 // 1 it is, 0 is not, -1 is error
-int CorrectPassword(std::string user_id, std::string password) {
+int Database::CorrectPassword(std::string user_id, std::string password) {
 	if (verify_user_id(user_id) == -1) {
 		return -1;
 	}
@@ -677,7 +678,7 @@ int CorrectPassword(std::string user_id, std::string password) {
 	}
 }
 
-std::string GetAssetFname(std::string a_id) {
+std::string Database::GetAssetFname(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
 		return "";
 	}
@@ -700,7 +701,8 @@ std::string GetAssetFname(std::string a_id) {
 	return asset_fname;
 }
 
-std::stringstream GetAssetData(std::string a_id, std::string asset_fname) {
+std::stringstream Database::GetAssetData(std::string a_id,
+                                         std::string asset_fname) {
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/ASSET/";
 	dir_name += asset_fname;
@@ -728,7 +730,7 @@ std::stringstream GetAssetData(std::string a_id, std::string asset_fname) {
     Ver outros commandos
     */
 
-int CreateBaseDir() {
+int Database::CreateBaseDir() {
 	const char *asdir = "ASDIR";
 	const char *users = "ASDIR/USERS";
 	const char *auctions = "ASDIR/AUCTIONS";
@@ -748,7 +750,7 @@ int CreateBaseDir() {
 	return 0;
 }
 
-int LoginUser(std::string user_id, std::string password) {
+int Database::LoginUser(std::string user_id, std::string password) {
 	int created_user = CreateUserDir(user_id);
 
 	if (created_user == -1) {
@@ -770,7 +772,7 @@ int LoginUser(std::string user_id, std::string password) {
 	return 0;  // New user registered
 }
 
-int Logout(std::string user_id) {
+int Database::Logout(std::string user_id) {
 	int removed_login = EraseLogin(user_id);
 
 	if (removed_login == -1) {
@@ -788,7 +790,7 @@ int Logout(std::string user_id) {
 	return -1;
 }
 
-int Unregister(std::string user_id) {
+int Database::Unregister(std::string user_id) {
 	int erased_password = ErasePassword(user_id);
 
 	if (erased_password == -1) {
@@ -806,14 +808,15 @@ int Unregister(std::string user_id) {
 	return -1;
 }
 
-int Open(std::string user_id, std::string name, std::string asset_fname,
-         std::string start_value, std::string timeactive) {
+int Database::Open(std::string user_id, std::string name,
+                   std::string asset_fname, std::string start_value,
+                   std::string timeactive) {
 	// need to determine a way to make an AID and finish other opening stuff
 
 	return 0;
 }
 
-int Close(std::string a_id) {
+int Database::Close(std::string a_id) {
 	int ended = CreateEndFile(a_id);
 
 	if (ended == -1) {
@@ -831,7 +834,7 @@ int Close(std::string a_id) {
 	return -1;
 }
 
-std::string ShowRecord(std::string a_id) {
+std::string Database::ShowRecord(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
 		return "";
 	}
