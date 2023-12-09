@@ -59,6 +59,7 @@ class MessageAdapter {
 	virtual char get() = 0;
 	virtual bool good() = 0;
 	virtual void unget() = 0;
+	virtual std::string getn(int n) = 0;
 };
 
 class StreamMessage : public MessageAdapter {
@@ -76,6 +77,12 @@ class StreamMessage : public MessageAdapter {
 	void unget() {
 		_stream.unget();
 	};
+	std::string getn(int n) {
+		std::string str;
+		str.resize(n);
+		_stream.read(&str[0], n);
+		return str;
+	}
 };
 
 class TcpMessage : public MessageAdapter {
@@ -98,6 +105,7 @@ class TcpMessage : public MessageAdapter {
 			_buffer.push_back(buf[i]);
 		}
 	}
+
 	char get() {
 		if (_buffer.size() == 0) {
 			fillBuffer();
@@ -116,6 +124,13 @@ class TcpMessage : public MessageAdapter {
 	void unget() {
 		_buffer.push_back(_last);
 	};
+
+	std::string getn(int n) {
+		std::string str;
+		for (int i = 0; i < n; i++) {
+			str.push_back(get());
+		}
+	}
 };
 
 class ProtocolMessage {

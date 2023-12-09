@@ -15,6 +15,7 @@
 #define PASSWORD_SIZE          8
 #define MAX_LENGTH_TIMEACTIVE  5
 #define MAX_STATUS_SIZE        3
+#define PROTOCOL_SIZE          3
 
 #define CODE_LOGIN_USER         "LIN"
 #define CODE_LOGIN_SERVER       "RLI"
@@ -47,7 +48,10 @@
 #define TCP_WRITE_TIMEOUT_SECONDS  60
 #define TCP_WRITE_TIMEOUT_USECONDS 0
 
-#define UDP_SOCKET_BUFFER_LEN 32768
+#define UDP_SOCKET_BUFFER_LEN 8192
 #define SOCKET_BUFFER_LEN     512
+
+#define TCP_MESSAGE 0
+#define UDP_MESSAGE 1
 
 #endif

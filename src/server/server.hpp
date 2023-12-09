@@ -6,6 +6,14 @@
 #include "shared/protocol.hpp"
 #include "shared/utils.hpp"
 
+#define EXCEPTION_RETRY_MAX 5
+
+class UnrecoverableException : public std::runtime_error {
+   public:
+	UnrecoverableException()
+		: std::runtime_error("[Error] An unrecoverable exception occured.") {}
+};
+
 class Address {
    public:
 	int socket;
@@ -28,6 +36,10 @@ class Server {
 	void configClient(int argc, char* argv[]);
 
    public:
+	int udp_socket_fd = -1;
+	int tcp_socket_fd = -1;
+	struct addrinfo* server_udp_addr = NULL;
+	struct addrinfo* server_tcp_addr = NULL;
 	Server(int argc, char* argv[]);
 	~Server();
 	void sendUdpMessage(ProtocolMessage& out_message, Address& addr_from);
