@@ -38,11 +38,11 @@ typedef struct {
 	bool valid = true;
 } Bid;
 
-uint32_t CheckUserExisted(const char *user_id_dirname);
-uint32_t CreateUserDir(std::string user_id);
-uint32_t CreateAuctionDir(std::string a_id);
-uint32_t CreateLogin(std::string user_id);
-uint32_t CreatePassword(std::string user_id, std::string password);
+int CheckUserExisted(const char *user_id_dirname);
+int CreateUserDir(std::string user_id);
+int CreateAuctionDir(std::string a_id);
+int CreateLogin(std::string user_id);
+int CreatePassword(std::string user_id, std::string password);
 uint32_t RegisterHost(std::string user_id, std::string a_id);
 uint32_t RegisterBid(std::string user_id, std::string a_id);
 uint32_t CheckLogoutExists(const char *login_id_fname);

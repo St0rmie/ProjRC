@@ -895,9 +895,8 @@ std::string ShowRecord(std::string a_id) {
 	uint32_t current_time = time(&fulltime);
 	uint32_t time_passed = start_time - current_time;
 	std::string timeactive;
-	if (GetStartTimeactive(a_id, timeactive) == -1) {
-		gi
-	};
+	if (GetStartTimeactive(a_id, timeactive) == -1)
+		;
 	uint32_t overtime = time_passed - timeactive;
 
 	std::string content = name + " ";
