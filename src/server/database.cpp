@@ -28,6 +28,8 @@ int CheckUserExisted(const char *user_id_dirname) {
 	} else if (ENOENT == errno) {
 		return -1;
 	}
+
+	return -1;
 }
 
 /* Returns -1 if failed, 0 if sucessful, 2 if user already existed*/
@@ -501,7 +503,9 @@ int GetStart(std::string a_id, Start &result) {
 		return -1;
 	}
 
-	fgets(content, 200, fp);
+	if (fgets(content, 200, fp) == NULL) {
+		return -1;
+	}
 
 	std::stringstream ss(content);
 	std::vector<std::string> parsed_content;
@@ -530,8 +534,6 @@ int GetStart(std::string a_id, Start &result) {
 }
 
 int GetBid(std::string bid_fname, Bid &result) {
-	Bid result;
-
 	FILE *fp;
 	char content[200];
 
@@ -542,7 +544,9 @@ int GetBid(std::string bid_fname, Bid &result) {
 		return -1;
 	}
 
-	fgets(content, 100, fp);
+	if (fgets(content, 100, fp) == NULL) {
+		return -1;
+	}
 
 	std::stringstream ss(content);
 	std::vector<std::string> parsed_content;
@@ -605,6 +609,8 @@ int UserLoggedIn(std::string user_id) {
 	} else if (ENOENT == errno) {
 		return 0;
 	}
+
+	return -1;
 }
 
 // 1 it is, 0 is not, -1 is error
@@ -628,6 +634,8 @@ int UserRegistered(std::string user_id) {
 	} else if (ENOENT == errno) {
 		return 0;
 	}
+
+	return -1;
 }
 
 // 1 it is, 0 is not, -1 is error
@@ -656,7 +664,9 @@ int CorrectPassword(std::string user_id, std::string password) {
 		return -1;
 	}
 
-	fgets(content, 8, fp);
+	if (fgets(content, 8, fp) == NULL) {
+		return -1;
+	}
 
 	fclose(fp);
 
@@ -691,14 +701,6 @@ std::string GetAssetFname(std::string a_id) {
 }
 
 std::stringstream GetAssetData(std::string a_id, std::string asset_fname) {
-	if (verify_auction_id(a_id) == -1) {
-		return;
-	}
-
-	if (CheckAssetFile(asset_fname) == -1) {
-		return;
-	}
-
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/ASSET/";
 	dir_name += asset_fname;
@@ -742,6 +744,8 @@ int CreateBaseDir() {
 	if (mkdir(auctions, 0700) == -1) {
 		return -1;
 	}
+
+	return 0;
 }
 
 int LoginUser(std::string user_id, std::string password) {
@@ -780,6 +784,8 @@ int Logout(std::string user_id) {
 	if (removed_login == 2) {
 		return 2;  // User not logged in
 	}
+
+	return -1;
 }
 
 int Unregister(std::string user_id) {
@@ -796,6 +802,8 @@ int Unregister(std::string user_id) {
 	if (erased_password == 2) {
 		return 2;  // Unknown user
 	}
+
+	return -1;
 }
 
 int Open(std::string user_id, std::string name, std::string asset_fname,
@@ -819,11 +827,13 @@ int Close(std::string a_id) {
 	if (ended == 2) {
 		return 2;  // Auction time already ended
 	}
+
+	return -1;
 }
 
 std::string ShowRecord(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
-		return;
+		return "";
 	}
 
 	time_t fulltime;
