@@ -12,8 +12,7 @@
 
 class UnrecoverableException : public std::runtime_error {
    public:
-	UnrecoverableException()
-		: std::runtime_error("[Error] An unrecoverable exception occured.") {}
+	UnrecoverableException(std::string message) : std::runtime_error(message) {}
 };
 
 class Address {
@@ -66,7 +65,7 @@ class RequestManager {
 		_tcp_handlers;
 
    public:
-	void registerRequestHandlers(RequestManager& manager);
+	void registerRequestHandlers();
 	void registerRequest(std::shared_ptr<RequestHandler> handler, int type);
 	void callHandlerRequest(MessageAdapter& message, Server& client,
 	                        Address& address, int type);
