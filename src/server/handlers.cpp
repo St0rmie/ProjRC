@@ -133,7 +133,24 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	try {
 		message_in.readMessage(message);
 
-		// DATABASE OPERATIONS
+		std::string user_id = std::to_string(message_in.user_id);
+		AuctionList a_list = server._database.MyBids(user_id);
+		size_t list_size = a_list.size();
+		list_size = 2;
+
+		if (server._database.CheckUserLoggedIn(user_id) != 0) {
+			message_out.status = ServerListBiddedAuctions::status::NLG;
+		} else if (list_size == 0) {
+			message_out.status = ServerListBiddedAuctions::status::NOK;
+		} else {
+			message_out.status = ServerListBiddedAuctions::status::OK;
+			for (AuctionListing a : a_list) {
+				int state = a.active ? 1 : 0;
+				std::string auction_str = a.a_id + " " + std::to_string(state);
+				message_out.auctions.push_back(auction_str);
+			}
+		}
+
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
@@ -150,7 +167,24 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	try {
 		message_in.readMessage(message);
 
-		// DATABASE OPERATIONS
+		std::string user_id = std::to_string(message_in.user_id);
+		AuctionList a_list = server._database.MyBids(user_id);
+		size_t list_size = a_list.size();
+		list_size = 2;
+
+		if (server._database.CheckUserLoggedIn(user_id) != 0) {
+			message_out.status = ServerListStartedAuctions::status::NLG;
+		} else if (list_size == 0) {
+			message_out.status = ServerListStartedAuctions::status::NOK;
+		} else {
+			message_out.status = ServerListStartedAuctions::status::OK;
+			for (AuctionListing a : a_list) {
+				int state = a.active ? 1 : 0;
+				std::string auction_str = a.a_id + " " + std::to_string(state);
+				message_out.auctions.push_back(auction_str);
+			}
+		}
+
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
@@ -184,8 +218,24 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 
 	try {
 		message_in.readMessage(message);
-		message_out.status = ServerOpenAuction::status::OK;
-		message_out.auction_id = 1;
+		std::string user_id = convert_user_id_to_str(message_in.user_id);
+		std::string start_value = std::to_string(message_in.start_value);
+		std::string timeactive = std::to_string(message_in.timeactive);
+		int aid = server._database.Open(
+			user_id, message_in.name, message_in.password,
+			message_in.assetf_name, start_value, timeactive, message_in.fsize,
+			message_in.fdata);
+
+		std::cout << "AID: " << aid << std::endl;
+		if (aid > 0) {
+			message_out.status = ServerOpenAuction::status::OK;
+			message_out.auction_id = (uint32_t) aid;
+		} else if (aid == DB_OPEN_NOT_LOGGED_IN) {
+			message_out.status = ServerOpenAuction::status::NLG;
+		} else {
+			message_out.status = ServerOpenAuction::status::NOK;
+		}
+
 	} catch (std::exception &e) {
 		std::cout << "Failed to handle open auction request." << e.what()
 				  << std::endl;

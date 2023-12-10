@@ -28,11 +28,25 @@ uint32_t convert_user_id(std::string string) {
 	return std::stoi(string);
 }
 
+std::string convert_user_id_to_str(uint32_t uid) {
+	char uid_c[7];
+	sprintf(uid_c, "%06d", uid);
+	std::string result = uid_c;
+	return result;
+}
+
 uint32_t convert_auction_id(std::string string) {
 	if (verify_auction_id(string) == -1) {
 		throw InvalidMessageException();
 	}
 	return std::stoi(string);
+}
+
+std::string convert_auction_id_to_str(uint32_t aid) {
+	char aid_c[4];
+	sprintf(aid_c, "%03d", aid);
+	std::string result = aid_c;
+	return result;
 }
 
 uint32_t convert_auction_value(std::string string) {

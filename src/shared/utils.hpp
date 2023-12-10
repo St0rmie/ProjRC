@@ -41,7 +41,9 @@ std::string extractTime(datetime datetime);
 // -----------------------------------
 
 uint32_t convert_user_id(std::string string);
+std::string convert_user_id_to_str(uint32_t uid);
 uint32_t convert_auction_id(std::string string);
+std::string convert_auction_id_to_str(uint32_t aid);
 uint32_t convert_auction_value(std::string string);
 std::string convert_password(std::string string);
 std::string convert_date_to_str(datetime date);
