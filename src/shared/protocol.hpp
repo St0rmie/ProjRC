@@ -50,8 +50,7 @@ class MessageReceiveException : public std::runtime_error {
 class ConnectionTimeoutException : public std::runtime_error {
    public:
 	ConnectionTimeoutException()
-		: std::runtime_error("Could not connect to the game server. Timeout.") {
-	}
+		: std::runtime_error("Could not connect to the server. Timeout.") {}
 };
 
 class MessageAdapter {
@@ -110,7 +109,6 @@ class TcpMessage : public MessageAdapter {
 		if (_buffer.size() == 0) {
 			fillBuffer();
 		}
-
 		_last = _buffer.back();
 		_buffer.pop_back();
 
@@ -313,7 +311,7 @@ class ServerLogout : public ProtocolMessage {
 class ServerUnregister : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_UNREGISTER_SERVER;
-	enum status { OK, NOK, UNR };
+	enum status { OK, NOK, UNR, ERR };
 
 	status status;
 	std::stringstream buildMessage();
@@ -411,6 +409,16 @@ class ServerBid : public ProtocolMessage {
 	std::string protocol_code = CODE_BID_SERVER;
 	enum status { NOK, NLG, ACC, REF, ILG, ERR };
 	status status;
+
+	std::stringstream buildMessage();
+	void readMessage(MessageAdapter &buffer);
+};
+
+class ServerError : public ProtocolMessage {
+   public:
+	std::string protocol_code = CODE_BID_SERVER;
+	enum status { ERR };
+	status status = ERR;
 
 	std::stringstream buildMessage();
 	void readMessage(MessageAdapter &buffer);

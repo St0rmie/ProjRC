@@ -191,6 +191,10 @@ void UnregisterCommand::handle(std::string args, Client &client) {
 			std::cout << "[ERROR] Unregistered user." << std::endl;
 			break;
 
+		case ServerUnregister::status::ERR:
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			break;
+
 		default:
 			throw InvalidMessageException();
 	}
