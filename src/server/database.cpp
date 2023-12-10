@@ -590,7 +590,7 @@ int Database::GetStart(std::string a_id, Start &result) {
 	return 0;
 }
 
-int Database::GetBid(std::string bid_fname, Bid &result) {
+int Database::GetBid(std::string bid_fname, BidInfo &result) {
 	FILE *fp;
 	char content[200];
 
@@ -943,8 +943,12 @@ AuctionList Database::MyAuctions(std::string user_id) {
 			aid.pop_back();
 
 			auction.a_id = aid;
+			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
+			dir_name += "/END_";
+			dir_name += aid;
+			dir_name += ".txt";
 
-			if (CheckEndExists == 0) {
+			if (CheckEndExists(dir_name.c_str()) == 0) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
 				uint32_t current_time = time(&fulltime);
@@ -985,8 +989,12 @@ AuctionList Database::MyBids(std::string user_id) {
 			aid.pop_back();
 
 			auction.a_id = aid;
+			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
+			dir_name += "/END_";
+			dir_name += aid;
+			dir_name += ".txt";
 
-			if (CheckEndExists == 0) {
+			if (CheckEndExists(dir_name.c_str()) == 0) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
 				uint32_t current_time = time(&fulltime);
@@ -1023,8 +1031,12 @@ AuctionList Database::List() {
 			std::string aid = entry.path();
 
 			auction.a_id = aid;
+			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
+			dir_name += "/END_";
+			dir_name += aid;
+			dir_name += ".txt";
 
-			if (CheckEndExists == 0) {
+			if (CheckEndExists(dir_name.c_str()) == 0) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
 				uint32_t current_time = time(&fulltime);
@@ -1045,30 +1057,34 @@ AuctionList Database::List() {
 	return result;
 }
 
+std::string Database::ShowAsset(std::string a_id) {
+	std::string asset_fname = GetAssetFname(a_id);
+
+	std::string asset = GetAssetData(a_id, asset_fname);
+
+	return asset;
+}
+
 Record Database::ShowRecord(std::string a_id) {
+	BidInfo bid;
 	time_t fulltime;
 	Start start;
 	uint32_t finished;
 	uint32_t n = 0;
-
-	Record record;
+	Record result;
+	BidList list;
 
 	GetStart(a_id, start);
-	std::string name = start.name;
-	std::string value = start.start_value;
+	result.auction_name = start.name;
+	result.asset_fname = start.asset_fname;
+	result.start_value = start.start_value;
+	result.start_date = start.current_date;
+	result.timeactive = start.timeactive;
 	uint32_t start_time = start.current_time;
 	uint32_t current_time = time(&fulltime);
 	uint32_t time_passed = start_time - current_time;
 	uint32_t timeactive = stoi(start.timeactive);
 	uint32_t overtime = time_passed - timeactive;
-
-	std::string content = name + " ";
-	content += value;
-	content += " ";
-	content += std::to_string(start_time);
-	content += " ";
-	content += timeactive;
-	content += "\n";
 
 	if (overtime >= 0) {
 		Close(a_id);
@@ -1084,28 +1100,24 @@ Record Database::ShowRecord(std::string a_id) {
 
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
 		n++;
-		bid_fname = dir_name + "/";
+		bid_fname = "ASDIR/AUCTIONS/" + a_id;
+		bid_fname += dir_name;
+		bid_fname += "/";
 		bid_fname += entry.path();
-		Bid bid;
 		GetBid(bid_fname, bid);
 
-		content += bid.user_id;
-		content += " ";
-		content += bid.value;
-		content += " ";
-		content += bid.current_date;
-		content += "\n";
+		list.push_back(bid);
 
 		if (n = 50) {
 			break;
 		}
 	}
 
+	result.list = list;
+
 	if (finished == 1) {
-		content += "The auction was finished ";
-		content += overtime;
-		content += " seconds ago.";
+		result.finished_ago = finished;
 	}
 
-	return record;
+	return result;
 }
