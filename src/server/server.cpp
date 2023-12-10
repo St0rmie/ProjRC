@@ -65,22 +65,22 @@ void Server::setup_sockets() {
 		throw UnrecoverableException(
 			"Failed to set TCP reuse address socket option");
 	}
-	struct timeval read_timeout;
+	/*struct timeval read_timeout;
 	read_timeout.tv_sec = TCP_READ_TIMEOUT_SECONDS;
 	read_timeout.tv_usec = 0;
 	if (setsockopt(this->_tcp_socket_fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout,
 	               sizeof(read_timeout)) < 0) {
-		throw UnrecoverableException(
-			"Failed to set TCP read timeout socket option");
+	    throw UnrecoverableException(
+	        "Failed to set TCP read timeout socket option");
 	}
 	struct timeval write_timeout;
 	write_timeout.tv_sec = TCP_WRITE_TIMEOUT_SECONDS;
 	write_timeout.tv_usec = 0;
 	if (setsockopt(this->_tcp_socket_fd, SOL_SOCKET, SO_SNDTIMEO,
 	               &write_timeout, sizeof(write_timeout)) < 0) {
-		throw UnrecoverableException(
-			"Failed to set TCP write timeout socket option");
-	}
+	    throw UnrecoverableException(
+	        "Failed to set TCP write timeout socket option");
+	}*/
 }
 
 void Server::resolveServerAddress(std::string &port) {
@@ -258,11 +258,7 @@ void wait_for_tcp_message(Server &server, RequestManager &manager) {
 				"connection to worker process.");
 		} else if (pid == 0) {
 			// Child process
-			// close(server._tcp_socket_fd);
-			TcpMessage message(connection_fd);
-			manager.callHandlerRequest(message, server, addr_from, TCP_MESSAGE);
-			close(connection_fd);
-			exit(EXIT_SUCCESS);
+			processTCPChild(server, manager, addr_from, connection_fd);
 		} else {
 			// Parent process
 			close(connection_fd);
@@ -272,6 +268,22 @@ void wait_for_tcp_message(Server &server, RequestManager &manager) {
 		throw UnrecoverableException(
 			std::string("Failed to delegate connection to worker: ") +
 			e.what() + "\nClosing connection.");
+	}
+}
+
+void processTCPChild(Server &server, RequestManager &manager, Address addr_from,
+                     int connection_fd) {
+	try {
+		close(server._tcp_socket_fd);
+		addr_from.socket = connection_fd;
+		TcpMessage message(connection_fd);
+		manager.callHandlerRequest(message, server, addr_from, TCP_MESSAGE);
+		close(connection_fd);
+		exit(EXIT_SUCCESS);
+	} catch (std::exception &e) {
+		std::cout << "[ERROR] Handling tcp request. Child process exiting."
+				  << e.what() << std::endl;
+		exit(EXIT_FAILURE);
 	}
 }
 

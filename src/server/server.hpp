@@ -75,6 +75,8 @@ class RequestManager {
 };
 
 void processUDP(Server& server, RequestManager& manager);
+void processTCPChild(Server& server, RequestManager& manager, Address addr_from,
+                     int connection_fd);
 void processTCP(Server& server, RequestManager& manager);
 void wait_for_udp_message(Server& server, RequestManager& manager);
 

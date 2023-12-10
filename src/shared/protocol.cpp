@@ -309,6 +309,8 @@ std::stringstream ServerUnregister::buildMessage() {
 		buffer << "NOK";
 	} else if (status == ServerUnregister::status::UNR) {
 		buffer << "UNR";
+	} else if (status == ServerUnregister::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}
@@ -326,6 +328,8 @@ void ServerUnregister::readMessage(MessageAdapter &buffer) {
 		status = NOK;
 	} else if (status_str == "UNR") {
 		status = UNR;
+	} else if (status_str == "ERR") {
+		status = ERR;
 	} else {
 		throw InvalidMessageException();
 	}
@@ -606,14 +610,15 @@ void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	fdata = readFile(buffer, fsize);
 	readDelimiter(buffer);
-	std::cout << "j" << std::endl;
 }
 
 std::stringstream ServerOpenAuction::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
 	if (status == ServerOpenAuction::status::OK) {
-		buffer << "OK " << auction_id;
+		char aid[4];
+		sprintf(aid, "%03d", auction_id);
+		buffer << "OK " << aid;
 	} else if (status == ServerOpenAuction::status::NOK) {
 		buffer << "NOK";
 	} else {
@@ -850,10 +855,6 @@ void send_udp_message(ProtocolMessage &message, int socketfd,
 
 void send_tcp_message(ProtocolMessage &message, int socket_fd,
                       struct sockaddr *addr, socklen_t addrlen, bool verbose) {
-	ssize_t n = connect(socket_fd, addr, addrlen);
-	if (n == -1) {
-		throw ConnectionTimeoutException();
-	}
 	std::string message_s = message.buildMessage().str();
 	const char *message_str = message_s.data();
 	size_t bytes_to_send = message_s.length();

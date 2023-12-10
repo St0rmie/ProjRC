@@ -83,8 +83,11 @@ void UnregisterRequest::handle(MessageAdapter &message, Server &server,
 				message_out.status = ServerUnregister::status::NOK;
 				break;
 		}
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerUnregister::status::ERR;
 	} catch (...) {
-		std::cout << "Failed to handle login request." << std::endl;
+		std::cout << "Failed to handle unregister request." << std::endl;
+		return;
 	}
 
 	send_udp_message(message_out, address.socket,
