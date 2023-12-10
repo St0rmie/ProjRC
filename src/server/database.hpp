@@ -83,6 +83,9 @@ class Database {
 	int Open(std::string user_id, std::string name, std::string asset_fname,
 	         std::string start_value, std::string timeactive);
 	int Close(std::string a_id);
+	std::string MyAuctions(std::string user_id);
+	std::string MyBids(std::string user_id);
+	std::string List();
 	std::string ShowRecord(std::string a_id);
 };
 

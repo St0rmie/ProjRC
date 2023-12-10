@@ -430,20 +430,11 @@ int Database::CreateAssetFile(std::string a_id, std::string asset_fname) {
 
 	FILE *fp;
 
-	std::string asset_file = "ASDIR/AUCTIONS/" + a_id;
-	asset_file += "/ASSET/";
-	asset_file += asset_fname;
+	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
+	dir_name += "/ASSET/";
+	std::string asset_dir = "assets/" + asset_fname;
 
-	const char *asset_file_name = asset_file.c_str();
-
-	fp = fopen(asset_file_name, "w");
-	if (fp == NULL) {
-		return -1;
-	}
-
-	// Copy over the file from the fname sent
-
-	fclose(fp);
+	fs::copy_file(asset_dir, dir_name, fs::copy_options::overwrite_existing);
 
 	return 0;
 }
@@ -896,6 +887,67 @@ int Database::Close(std::string a_id) {
 	return -1;
 }
 
+std::string Database::MyAuctions(std::string user_id) {
+	std::string dir_name = "ASDIR/USERS/" + user_id;
+	dir_name += "/HOSTED";
+
+	std::string result;
+
+	if (fs::is_empty(dir_name)) {
+		return "User has not started any auction";
+	} else {
+		for (const auto &entry : fs::directory_iterator(dir_name)) {
+			std::string a_id = entry.path();
+			a_id.pop_back();
+			a_id.pop_back();
+			a_id.pop_back();
+			a_id.pop_back();
+			result += a_id;
+			result += "\n";
+		}
+	}
+	return result;
+}
+
+std::string Database::MyBids(std::string user_id) {
+	std::string dir_name = "ASDIR/USERS/" + user_id;
+	dir_name += "/BIDDED";
+
+	std::string result;
+
+	if (fs::is_empty(dir_name)) {
+		return "User has not made a bid in any auction";
+	} else {
+		for (const auto &entry : fs::directory_iterator(dir_name)) {
+			std::string a_id = entry.path();
+			a_id.pop_back();
+			a_id.pop_back();
+			a_id.pop_back();
+			a_id.pop_back();
+			result += a_id;
+			result += "\n";
+		}
+	}
+	return result;
+}
+
+std::string Database::List() {
+	std::string dir_name = "ASDIR/AUCTIONS";
+
+	std::string result;
+
+	if (fs::is_empty(dir_name)) {
+		return "No auctions were yet created";
+	} else {
+		for (const auto &entry : fs::directory_iterator(dir_name)) {
+			std::string a_id = entry.path();
+			result += a_id;
+			result += "\n";
+		}
+	}
+	return result;
+}
+
 std::string Database::ShowRecord(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
 		return "";
@@ -937,7 +989,8 @@ std::string Database::ShowRecord(std::string a_id) {
 
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
 		n++;
-		bid_fname = entry.path();
+		bid_fname = dir_name + "/";
+		bid_fname += entry.path();
 		Bid bid;
 		GetBid(bid_fname, bid);
 
