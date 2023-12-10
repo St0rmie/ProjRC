@@ -891,14 +891,14 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 	std::string c_aid = std::to_string(aid);
 
 	if (CreateAuctionDir(c_aid) == -1) {
-		return -1;
+		return DB_OPEN_CREATE_FAIL;  // Failed to create auction dir
 	}
 	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
 	                    timeactive)) {
-		return -1;
+		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
 	if (CreateAssetFile(c_aid, asset_fname, fsize, data)) {
-		return -1;
+		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
 
 	return aid;

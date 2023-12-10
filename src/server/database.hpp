@@ -32,6 +32,8 @@
 #define DB_CLOSE_OK            0
 #define DB_CLOSE_ENDED_ALREADY 2
 
+#define DB_OPEN_CREATE_FAIL -2
+
 typedef struct {
 	std::string user_id;
 	std::string name;
