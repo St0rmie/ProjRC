@@ -302,6 +302,7 @@ void ClientUnregister::readMessage(MessageAdapter &buffer) {
 
 std::stringstream ServerUnregister::buildMessage() {
 	std::stringstream buffer;
+	buffer << protocol_code << " ";
 	if (status == ServerUnregister::status::OK) {
 		buffer << "OK";
 	} else if (status == ServerUnregister::status::NOK) {
@@ -348,6 +349,7 @@ void ClientListStartedAuctions::readMessage(MessageAdapter &buffer) {
 
 std::stringstream ServerListStartedAuctions::buildMessage() {
 	std::stringstream buffer;
+	buffer << protocol_code << " ";
 	if (status == ServerListStartedAuctions::status::OK) {
 		buffer << "OK";
 		for (std::string auction : auctions) {
@@ -401,6 +403,7 @@ void ClientListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 
 std::stringstream ServerListBiddedAuctions::buildMessage() {
 	std::stringstream buffer;
+	buffer << protocol_code << " ";
 	if (status == ServerListBiddedAuctions::status::OK) {
 		buffer << "OK";
 		for (std::string auction : auctions) {
@@ -452,6 +455,7 @@ void ClientListAllAuctions::readMessage(MessageAdapter &buffer) {
 
 std::stringstream ServerListAllAuctions::buildMessage() {
 	std::stringstream buffer;
+	buffer << protocol_code << " ";
 	if (status == ServerListAllAuctions::status::OK) {
 		buffer << "OK";
 		for (std::string auction : auctions) {
@@ -606,6 +610,7 @@ void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 
 std::stringstream ServerOpenAuction::buildMessage() {
 	std::stringstream buffer;
+	buffer << protocol_code << " ";
 	if (status == ServerOpenAuction::status::OK) {
 		buffer << "OK " << auction_id;
 	} else if (status == ServerOpenAuction::status::NOK) {
