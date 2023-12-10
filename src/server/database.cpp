@@ -111,7 +111,7 @@ int Database::CreateLogin(std::string user_id) {
 	std::string user_id_name = "ASDIR/USERS/" + user_id;
 	user_id_name += "/";
 	user_id_name += user_id;
-	user_id_name += "/_login.txt";
+	user_id_name += "_login.txt";
 
 	const char *user_id_fname = user_id_name.c_str();
 
@@ -126,6 +126,7 @@ int Database::CreateLogin(std::string user_id) {
 
 int Database::CreatePassword(std::string user_id, std::string password) {
 	if (verify_password(password) == -1) {
+		std::cerr << "Error verifying password" << std::endl;
 		return -1;
 	}
 
@@ -134,13 +135,14 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 	std::string password_name = "ASDIR/USERS/" + user_id;
 	password_name += "/";
 	password_name += user_id;
-	password_name += "/_pass.txt";
+	password_name += "_pass.txt";
 
 	const char *password_fname = password_name.c_str();
 	const char *password_file = password.c_str();
 
 	fp = fopen(password_fname, "w");
 	if (fp == NULL) {
+		std::cerr << "fp error, password_fname" << password_fname << std::endl;
 		return -1;
 	}
 
@@ -228,7 +230,7 @@ int Database::EraseLogin(std::string user_id) {
 	std::string login_id_name = "ASDIR/USERS/" + user_id;
 	login_id_name += "/";
 	login_id_name += user_id;
-	login_id_name += "/_login.txt";
+	login_id_name += "_login.txt";
 
 	const char *login_id_fname = login_id_name.c_str();
 
@@ -267,7 +269,7 @@ int Database::ErasePassword(std::string user_id) {
 	std::string password_name = "ASDIR/USERS/" + user_id;
 	password_name += "/";
 	password_name += user_id;
-	password_name += "/_pass.txt";
+	password_name += "_pass.txt";
 
 	const char *password_fname = password_name.c_str();
 
@@ -602,7 +604,7 @@ int Database::UserLoggedIn(std::string user_id) {
 	std::string login_name = "ASDIR/USERS/" + user_id;
 	login_name += "/";
 	login_name += user_id;
-	login_name += "/_login.txt";
+	login_name += "_login.txt";
 
 	const char *login_fname = login_name.c_str();
 
@@ -627,7 +629,7 @@ int Database::UserRegistered(std::string user_id) {
 	std::string pass_name = "ASDIR/USERS/" + user_id;
 	pass_name += "/";
 	pass_name += user_id;
-	pass_name += "/_pass.txt";
+	pass_name += "_pass.txt";
 
 	const char *pass_fname = pass_name.c_str();
 
@@ -660,7 +662,7 @@ int Database::CorrectPassword(std::string user_id, std::string password) {
 	std::string pass_name = "ASDIR/USERS/" + user_id;
 	pass_name += "/";
 	pass_name += user_id;
-	pass_name += "/_pass.txt";
+	pass_name += "_pass.txt";
 
 	const char *pass_fname = pass_name.c_str();
 
@@ -819,9 +821,39 @@ int Database::Unregister(std::string user_id) {
 int Database::Open(std::string user_id, std::string name,
                    std::string asset_fname, std::string start_value,
                    std::string timeactive) {
-	// need to determine a way to make an AID and finish other opening stuff
+	uint32_t aid = 0;
+	std::string new_aid;
+	uint32_t n_new_aid;
 
-	return 0;
+	std::string dir_name = "ASDIR/AUCTIONS/";
+
+	if (fs::is_empty(dir_name)) {
+		aid = 1;
+	} else {
+		for (const auto &entry : fs::directory_iterator(dir_name)) {
+			new_aid = entry.path();
+			n_new_aid = stoi(new_aid);
+
+			if (aid < n_new_aid) {
+				aid = n_new_aid + 1;
+			}
+		}
+	}
+
+	std::string c_aid = std::to_string(aid);
+
+	if (CreateAuctionDir(c_aid) == -1) {
+		return -1;
+	}
+	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
+	                    timeactive)) {
+		return -1;
+	}
+	if (CreateAssetFile(c_aid, asset_fname)) {
+		return -1;
+	}
+
+	return aid;
 }
 
 int Database::Close(std::string a_id) {
