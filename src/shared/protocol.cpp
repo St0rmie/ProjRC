@@ -604,8 +604,9 @@ void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	size_t fsize = (size_t) stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
 	readSpace(buffer);
-	fdata = readString(buffer, fsize);
+	fdata = readFile(buffer, fsize);
 	readDelimiter(buffer);
+	std::cout << "j" << std::endl;
 }
 
 std::stringstream ServerOpenAuction::buildMessage() {
@@ -844,6 +845,29 @@ void send_udp_message(ProtocolMessage &message, int socketfd,
 	}
 	if (verbose) {
 		std::cout << "\t --> MESSAGE: " << buffer.str() << std::endl;
+	}
+}
+
+void send_tcp_message(ProtocolMessage &message, int socket_fd,
+                      struct sockaddr *addr, socklen_t addrlen, bool verbose) {
+	ssize_t n = connect(socket_fd, addr, addrlen);
+	if (n == -1) {
+		throw ConnectionTimeoutException();
+	}
+	std::string message_s = message.buildMessage().str();
+	const char *message_str = message_s.data();
+	size_t bytes_to_send = message_s.length();
+	size_t bytes_sent = 0;
+	while (bytes_sent < bytes_to_send) {
+		ssize_t sent = write(socket_fd, message_str + bytes_sent,
+		                     (size_t) (bytes_to_send - bytes_sent));
+		if (sent < 0) {
+			throw MessageSendException();
+		}
+		bytes_sent += sent;
+	}
+	if (verbose) {
+		std::cout << "\t --> MESSAGE: " << message_s << std::endl;
 	}
 }
 

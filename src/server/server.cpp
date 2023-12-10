@@ -222,7 +222,7 @@ void wait_for_udp_message(Server &server, RequestManager &manager) {
 	return;
 }
 
-void wait_for_tcp_packet(Server &server, RequestManager &manager) {
+void wait_for_tcp_message(Server &server, RequestManager &manager) {
 	Address addr_from;
 
 	addr_from.size = sizeof(addr_from.addr);
@@ -251,7 +251,22 @@ void wait_for_tcp_packet(Server &server, RequestManager &manager) {
 			  << ntohs(addr_from.addr.sin_port) << std::endl;
 
 	try {
-		// pool.delegateConnection(connection_fd);
+		pid_t pid = fork();
+		if (pid < 0) {
+			throw UnrecoverableException(
+				"[ERROR] Failed to fork process. Couldn't delegate TCP "
+				"connection to worker process.");
+		} else if (pid == 0) {
+			// Child process
+			// close(server._tcp_socket_fd);
+			TcpMessage message(connection_fd);
+			manager.callHandlerRequest(message, server, addr_from, TCP_MESSAGE);
+			close(connection_fd);
+			exit(EXIT_SUCCESS);
+		} else {
+			// Parent process
+			close(connection_fd);
+		}
 	} catch (std::exception &e) {
 		close(connection_fd);
 		throw UnrecoverableException(
@@ -269,7 +284,7 @@ void processTCP(Server &server, RequestManager &manager) {
 	uint32_t ex_trial = 0;
 	while (true) {
 		try {
-			wait_for_tcp_packet(server, manager);
+			wait_for_tcp_message(server, manager);
 			ex_trial = 0;
 		} catch (std::exception &e) {
 			std::cerr << "Encountered unrecoverable error while running the "
@@ -277,15 +292,11 @@ void processTCP(Server &server, RequestManager &manager) {
 					  << std::endl
 					  << e.what() << std::endl;
 			ex_trial++;
-		} catch (...) {
-			std::cerr << "Encountered unrecoverable error while running the "
-						 "application. Retrying..."
-					  << std::endl;
-			ex_trial++;
 		}
 		if (ex_trial >= EXCEPTION_RETRY_MAX) {
-			std::cerr << "Max trials reached, shutting down..." << std::endl;
-			return;
+			std::cerr << "[TCP] Max trials reached, shutting down..."
+					  << std::endl;
+			exit(EXIT_FAILURE);
 		}
 	}
 }
@@ -302,10 +313,7 @@ int main(int argc, char *argv[]) {
 		std::cerr << "Failed to fork process." << std::endl;
 		exit(EXIT_FAILURE);
 	} else {
-		while (true) {
-			sleep(1);
-		}
-		// processTCP(server, requestManager);
+		processTCP(server, requestManager);
 		std::cout << "[QUIT] Shutting Down." << std::endl;
 	}
 	return EXIT_SUCCESS;

@@ -164,6 +164,19 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
                                 Address &address) {
 	ClientOpenAuction message_in;
 	ServerOpenAuction message_out;
+
+	try {
+		message_in.readMessage(message);
+		message_out.status = ServerOpenAuction::status::OK;
+		message_out.auction_id = 1;
+	} catch (std::exception &e) {
+		std::cout << "Failed to handle open auction request." << e.what()
+				  << std::endl;
+	}
+
+	send_tcp_message(message_out, address.socket,
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
