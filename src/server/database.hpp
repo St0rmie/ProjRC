@@ -34,6 +34,8 @@
 
 #define DB_OPEN_CREATE_FAIL -2
 
+#define DB_AUCTION_UNFINISHED -1
+
 typedef struct {
 	std::string user_id;
 	std::string name;
@@ -49,7 +51,7 @@ typedef struct {
 	std::string value;
 	std::string current_date;
 	uint32_t time_passed;
-} Bid;
+} BidInfo;
 
 typedef struct {
 	std::string a_id;
@@ -57,15 +59,16 @@ typedef struct {
 } AuctionListing;
 
 typedef std::vector<AuctionListing> AuctionList;
-typedef std::vector<Bid> BidList;
+typedef std::vector<BidInfo> BidList;
 
 typedef struct {
 	std::string auction_name;
 	std::string asset_fname;
 	std::string start_value;
-	uint32_t start_date;
+	std::string start_date;
 	std::string timeactive;
 	BidList list;
+	uint32_t finished_ago = DB_AUCTION_UNFINISHED;
 } Record;
 
 class Database {
@@ -93,7 +96,7 @@ class Database {
 	                    std::string data);
 	int CreateBidFile(std::string a_id, std::string user_id, std::string value);
 	int GetStart(std::string a_id, Start &result);
-	int GetBid(std::string bid_fname, Bid &result);
+	int GetBid(std::string bid_fname, BidInfo &result);
 	std::string GetCurrentDate();
 	int CorrectPassword(std::string user_id, std::string password);
 	std::string GetAssetFname(std::string a_id);
@@ -111,6 +114,7 @@ class Database {
 	AuctionList MyAuctions(std::string user_id);
 	AuctionList MyBids(std::string user_id);
 	AuctionList List();
+	std::string ShowAsset(std::string a_id);
 	Record ShowRecord(std::string a_id);
 };
 
