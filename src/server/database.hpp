@@ -28,6 +28,10 @@
 #define DB_UNREGISTER_OK      0
 #define DB_UNREGISTER_UNKNOWN 2
 
+#define DB_CLOSE_NOK           -1
+#define DB_CLOSE_OK            0
+#define DB_CLOSE_ENDED_ALREADY 2
+
 typedef struct {
 	std::string user_id;
 	std::string name;
@@ -44,6 +48,13 @@ typedef struct {
 	std::string current_date;
 	uint32_t time_passed;
 } Bid;
+
+typedef struct {
+	std::string a_id;
+	bool active = false;
+} AuctionListing;
+
+typedef std::vector<AuctionListing> AuctionList;
 
 class Database {
    protected:
@@ -71,8 +82,6 @@ class Database {
 	int GetStart(std::string a_id, Start &result);
 	int GetBid(std::string bid_fname, Bid &result);
 	std::string GetCurrentDate();
-	int UserLoggedIn(std::string user_id);
-	int UserRegistered(std::string user_id);
 	int CorrectPassword(std::string user_id, std::string password);
 	std::string GetAssetFname(std::string a_id);
 	std::stringstream GetAssetData(std::string a_id, std::string asset_fname);

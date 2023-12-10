@@ -32,46 +32,50 @@ int Database::CheckUserExisted(const char *user_id_dirname) {
 	return -1;
 }
 
-/* 0 if user is registered in, 1 if not*/
+/* -1 error, 0 if user is registered in, 1 if not*/
 int Database::CheckUserRegistered(std::string user_id) {
+	if (verify_user_id(user_id) == -1) {
+		return -1;
+	}
+
 	std::string pass_fname = "ASDIR/USERS/" + user_id;
 	pass_fname += "/";
 	pass_fname += user_id;
 	pass_fname += "_pass.txt";
 
+	FILE *fp;
+
 	const char *pass_dir = pass_fname.c_str();
 
-	DIR *dir = opendir(pass_dir);
-
-	if (dir) {
-		closedir(dir);
-		return 0;
-	} else if (ENOENT == errno) {
+	fp = fopen(pass_dir, "r");
+	if (fp == NULL) {
 		return -1;
 	}
 
-	return -1;
+	return 0;
 }
 
-/* 0 if user is logged in, 1 if not*/
+/* -1 error, 0 if user is logged in, 1 if not*/
 int Database::CheckUserLoggedIn(std::string user_id) {
+	if (verify_user_id(user_id) == -1) {
+		return -1;
+	}
+
 	std::string login_fname = "ASDIR/USERS/" + user_id;
 	login_fname += "/";
 	login_fname += user_id;
 	login_fname += "_login.txt";
 
+	FILE *fp;
+
 	const char *login_dir = login_fname.c_str();
 
-	DIR *dir = opendir(login_dir);
-
-	if (dir) {
-		closedir(dir);
-		return 0;
-	} else if (ENOENT == errno) {
+	fp = fopen(login_dir, "r");
+	if (fp == NULL) {
 		return -1;
 	}
 
-	return -1;
+	return 0;
 }
 
 /* Returns -1 if failed, 0 if sucessful, 2 if user already existed*/
@@ -632,58 +636,9 @@ std::string Database::GetCurrentDate() {
 	return current_date;
 }
 
-// 1 is logged in, 0 is not logged in, -1 is error
-int Database::UserLoggedIn(std::string user_id) {
-	if (verify_user_id(user_id) == -1) {
-		return -1;
-	}
-
-	std::string login_name = "ASDIR/USERS/" + user_id;
-	login_name += "/";
-	login_name += user_id;
-	login_name += "_login.txt";
-
-	const char *login_fname = login_name.c_str();
-
-	DIR *dir = opendir(login_fname);
-
-	if (dir) {
-		closedir(dir);
-		return 1;
-	} else if (ENOENT == errno) {
-		return 0;
-	}
-
-	return -1;
-}
-
-// 1 it is, 0 is not, -1 is error
-int Database::UserRegistered(std::string user_id) {
-	if (verify_user_id(user_id) == -1) {
-		return -1;
-	}
-
-	std::string pass_name = "ASDIR/USERS/" + user_id;
-	pass_name += "/";
-	pass_name += user_id;
-	pass_name += "_pass.txt";
-
-	const char *pass_fname = pass_name.c_str();
-
-	DIR *dir = opendir(pass_fname);
-
-	if (dir) {
-		closedir(dir);
-		return 1;
-	} else if (ENOENT == errno) {
-		return 0;
-	}
-
-	return -1;
-}
-
 // 1 it is, 0 is not, -1 is error
 int Database::CorrectPassword(std::string user_id, std::string password) {
+	std::cerr << "got to check" << std::endl;
 	if (verify_user_id(user_id) == -1) {
 		std::cerr << "wrong u_id?" << std::endl;
 		return -1;
@@ -717,6 +672,9 @@ int Database::CorrectPassword(std::string user_id, std::string password) {
 	}
 
 	fclose(fp);
+
+	std::cerr << content << std::endl;
+	std::cerr << password << std::endl;
 
 	if (content == password) {
 		return 1;
@@ -800,6 +758,7 @@ int Database::CreateBaseDir() {
 
 int Database::LoginUser(std::string user_id, std::string password) {
 	if (CheckUserLoggedIn(user_id) == 0) {
+		std::cerr << "is logged in le check" << std::endl;
 		if (CorrectPassword(user_id, password) != 1) {
 			std::cerr << "Wrong password" << std::endl;
 			return DB_LOGIN_NOK;  // Wrong Password
@@ -818,15 +777,20 @@ int Database::LoginUser(std::string user_id, std::string password) {
 				std::cerr << "Wrong password" << std::endl;
 				return DB_LOGIN_NOK;  // Wrong Password
 			}
+			if (CreateLogin(user_id) == -1) {
+				return DB_LOGIN_NOK;  // Incorrect login
+			}
+			return DB_LOGIN_OK;  // Successful login
+
 		} else {
 			if (CreatePassword(user_id, password) == -1) {
 				return DB_LOGIN_NOK;  // Incorrect login
 			}
+			if (CreateLogin(user_id) == -1) {
+				return DB_LOGIN_NOK;  // Incorrect login
+			}
+			return DB_LOGIN_REGISTER;  // New user registered
 		}
-		if (CreateLogin(user_id) == -1) {
-			return DB_LOGIN_NOK;  // Incorrect login
-		}
-		return DB_LOGIN_OK;  // Successful login
 	}
 
 	if (CreatePassword(user_id, password) == -1) {
@@ -935,15 +899,15 @@ int Database::Close(std::string a_id) {
 	int ended = CreateEndFile(a_id);
 
 	if (ended == -1) {
-		return -1;  // Error
+		return DB_CLOSE_NOK;  // Error
 	}
 
 	if (ended == 0) {
-		return 0;  // Auction successfully closed
+		return DB_CLOSE_OK;  // Auction successfully closed
 	}
 
 	if (ended == 2) {
-		return 2;  // Auction time already ended
+		return DB_CLOSE_ENDED_ALREADY;  // Auction time already ended
 	}
 
 	return -1;
