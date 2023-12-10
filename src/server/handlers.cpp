@@ -99,7 +99,21 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	try {
 		message_in.readMessage(message);
 
-		// DATABASE OPERATIONS
+		AuctionList a_list = server._database.List();
+		size_t list_size = a_list.size();
+		list_size = 2;
+
+		if (list_size == 0) {
+			message_out.status = ServerListAllAuctions::status::NOK;
+		} else {
+			message_out.status = ServerListAllAuctions::status::OK;
+			for (AuctionListing a : a_list) {
+				int state = a.active ? 1 : 0;
+				std::string auction_str = a.a_id + " " + std::to_string(state);
+				message_out.auctions.push_back(auction_str);
+			}
+		}
+
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
