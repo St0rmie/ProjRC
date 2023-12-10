@@ -26,8 +26,6 @@ class Address {
 class Server {
 	std::string _hostname = DEFAULT_HOSTNAME;
 	std::string _port = DEFAULT_PORT;
-	bool verbose = true;
-	Database database;
 
 	void resolveServerAddress(std::string& hostname, std::string& port);
 	void sendUdpMessage(ProtocolMessage& message);
@@ -36,16 +34,18 @@ class Server {
 	void sendTcpMessage(ProtocolMessage& message);
 	void waitForTcpMessage(ProtocolMessage& message);
 	void closeTcpSocket();
-	void configClient(int argc, char* argv[]);
+	void configServer(int argc, char* argv[]);
+	void setup_sockets();
+	void resolveServerAddress(std::string& port);
 
    public:
-	int udp_socket_fd = -1;
-	int tcp_socket_fd = -1;
-	struct addrinfo* server_udp_addr = NULL;
-	struct addrinfo* server_tcp_addr = NULL;
-	Server(int argc, char* argv[]) {
-		database.CreateBaseDir();
-	};
+	int _udp_socket_fd = -1;
+	int _tcp_socket_fd = -1;
+	struct addrinfo* _server_udp_addr = NULL;
+	struct addrinfo* _server_tcp_addr = NULL;
+	Database _database;
+	bool _verbose = false;
+	Server(int argc, char* argv[]);
 	void sendUdpMessage(ProtocolMessage& out_message, Address& addr_from);
 	void sendTcpMessage();
 };

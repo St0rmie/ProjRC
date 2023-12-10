@@ -8,6 +8,22 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 	ServerLoginUser message_out;
 	try {
 		message_in.readMessage(message);
+		std::string user_id = std::to_string(message_in.user_id);
+		std::cerr << "password: " << message_in.password << std::endl;
+		int res = server._database.LoginUser(user_id, message_in.password);
+		switch (res) {
+			case -1:
+				message_out.status = ServerLoginUser::status::NOK;
+				break;
+
+			case 0:
+				message_out.status = ServerLoginUser::status::OK;
+				break;
+
+			case 2:
+				message_out.status = ServerLoginUser::status::REG;
+				break;
+		}
 
 		// DATABASE OPERATIONS
 	} catch (...) {

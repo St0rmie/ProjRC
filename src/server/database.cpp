@@ -35,6 +35,7 @@ int Database::CheckUserExisted(const char *user_id_dirname) {
 /* Returns -1 if failed, 0 if sucessful, 2 if user already existed*/
 int Database::CreateUserDir(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
+		std::cerr << "Invalid user id " << user_id << std::endl;
 		return -1;
 	}
 
@@ -55,14 +56,17 @@ int Database::CreateUserDir(std::string user_id) {
 	const char *bidded_dirname = bidded_dir.c_str();
 
 	if (mkdir(user_id_dirname, 0700) == -1) {
+		std::cerr << "mkdir1" << std::endl;
 		return -1;
 	}
 
 	if (mkdir(hosted_dirname, 0700) == -1) {
+		std::cerr << "mkdir2" << std::endl;
 		return -1;
 	}
 
 	if (mkdir(bidded_dirname, 0700) == -1) {
+		std::cerr << "mkdir3" << std::endl;
 		return -1;
 	}
 
@@ -754,18 +758,22 @@ int Database::LoginUser(std::string user_id, std::string password) {
 	int created_user = CreateUserDir(user_id);
 
 	if (created_user == -1) {
+		std::cerr << "Error creating user directory" << std::endl;
 		return -1;  // Incorrect login
 	}
 
 	if (CreatePassword(user_id, password) == -1) {
+		std::cerr << "Error creating password file" << std::endl;
 		return -1;  // Incorrect login
 	}
 
 	if (CreateLogin(user_id) == -1) {
+		std::cerr << "Error creating login file" << std::endl;
 		return -1;  // Incorrect login
 	}
 
 	if (created_user == 2) {
+		std::cerr << "User already existed" << std::endl;
 		return 2;  // Successful login
 	}
 
