@@ -28,6 +28,12 @@
 #define DB_UNREGISTER_OK      0
 #define DB_UNREGISTER_UNKNOWN 2
 
+#define DB_CLOSE_NOK           -1
+#define DB_CLOSE_OK            0
+#define DB_CLOSE_ENDED_ALREADY 2
+
+#define DB_OPEN_CREATE_FAIL -2
+
 typedef struct {
 	std::string user_id;
 	std::string name;
@@ -44,6 +50,23 @@ typedef struct {
 	std::string current_date;
 	uint32_t time_passed;
 } Bid;
+
+typedef struct {
+	std::string a_id;
+	bool active = false;
+} AuctionListing;
+
+typedef std::vector<AuctionListing> AuctionList;
+typedef std::vector<Bid> BidList;
+
+typedef struct {
+	std::string auction_name;
+	std::string asset_fname;
+	std::string start_value;
+	uint32_t start_date;
+	std::string timeactive;
+	BidList list;
+} Record;
 
 class Database {
    protected:
@@ -66,29 +89,29 @@ class Database {
 	                    std::string timeactive);
 	int CheckEndExists(const char *end_fname);
 	int CreateEndFile(std::string a_id);
-	int CreateAssetFile(std::string a_id, std::string asset_fname);
+	int CreateAssetFile(std::string a_id, std::string asset_fname, size_t fsize,
+	                    std::string data);
 	int CreateBidFile(std::string a_id, std::string user_id, std::string value);
 	int GetStart(std::string a_id, Start &result);
 	int GetBid(std::string bid_fname, Bid &result);
 	std::string GetCurrentDate();
-	int UserLoggedIn(std::string user_id);
-	int UserRegistered(std::string user_id);
 	int CorrectPassword(std::string user_id, std::string password);
 	std::string GetAssetFname(std::string a_id);
-	std::stringstream GetAssetData(std::string a_id, std::string asset_fname);
+	std::string GetAssetData(std::string a_id, std::string asset_fname);
 
    public:
 	int CreateBaseDir();
 	int LoginUser(std::string user_id, std::string password);
 	int Logout(std::string user_id, std::string password);
 	int Unregister(std::string user_id, std::string password);
-	int Open(std::string user_id, std::string name, std::string asset_fname,
-	         std::string start_value, std::string timeactive);
+	int Open(std::string user_id, std::string name, std::string password,
+	         std::string asset_fname, std::string start_value,
+	         std::string timeactive, size_t fsize, std::string data);
 	int Close(std::string a_id);
-	std::string MyAuctions(std::string user_id);
-	std::string MyBids(std::string user_id);
-	std::string List();
-	std::string ShowRecord(std::string a_id);
+	AuctionList MyAuctions(std::string user_id);
+	AuctionList MyBids(std::string user_id);
+	AuctionList List();
+	Record ShowRecord(std::string a_id);
 };
 
 #endif
