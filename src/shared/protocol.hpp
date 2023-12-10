@@ -423,6 +423,8 @@ class ServerBid : public ProtocolMessage {
 void send_udp_message(ProtocolMessage &message, int socket,
                       struct sockaddr *address, socklen_t addrlen,
                       bool verbose);
+void send_tcp_message(ProtocolMessage &message, int socketfd,
+                      struct sockaddr *addr, socklen_t addrlen, bool verbose);
 
 void await_udp_message(ProtocolMessage &Message, int socketfd);
 void await_tcp_message(ProtocolMessage &Message, int socketfd);

@@ -141,23 +141,8 @@ void Client::openTcpSocket() {
 }
 
 void Client::sendTcpMessage(ProtocolMessage &message) {
-	ssize_t n = connect(_tcp_socket_fd, _server_tcp_addr->ai_addr,
-	                    _server_tcp_addr->ai_addrlen);
-	if (n == -1) {
-		throw ConnectionTimeoutException();
-	}
-	std::string message_s = message.buildMessage().str();
-	const char *message_str = message_s.data();
-	size_t bytes_to_send = message_s.length();
-	size_t bytes_sent = 0;
-	while (bytes_sent < bytes_to_send) {
-		ssize_t sent = write(_tcp_socket_fd, message_str + bytes_sent,
-		                     (size_t) (bytes_to_send - bytes_sent));
-		if (sent < 0) {
-			throw MessageSendException();
-		}
-		bytes_sent += sent;
-	}
+	send_tcp_message(message, _tcp_socket_fd, _server_tcp_addr->ai_addr,
+	                 _server_tcp_addr->ai_addrlen, false);
 }
 
 void Client::waitForTcpMessage(ProtocolMessage &message) {
