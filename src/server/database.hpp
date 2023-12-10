@@ -48,6 +48,8 @@ typedef struct {
 class Database {
    protected:
 	int CheckUserExisted(const char *user_id_dirname);
+	int CheckUserRegistered(std::string user_id);
+	int CheckUserLoggedIn(std::string user_id);
 	int CreateUserDir(std::string user_id);
 	int CreateAuctionDir(std::string a_id);
 	int CreateLogin(std::string user_id);

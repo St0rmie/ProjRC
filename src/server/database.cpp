@@ -32,6 +32,48 @@ int Database::CheckUserExisted(const char *user_id_dirname) {
 	return -1;
 }
 
+/* 0 if user is registered in, 1 if not*/
+int Database::CheckUserRegistered(std::string user_id) {
+	std::string pass_fname = "ASDIR/USERS/" + user_id;
+	pass_fname += "/";
+	pass_fname += user_id;
+	pass_fname += "_pass.txt";
+
+	const char *pass_dir = pass_fname.c_str();
+
+	DIR *dir = opendir(pass_dir);
+
+	if (dir) {
+		closedir(dir);
+		return 0;
+	} else if (ENOENT == errno) {
+		return -1;
+	}
+
+	return -1;
+}
+
+/* 0 if user is logged in, 1 if not*/
+int Database::CheckUserLoggedIn(std::string user_id) {
+	std::string login_fname = "ASDIR/USERS/" + user_id;
+	login_fname += "/";
+	login_fname += user_id;
+	login_fname += "_login.txt";
+
+	const char *login_dir = login_fname.c_str();
+
+	DIR *dir = opendir(login_dir);
+
+	if (dir) {
+		closedir(dir);
+		return 0;
+	} else if (ENOENT == errno) {
+		return -1;
+	}
+
+	return -1;
+}
+
 /* Returns -1 if failed, 0 if sucessful, 2 if user already existed*/
 int Database::CreateUserDir(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
@@ -757,10 +799,34 @@ int Database::CreateBaseDir() {
 }
 
 int Database::LoginUser(std::string user_id, std::string password) {
+	if (CheckUserLoggedIn(user_id) == 0) {
+		if (CorrectPassword(user_id, password) != 1) {
+			std::cerr << "Wrong password" << std::endl;
+			return DB_LOGIN_NOK;  // Wrong Password
+		}
+		return DB_LOGIN_OK;
+	}
 	int created_user = CreateUserDir(user_id);
 
 	if (created_user == -1) {
 		return DB_LOGIN_NOK;  // Incorrect login
+	}
+
+	if (created_user == 2) {
+		if (CheckUserRegistered(user_id) == 0) {
+			if (CorrectPassword(user_id, password) != 1) {
+				std::cerr << "Wrong password" << std::endl;
+				return DB_LOGIN_NOK;  // Wrong Password
+			}
+		} else {
+			if (CreatePassword(user_id, password) == -1) {
+				return DB_LOGIN_NOK;  // Incorrect login
+			}
+		}
+		if (CreateLogin(user_id) == -1) {
+			return DB_LOGIN_NOK;  // Incorrect login
+		}
+		return DB_LOGIN_OK;  // Successful login
 	}
 
 	if (CreatePassword(user_id, password) == -1) {
@@ -769,10 +835,6 @@ int Database::LoginUser(std::string user_id, std::string password) {
 
 	if (CreateLogin(user_id) == -1) {
 		return DB_LOGIN_NOK;  // Incorrect login
-	}
-
-	if (created_user == 2) {
-		return DB_LOGIN_OK;  // Successful login
 	}
 
 	return DB_LOGIN_REGISTER;  // New user registered

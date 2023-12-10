@@ -67,11 +67,11 @@ void LoginCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	if (client.isLoggedIn() == true) {
-		std::cout << "[ERROR] Already Logged In. Please logout first."
-				  << std::endl;
-		return;
-	}
+	/*if (client.isLoggedIn() == true) {
+	    std::cout << "[ERROR] Already Logged In. Please logout first."
+	              << std::endl;
+	    return;
+	}*/
 
 	// Defining the arguments extracted
 	std::string user_id = parsed_args[0];
@@ -123,10 +123,10 @@ void LogoutCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	if (client.isLoggedIn() == false) {
-		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
-		return;
-	}
+	/*if (client.isLoggedIn() == false) {
+	    std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+	    return;
+	}*/
 
 	// Populate and send packet
 	ClientLogout message_out;
@@ -162,10 +162,10 @@ void UnregisterCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	if (client.isLoggedIn() == false) {
-		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
-		return;
-	}
+	/*if (client.isLoggedIn() == false) {
+	    std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+	    return;
+	}*/
 
 	// Populate and send packet
 	ClientUnregister message_out;
