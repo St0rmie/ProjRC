@@ -32,7 +32,8 @@
 #define DB_CLOSE_OK            0
 #define DB_CLOSE_ENDED_ALREADY 2
 
-#define DB_OPEN_CREATE_FAIL -2
+#define DB_OPEN_NOT_LOGGED_IN -1
+#define DB_OPEN_CREATE_FAIL   -2
 
 #define DB_AUCTION_UNFINISHED -1
 
@@ -75,7 +76,6 @@ class Database {
    protected:
 	int CheckUserExisted(const char *user_id_dirname);
 	int CheckUserRegistered(std::string user_id);
-	int CheckUserLoggedIn(std::string user_id);
 	int CreateUserDir(std::string user_id);
 	int CreateAuctionDir(std::string a_id);
 	int CreateLogin(std::string user_id);
@@ -104,6 +104,7 @@ class Database {
 
    public:
 	int CreateBaseDir();
+	int CheckUserLoggedIn(std::string user_id);
 	int LoginUser(std::string user_id, std::string password);
 	int Logout(std::string user_id, std::string password);
 	int Unregister(std::string user_id, std::string password);

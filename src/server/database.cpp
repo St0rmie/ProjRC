@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#include "shared/utils.hpp"
 #include "shared/verifications.hpp"
 
 namespace fs = std::filesystem;
@@ -863,10 +864,10 @@ int Database::Open(std::string user_id, std::string name, std::string password,
                    std::string asset_fname, std::string start_value,
                    std::string timeactive, size_t fsize, std::string data) {
 	if (CheckUserLoggedIn(user_id) != 0) {
-		return DB_LOGIN_NOK;  // Not Logged in
+		return DB_OPEN_NOT_LOGGED_IN;  // Not Logged in
 	}
 	if (CorrectPassword(user_id, password) != 1) {
-		return DB_LOGIN_NOK;  // Wrong Password
+		return DB_OPEN_CREATE_FAIL;  // Wrong Password
 	}
 
 	uint32_t aid = 0;
@@ -888,7 +889,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 		}
 	}
 
-	std::string c_aid = std::to_string(aid);
+	std::string c_aid = convert_auction_id_to_str(aid);
 
 	if (CreateAuctionDir(c_aid) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create auction dir
