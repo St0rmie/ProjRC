@@ -130,8 +130,6 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 		return -1;
 	}
 
-	FILE *fp;
-
 	std::string password_name = "ASDIR/USERS/" + user_id;
 	password_name += "/";
 	password_name += user_id;
@@ -140,7 +138,7 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 	const char *password_fname = password_name.c_str();
 	const char *password_file = password.c_str();
 
-	fp = fopen(password_fname, "w");
+	FILE *fp = fopen(password_fname, "w");
 	if (fp == NULL) {
 		std::cerr << "fp error, password_fname" << password_fname << std::endl;
 		return -1;
@@ -760,62 +758,70 @@ int Database::LoginUser(std::string user_id, std::string password) {
 	int created_user = CreateUserDir(user_id);
 
 	if (created_user == -1) {
-		std::cerr << "Error creating user directory" << std::endl;
-		return -1;  // Incorrect login
+		return DB_LOGIN_NOK;  // Incorrect login
 	}
 
 	if (CreatePassword(user_id, password) == -1) {
-		std::cerr << "Error creating password file" << std::endl;
-		return -1;  // Incorrect login
+		return DB_LOGIN_NOK;  // Incorrect login
 	}
 
 	if (CreateLogin(user_id) == -1) {
-		std::cerr << "Error creating login file" << std::endl;
-		return -1;  // Incorrect login
+		return DB_LOGIN_NOK;  // Incorrect login
 	}
 
 	if (created_user == 2) {
-		std::cerr << "User already existed" << std::endl;
-		return 2;  // Successful login
+		return DB_LOGIN_OK;  // Successful login
 	}
 
-	return 0;  // New user registered
+	return DB_LOGIN_REGISTER;  // New user registered
 }
 
-int Database::Logout(std::string user_id) {
+int Database::Logout(std::string user_id, std::string password) {
+	if (CorrectPassword(user_id, password) != 1) {
+		std::cerr << "Wrong password" << std::endl;
+		return DB_LOGOUT_NOK;  // Wrong Password
+	}
+
 	int removed_login = EraseLogin(user_id);
 
 	if (removed_login == -1) {
-		return -1;  // Unknown user
+		std::cerr << "Incorrect logout attempt" << std::endl;
+		return DB_LOGOUT_UNREGISTERED;  // Unknown user
 	}
 
 	if (removed_login == 0) {
-		return 0;  // Successful logout
+		std::cerr << "Sucessful logout" << std::endl;
+		return DB_LOGOUT_OK;  // Successful logout
 	}
 
 	if (removed_login == 2) {
-		return 2;  // User not logged in
+		std::cerr << "Not logged in" << std::endl;
+		return DB_LOGOUT_NOK;  // User not logged in
 	}
 
-	return -1;
+	return DB_LOGOUT_NOK;
 }
 
-int Database::Unregister(std::string user_id) {
+int Database::Unregister(std::string user_id, std::string password) {
+	if (CorrectPassword(user_id, password) != 1) {
+		return DB_UNREGISTER_NOK;  // Wrong Password
+	}
+
 	int erased_password = ErasePassword(user_id);
 
 	if (erased_password == -1) {
-		return -1;  // Incorrect unregister attempt
+		return DB_UNREGISTER_NOK;  // Incorrect unregister attempt
 	}
 
 	if (erased_password == 0) {
-		return 0;  // Successful unregister
+		return DB_UNREGISTER_OK;  // Successful unregister
 	}
 
 	if (erased_password == 2) {
-		return 2;  // Unknown user
+		return DB_UNREGISTER_UNKNOWN;  // Unknown user
 	}
 
-	return -1;
+	return DB_UNREGISTER_NOK;
 }
 
 int Database::Open(std::string user_id, std::string name,

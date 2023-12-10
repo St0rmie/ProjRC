@@ -41,7 +41,7 @@
 #define CODE_BID_SERVER         "RBD"
 
 #define SERVER_UDP_TIMEOUT 300
-#define UDP_TIMEOUT        8
+#define UDP_TIMEOUT        5
 #define UDP_MAX_TRIES      5
 
 #define TCP_READ_TIMEOUT_SECONDS   8

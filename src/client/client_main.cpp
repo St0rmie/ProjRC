@@ -13,7 +13,21 @@ int main(int argc, char *argv[]) {
 	registerCommands(commandManager);
 
 	while (!std::cin.eof()) {
-		commandManager.waitCommand(client);
+		try {
+			commandManager.waitCommand(client);
+		} catch (MessageReceiveException &e) {
+			printError("Server didn't answer.");
+		} catch (MessageSendException &e) {
+			printError("Failed to send message.");
+		} catch (MessageBuildingException &e) {
+			printError("Failed to build message.");
+		} catch (InvalidMessageException &e) {
+			printError("Invalid message received (Wrong format).");
+		} catch (UnexpectedMessageException &e) {
+			printError("Invalid message (ERR).");
+		} catch (std::exception &e) {
+			std::cout << e.what() << std::endl;
+		}
 	}
 
 	std::cout << "[QUIT] Shutting Down." << std::endl;

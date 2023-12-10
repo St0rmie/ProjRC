@@ -16,6 +16,18 @@
 #include <string>
 #include <vector>
 
+#define DB_LOGIN_NOK      -1
+#define DB_LOGIN_OK       0
+#define DB_LOGIN_REGISTER 2
+
+#define DB_LOGOUT_NOK          -1
+#define DB_LOGOUT_OK           0
+#define DB_LOGOUT_UNREGISTERED 2
+
+#define DB_UNREGISTER_NOK     -1
+#define DB_UNREGISTER_OK      0
+#define DB_UNREGISTER_UNKNOWN 2
+
 typedef struct {
 	std::string user_id;
 	std::string name;
@@ -66,8 +78,8 @@ class Database {
    public:
 	int CreateBaseDir();
 	int LoginUser(std::string user_id, std::string password);
-	int Logout(std::string user_id);
-	int Unregister(std::string user_id);
+	int Logout(std::string user_id, std::string password);
+	int Unregister(std::string user_id, std::string password);
 	int Open(std::string user_id, std::string name, std::string asset_fname,
 	         std::string start_value, std::string timeactive);
 	int Close(std::string a_id);

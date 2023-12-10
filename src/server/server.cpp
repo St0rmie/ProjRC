@@ -9,7 +9,7 @@
 void Server::configServer(int argc, char *argv[]) {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "hn:p:")) != -1) {
+	while ((opt = getopt(argc, argv, "p:v")) != -1) {
 		switch (opt) {
 			case 'v':
 				this->_verbose = true;
