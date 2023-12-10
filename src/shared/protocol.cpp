@@ -211,6 +211,8 @@ std::stringstream ServerLoginUser::buildMessage() {
 		buffer << "NOK";
 	} else if (status == ServerLoginUser::status::REG) {
 		buffer << "REG";
+	} else if (status == ServerLoginUser::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}
@@ -228,6 +230,8 @@ void ServerLoginUser::readMessage(MessageAdapter &buffer) {
 		status = NOK;
 	} else if (status_str == "REG") {
 		status = REG;
+	} else if (status_str == "ERR") {
+		status = ERR;
 	} else {
 		throw InvalidMessageException();
 	}
@@ -260,6 +264,8 @@ std::stringstream ServerLogout::buildMessage() {
 		buffer << "NOK";
 	} else if (status == ServerLogout::status::UNR) {
 		buffer << "UNR";
+	} else if (status == ServerLogout::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}
@@ -277,6 +283,8 @@ void ServerLogout::readMessage(MessageAdapter &buffer) {
 		status = NOK;
 	} else if (status_str == "UNR") {
 		status = UNR;
+	} else if (status_str == "ERR") {
+		status = ERR;
 	} else {
 		throw InvalidMessageException();
 	}
@@ -363,6 +371,8 @@ std::stringstream ServerListStartedAuctions::buildMessage() {
 		buffer << "NOK";
 	} else if (status == ServerListStartedAuctions::status::NLG) {
 		buffer << "NLG";
+	} else if (status == ServerListStartedAuctions::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}
@@ -384,6 +394,8 @@ void ServerListStartedAuctions::readMessage(MessageAdapter &buffer) {
 		status = NOK;
 	} else if (status_str == "NLG") {
 		status = NLG;
+	} else if (status_str == "ERR") {
+		status = ERR;
 	} else {
 		throw InvalidMessageException();
 	}
@@ -417,6 +429,8 @@ std::stringstream ServerListBiddedAuctions::buildMessage() {
 		buffer << "NOK";
 	} else if (status == ServerListBiddedAuctions::status::NLG) {
 		buffer << "NLG";
+	} else if (status == ServerListBiddedAuctions::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}
@@ -438,6 +452,8 @@ void ServerListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 		status = NOK;
 	} else if (status_str == "NLG") {
 		status = NLG;
+	} else if (status_str == "ERR") {
+		status = ERR;
 	} else {
 		throw InvalidMessageException();
 	}
@@ -467,6 +483,8 @@ std::stringstream ServerListAllAuctions::buildMessage() {
 		}
 	} else if (status == ServerListAllAuctions::status::NOK) {
 		buffer << "NOK";
+	} else if (status == ServerListAllAuctions::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}
@@ -486,6 +504,8 @@ void ServerListAllAuctions::readMessage(MessageAdapter &buffer) {
 		}
 	} else if (status_str == "NOK") {
 		status = NOK;
+	} else if (status_str == "ERR") {
+		status = ERR;
 	} else {
 		throw InvalidMessageException();
 	}
@@ -521,6 +541,8 @@ std::stringstream ServerShowRecord::buildMessage() {
 		}
 	} else if (status == ServerShowRecord::status::NOK) {
 		buffer << "NOK";
+	} else if (status == ServerShowRecord::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}
@@ -577,6 +599,9 @@ void ServerShowRecord::readMessage(MessageAdapter &buffer) {
 	} else if (status_str == "NOK") {
 		status = NOK;
 		readDelimiter(buffer);
+	} else if (status_str == "ERR") {
+		status = ERR;
+		readDelimiter(buffer);
 	} else {
 		throw InvalidMessageException();
 	}
@@ -621,6 +646,8 @@ std::stringstream ServerOpenAuction::buildMessage() {
 		buffer << "OK " << aid;
 	} else if (status == ServerOpenAuction::status::NOK) {
 		buffer << "NOK";
+	} else if (status == ServerOpenAuction::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}
@@ -639,6 +666,9 @@ void ServerOpenAuction::readMessage(MessageAdapter &buffer) {
 		readDelimiter(buffer);
 	} else if (status_str == "NOK") {
 		status = NOK;
+		readDelimiter(buffer);
+	} else if (status_str == "ERR") {
+		status = ERR;
 		readDelimiter(buffer);
 	} else {
 		throw InvalidMessageException();
@@ -802,6 +832,8 @@ std::stringstream ServerBid::buildMessage() {
 		buffer << "REF";
 	} else if (status == ServerBid::status::ILG) {
 		buffer << "ILG";
+	} else if (status == ServerBid::status::ERR) {
+		buffer << "ERR";
 	} else {
 		throw MessageBuildingException();
 	}

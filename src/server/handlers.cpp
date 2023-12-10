@@ -23,6 +23,8 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 				message_out.status = ServerLoginUser::status::REG;
 				break;
 		}
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerLoginUser::status::ERR;
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
@@ -53,6 +55,8 @@ void LogoutRequest::handle(MessageAdapter &message, Server &server,
 				message_out.status = ServerLogout::status::NOK;
 				break;
 		}
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerLogout::status::ERR;
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
@@ -116,7 +120,8 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 				message_out.auctions.push_back(auction_str);
 			}
 		}
-
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerListAllAuctions::status::ERR;
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
@@ -150,7 +155,8 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 				message_out.auctions.push_back(auction_str);
 			}
 		}
-
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerListBiddedAuctions::status::ERR;
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
@@ -184,7 +190,8 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 				message_out.auctions.push_back(auction_str);
 			}
 		}
-
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerListStartedAuctions::status::ERR;
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
@@ -202,6 +209,8 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 		message_in.readMessage(message);
 
 		// DATABASE OPERATIONS
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerShowRecord::status::ERR;
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
@@ -236,6 +245,8 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 			message_out.status = ServerOpenAuction::status::NOK;
 		}
 
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerOpenAuction::status::ERR;
 	} catch (std::exception &e) {
 		std::cout << "Failed to handle open auction request." << e.what()
 				  << std::endl;

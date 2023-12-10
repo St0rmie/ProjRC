@@ -112,6 +112,10 @@ void LoginCommand::handle(std::string args, Client &client) {
 			std::cout << "[Login] Registered user." << std::endl;
 			break;
 
+		case ServerLoginUser::status::ERR:
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			break;
+
 		default:
 			throw InvalidMessageException();
 	}
@@ -149,6 +153,10 @@ void LogoutCommand::handle(std::string args, Client &client) {
 
 		case ServerLogout::status::UNR:
 			std::cout << "[ERROR] Unregistered user." << std::endl;
+			break;
+
+		case ServerLogout::status::ERR:
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
 			break;
 
 		default:
@@ -237,6 +245,10 @@ void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
 			std::cout << "[ERROR] User not logged in." << std::endl;
 			break;
 
+		case ServerListStartedAuctions::status::ERR:
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			break;
+
 		default:
 			throw InvalidMessageException();
 	}
@@ -262,7 +274,7 @@ void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 
 	// Check status
 	switch (message_in.status) {
-		case ServerListStartedAuctions::status::OK:;
+		case ServerListBiddedAuctions::status::OK:;
 			std::cout << "[SUCCESS] Listing \nAuctions bidded by user "
 					  << client.getLoggedInUser() << ":" << std::endl;
 			for (std::string auc : message_in.auctions) {
@@ -270,13 +282,17 @@ void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 			}
 			break;
 
-		case ServerListStartedAuctions::status::NOK:
+		case ServerListBiddedAuctions::status::NOK:
 			std::cout << "[ERROR] User didn't bid on any auctions."
 					  << std::endl;
 			break;
 
-		case ServerListStartedAuctions::status::NLG:
+		case ServerListBiddedAuctions::status::NLG:
 			std::cout << "[ERROR] User not logged in." << std::endl;
+			break;
+
+		case ServerListBiddedAuctions::status::ERR:
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
 			break;
 
 		default:
@@ -316,6 +332,10 @@ void ListAllAuctionsCommand::handle(std::string args, Client &client) {
 		case ServerListAllAuctions::status::NOK:
 			std::cout << "[ERROR] There aren't any auctions on the system yet."
 					  << std::endl;
+			break;
+
+		case ServerListAllAuctions::status::ERR:
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
 			break;
 
 		default:
@@ -361,6 +381,10 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 		case ServerShowRecord::status::NOK:
 			std::cout << "[ERROR] There aren't any auctions on the system yet."
 					  << std::endl;
+			break;
+
+		case ServerShowRecord::status::ERR:
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
 			break;
 
 		default:
@@ -444,7 +468,7 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 			std::cout << "[ERROR] Not logged in." << std::endl;
 
 		case ServerOpenAuction::status::ERR:
-			std::cout << "[ERROR] Wrong result." << std::endl;
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
 
 		default:
 			throw InvalidMessageException();
@@ -507,7 +531,7 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerCloseAuction::status::ERR:
-			std::cout << "[ERROR] Wrong result." << std::endl;
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
 			break;
 
 		default:
@@ -557,7 +581,7 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerCloseAuction::status::ERR:
-			std::cout << "[ERROR] Wrong result." << std::endl;
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
 			break;
 
 		default:
@@ -627,7 +651,7 @@ void BidCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerBid::status::ERR:
-			std::cout << "[ERROR] Wrong result." << std::endl;
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
 			break;
 
 		default:
