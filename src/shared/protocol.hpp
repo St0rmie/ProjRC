@@ -291,7 +291,7 @@ class ClientBid : public ProtocolMessage {
 class ServerLoginUser : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_LOGIN_SERVER;
-	enum status { OK, NOK, REG };
+	enum status { OK, NOK, REG, ERR };
 
 	status status;
 	std::stringstream buildMessage();
@@ -301,7 +301,7 @@ class ServerLoginUser : public ProtocolMessage {
 class ServerLogout : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_LOGOUT_SERVER;
-	enum status { OK, NOK, UNR };
+	enum status { OK, NOK, UNR, ERR };
 
 	status status;
 	std::stringstream buildMessage();
@@ -321,7 +321,7 @@ class ServerUnregister : public ProtocolMessage {
 class ServerListStartedAuctions : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_LIST_AUC_SERVER;
-	enum status { OK, NOK, NLG };
+	enum status { OK, NOK, NLG, ERR };
 	std::vector<std::string> auctions;
 
 	status status;
@@ -332,7 +332,7 @@ class ServerListStartedAuctions : public ProtocolMessage {
 class ServerListBiddedAuctions : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_LIST_MYB_SERVER;
-	enum status { OK, NOK, NLG };
+	enum status { OK, NOK, NLG, ERR };
 	std::vector<std::string> auctions;
 
 	status status;
@@ -343,7 +343,7 @@ class ServerListBiddedAuctions : public ProtocolMessage {
 class ServerListAllAuctions : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_LIST_ALLAUC_SERVER;
-	enum status { OK, NOK };
+	enum status { OK, NOK, ERR };
 	std::vector<std::string> auctions;
 
 	status status;
