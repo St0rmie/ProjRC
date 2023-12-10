@@ -943,8 +943,12 @@ AuctionList Database::MyAuctions(std::string user_id) {
 			aid.pop_back();
 
 			auction.a_id = aid;
+			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
+			dir_name += "/END_";
+			dir_name += aid;
+			dir_name += ".txt";
 
-			if (CheckEndExists == 0) {
+			if (CheckEndExists(dir_name.c_str()) == 0) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
 				uint32_t current_time = time(&fulltime);
@@ -985,8 +989,12 @@ AuctionList Database::MyBids(std::string user_id) {
 			aid.pop_back();
 
 			auction.a_id = aid;
+			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
+			dir_name += "/END_";
+			dir_name += aid;
+			dir_name += ".txt";
 
-			if (CheckEndExists == 0) {
+			if (CheckEndExists(dir_name.c_str()) == 0) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
 				uint32_t current_time = time(&fulltime);
@@ -1023,8 +1031,12 @@ AuctionList Database::List() {
 			std::string aid = entry.path();
 
 			auction.a_id = aid;
+			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
+			dir_name += "/END_";
+			dir_name += aid;
+			dir_name += ".txt";
 
-			if (CheckEndExists == 0) {
+			if (CheckEndExists(dir_name.c_str()) == 0) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
 				uint32_t current_time = time(&fulltime);
