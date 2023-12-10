@@ -204,6 +204,7 @@ void ClientLoginUser::readMessage(MessageAdapter &buffer) {
 
 std::stringstream ServerLoginUser::buildMessage() {
 	std::stringstream buffer;
+	buffer << protocol_code << " ";
 	if (status == ServerLoginUser::status::OK) {
 		buffer << "OK";
 	} else if (status == ServerLoginUser::status::NOK) {
@@ -252,6 +253,7 @@ void ClientLogout::readMessage(MessageAdapter &buffer) {
 
 std::stringstream ServerLogout::buildMessage() {
 	std::stringstream buffer;
+	buffer << protocol_code << " ";
 	if (status == ServerLogout::status::OK) {
 		buffer << "OK";
 	} else if (status == ServerLogout::status::NOK) {
@@ -835,6 +837,7 @@ void send_udp_message(ProtocolMessage &message, int socketfd,
 	if (n == -1) {
 		throw MessageSendException();
 	}
+	std::cout << "\t <-- MESSAGE: " << buffer.str() << std::endl;
 }
 
 void await_udp_message(ProtocolMessage &message, int socketfd) {
