@@ -83,8 +83,8 @@ user: $(CLIENT_OBJECTS) $(CLIENT_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS)
 clean:
 	rm -f $(OBJECTS) $(TARGETS) $(TARGET_EXECS) project.zip
 
-clean-gamedata:
-	rm -rf .gamedata
+clean-database:
+	rm -rf ASDIR
 
 package:
 	cp README.md readme.txt

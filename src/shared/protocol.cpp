@@ -830,14 +830,16 @@ void ServerBid::readMessage(MessageAdapter &buffer) {
 // -----------------------------------
 
 void send_udp_message(ProtocolMessage &message, int socketfd,
-                      struct sockaddr *addr, socklen_t addrlen) {
+                      struct sockaddr *addr, socklen_t addrlen, bool verbose) {
 	const std::stringstream buffer = message.buildMessage();
 	ssize_t n = sendto(socketfd, buffer.str().c_str(), buffer.str().length(), 0,
 	                   addr, addrlen);
 	if (n == -1) {
 		throw MessageSendException();
 	}
-	std::cout << "\t <-- MESSAGE: " << buffer.str() << std::endl;
+	if (verbose) {
+		std::cout << "\t --> MESSAGE: " << buffer.str() << std::endl;
+	}
 }
 
 void await_udp_message(ProtocolMessage &message, int socketfd) {

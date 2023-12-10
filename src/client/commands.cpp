@@ -635,5 +635,7 @@ void ExitCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
 
 	// Protocol setup
-	std::cout << "EXITED" << std::endl;
+	printSuccess("Shutting down.");
+	client.~Client();
+	exit(EXIT_SUCCESS);
 }

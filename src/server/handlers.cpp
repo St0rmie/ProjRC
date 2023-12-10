@@ -9,29 +9,27 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 	try {
 		message_in.readMessage(message);
 		std::string user_id = std::to_string(message_in.user_id);
-		std::cerr << "password: " << message_in.password << std::endl;
 		int res = server._database.LoginUser(user_id, message_in.password);
 		switch (res) {
-			case -1:
+			case DB_LOGIN_NOK:
 				message_out.status = ServerLoginUser::status::NOK;
 				break;
 
-			case 0:
+			case DB_LOGIN_OK:
 				message_out.status = ServerLoginUser::status::OK;
 				break;
 
-			case 2:
+			case DB_LOGIN_REGISTER:
 				message_out.status = ServerLoginUser::status::REG;
 				break;
 		}
-
-		// DATABASE OPERATIONS
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
 
 	send_udp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size);
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void LogoutRequest::handle(MessageAdapter &message, Server &server,
@@ -40,14 +38,28 @@ void LogoutRequest::handle(MessageAdapter &message, Server &server,
 	ServerLogout message_out;
 	try {
 		message_in.readMessage(message);
+		std::string user_id = std::to_string(message_in.user_id);
+		int res = server._database.Logout(user_id, message_in.password);
+		switch (res) {
+			case DB_LOGOUT_UNREGISTERED:
+				message_out.status = ServerLogout::status::UNR;
+				break;
 
-		// DATABASE OPERATIONS
+			case DB_LOGOUT_OK:
+				message_out.status = ServerLogout::status::OK;
+				break;
+
+			case DB_LOGOUT_NOK:
+				message_out.status = ServerLogout::status::NOK;
+				break;
+		}
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
 
 	send_udp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size);
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void UnregisterRequest::handle(MessageAdapter &message, Server &server,
@@ -56,14 +68,28 @@ void UnregisterRequest::handle(MessageAdapter &message, Server &server,
 	ServerUnregister message_out;
 	try {
 		message_in.readMessage(message);
+		std::string user_id = std::to_string(message_in.user_id);
+		int res = server._database.Unregister(user_id, message_in.password);
+		switch (res) {
+			case DB_UNREGISTER_UNKNOWN:
+				message_out.status = ServerUnregister::status::UNR;
+				break;
 
-		// DATABASE OPERATIONS
+			case DB_UNREGISTER_OK:
+				message_out.status = ServerUnregister::status::OK;
+				break;
+
+			case DB_UNREGISTER_NOK:
+				message_out.status = ServerUnregister::status::NOK;
+				break;
+		}
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
 
 	send_udp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size);
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
@@ -79,7 +105,8 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	}
 
 	send_udp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size);
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
@@ -95,7 +122,8 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	}
 
 	send_udp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size);
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
@@ -111,7 +139,8 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	}
 
 	send_udp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size);
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
@@ -127,7 +156,8 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 	}
 
 	send_udp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size);
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
