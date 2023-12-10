@@ -144,6 +144,7 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 		return -1;
 	}
 
+	std::cerr << "password_file" << password_file << std::endl;
 	fprintf(fp, "%s", password_file);
 
 	fclose(fp);
@@ -214,6 +215,7 @@ int Database::CheckLoginExists(const char *login_id_fname) {
 /* Returns -1 if failed, 0 if sucessful, 2 if user is logged out*/
 int Database::EraseLogin(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
+		std::cerr << "Wrong user_id" << std::endl;
 		return -1;
 	}
 
@@ -222,6 +224,7 @@ int Database::EraseLogin(std::string user_id) {
 	const char *user_id_dirname = user_id_dir.c_str();
 
 	if (CheckUserExisted(user_id_dirname) == -1) {
+		std::cerr << "user didn't exist" << std::endl;
 		return -1;
 	}
 
@@ -246,6 +249,7 @@ int Database::CheckPasswordExists(const char *password_fname) {
 	if (access(password_fname, F_OK) == 0) {
 		return 0;
 	} else {
+		std::cerr << "access failed" << std::endl;
 		return -1;
 	}
 }
@@ -253,6 +257,7 @@ int Database::CheckPasswordExists(const char *password_fname) {
 /* Returns -1 if failed, 0 if sucessful, 2 if unknown user*/
 int Database::ErasePassword(std::string user_id) {
 	if (verify_user_id(user_id) == -1) {
+		std::cerr << "Wrong user_id" << std::endl;
 		return -1;
 	}
 
@@ -272,6 +277,7 @@ int Database::ErasePassword(std::string user_id) {
 	const char *password_fname = password_name.c_str();
 
 	if (CheckPasswordExists(password_fname) == -1) {
+		std::cerr << "Wrong password" << std::endl;
 		return -1;
 	}
 
@@ -646,10 +652,12 @@ int Database::UserRegistered(std::string user_id) {
 // 1 it is, 0 is not, -1 is error
 int Database::CorrectPassword(std::string user_id, std::string password) {
 	if (verify_user_id(user_id) == -1) {
+		std::cerr << "wrong u_id?" << std::endl;
 		return -1;
 	}
 
 	if (verify_password(password) == -1) {
+		std::cerr << "wrong pasword?" << std::endl;
 		return -1;
 	}
 
@@ -664,12 +672,14 @@ int Database::CorrectPassword(std::string user_id, std::string password) {
 
 	const char *pass_fname = pass_name.c_str();
 
-	fp = fopen(pass_fname, "w");
+	fp = fopen(pass_fname, "r");
 	if (fp == NULL) {
+		std::cerr << "fp problem" << std::endl;
 		return -1;
 	}
 
-	if (fgets(content, 8, fp) == NULL) {
+	if (fgets(content, 9, fp) == NULL) {
+		std::cerr << "fgets? " << content << std::endl;
 		return -1;
 	}
 
@@ -678,6 +688,7 @@ int Database::CorrectPassword(std::string user_id, std::string password) {
 	if (content == password) {
 		return 1;
 	} else {
+		std::cerr << "content weird?" << content << std::endl;
 		return 0;
 	}
 }
@@ -804,7 +815,12 @@ int Database::Logout(std::string user_id, std::string password) {
 
 int Database::Unregister(std::string user_id, std::string password) {
 	if (CorrectPassword(user_id, password) != 1) {
+		std::cerr << "dafuq?" << std::endl;
 		return DB_UNREGISTER_NOK;  // Wrong Password
+	}
+
+	if (Logout(user_id, password) == DB_LOGOUT_NOK) {
+		return DB_UNREGISTER_NOK;  // Couldn't logout when unregistering
 	}
 
 	int erased_password = ErasePassword(user_id);
