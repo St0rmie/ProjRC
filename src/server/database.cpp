@@ -927,17 +927,39 @@ AuctionList Database::MyAuctions(std::string user_id) {
 	dir_name += "/HOSTED";
 
 	AuctionList result;
+	AuctionListing auction;
+	Start start;
+	time_t fulltime;
 
 	if (fs::is_empty(dir_name)) {
 		return result;  // Returns empty list which means user hosted no
 		                // auctions
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
-			std::string a_id = entry.path();
-			a_id.pop_back();
-			a_id.pop_back();
-			a_id.pop_back();
-			a_id.pop_back();
+			std::string aid = entry.path();
+			aid.pop_back();
+			aid.pop_back();
+			aid.pop_back();
+			aid.pop_back();
+
+			auction.a_id = aid;
+
+			if (CheckEndExists == 0) {
+				GetStart(aid, start);
+				uint32_t start_time = start.current_time;
+				uint32_t current_time = time(&fulltime);
+				uint32_t time_passed = start_time - current_time;
+				uint32_t timeactive = stoi(start.timeactive);
+				uint32_t overtime = time_passed - timeactive;
+
+				if (overtime >= 0) {
+					Close(aid);
+				} else {
+					auction.active = true;
+				}
+			}
+
+			result.push_back(auction);
 		}
 	}
 	return result;
@@ -948,16 +970,38 @@ AuctionList Database::MyBids(std::string user_id) {
 	dir_name += "/BIDDED";
 
 	AuctionList result;
+	AuctionListing auction;
+	Start start;
+	time_t fulltime;
 
 	if (fs::is_empty(dir_name)) {
 		return result;  // Returns empty list which means user made no bids
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
-			std::string a_id = entry.path();
-			a_id.pop_back();
-			a_id.pop_back();
-			a_id.pop_back();
-			a_id.pop_back();
+			std::string aid = entry.path();
+			aid.pop_back();
+			aid.pop_back();
+			aid.pop_back();
+			aid.pop_back();
+
+			auction.a_id = aid;
+
+			if (CheckEndExists == 0) {
+				GetStart(aid, start);
+				uint32_t start_time = start.current_time;
+				uint32_t current_time = time(&fulltime);
+				uint32_t time_passed = start_time - current_time;
+				uint32_t timeactive = stoi(start.timeactive);
+				uint32_t overtime = time_passed - timeactive;
+
+				if (overtime >= 0) {
+					Close(aid);
+				} else {
+					auction.active = true;
+				}
+			}
+
+			result.push_back(auction);
 		}
 	}
 	return result;
@@ -967,13 +1011,35 @@ AuctionList Database::List() {
 	std::string dir_name = "ASDIR/AUCTIONS";
 
 	AuctionList result;
+	AuctionListing auction;
+	Start start;
+	time_t fulltime;
 
 	if (fs::is_empty(dir_name)) {
 		return result;  // Returns empty list which means no auctions were ever
 		                // made
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
-			std::string a_id = entry.path();
+			std::string aid = entry.path();
+
+			auction.a_id = aid;
+
+			if (CheckEndExists == 0) {
+				GetStart(aid, start);
+				uint32_t start_time = start.current_time;
+				uint32_t current_time = time(&fulltime);
+				uint32_t time_passed = start_time - current_time;
+				uint32_t timeactive = stoi(start.timeactive);
+				uint32_t overtime = time_passed - timeactive;
+
+				if (overtime >= 0) {
+					Close(aid);
+				} else {
+					auction.active = true;
+				}
+			}
+
+			result.push_back(auction);
 		}
 	}
 	return result;
