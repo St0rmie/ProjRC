@@ -652,12 +652,12 @@ int Database::CorrectPassword(std::string user_id, std::string password) {
 	}
 }
 
-std::string Database::GetAssetFname(std::string a_id) {
+std::string Database::GetAssetDir(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
 		return "";
 	}
 
-	std::string asset_fname;
+	std::string asset_dir;
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/ASSET";
@@ -667,19 +667,15 @@ std::string Database::GetAssetFname(std::string a_id) {
 		return "";
 	}
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
-		asset_fname = entry.path();
+		asset_dir = entry.path();
 		break;
 	}
 
-	return asset_fname;
+	return asset_dir;
 }
 
 std::string Database::GetAssetData(std::string a_id, std::string asset_fname) {
-	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
-	dir_name += "/ASSET/";
-	dir_name += asset_fname;
-
-	std::ifstream file(dir_name);
+	std::ifstream file(asset_fname);
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	file.close();
@@ -1010,15 +1006,63 @@ AuctionList Database::List() {
 }
 
 std::string Database::ShowAsset(std::string a_id) {
-	std::string asset_fname = GetAssetFname(a_id);
+	std::string asset_dir = GetAssetDir(a_id);
 
-	if (asset_fname == "") {
+	if (asset_dir == "") {
 		return DB_SHOW_ASSET_ERROR;
 	}
 
-	std::string asset = GetAssetData(a_id, asset_fname);
+	std::string asset = GetAssetData(a_id, asset_dir);
 
 	return asset;
+}
+
+int Database::Bid(std::string user_id, std::string password, std::string a_id,
+                  std::string value) {
+	if (CheckUserLoggedIn(user_id) != 0) {
+		return DB_BID_REFUSE;  // Not Logged in
+	}
+	if (CorrectPassword(user_id, password) != 1) {
+		return DB_BID_REFUSE;  // Wrong Password
+	}
+
+	BidInfo bid;
+
+	std::string end_dir_name = "ASDIR/AUCTIONS/" + a_id;
+	end_dir_name += "/END_";
+	end_dir_name += a_id;
+	end_dir_name += ".txt";
+
+	if (CheckEndExists(end_dir_name.c_str()) == 0) {
+		return DB_BID_AUCTION_ENDED;
+	}
+
+	std::string bid_dir_name = "ASDIR/AUCTIONS/" + a_id;
+	bid_dir_name += "/BIDS";
+
+	std::string bid_fname;
+
+	if (!(fs::is_empty(bid_dir_name))) {
+		for (const auto &entry : fs::directory_iterator(bid_dir_name)) {
+			bid_fname += entry.path();
+			GetBid(bid_fname, bid);
+			std::string old_value = bid.value;
+
+			if (old_value >= value) {
+				return DB_BID_REFUSE;
+			}
+		}
+	}
+
+	if (RegisterBid(user_id, a_id) == -1) {
+		return DB_BID_REFUSE;
+	}
+
+	if (CreateBidFile(a_id, user_id, value) == -1) {
+		return DB_BID_REFUSE;
+	}
+
+	return DB_BID_ACCEPT;
 }
 
 Record Database::ShowRecord(std::string a_id) {
@@ -1055,9 +1099,6 @@ Record Database::ShowRecord(std::string a_id) {
 
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
 		n++;
-		bid_fname = "ASDIR/AUCTIONS/" + a_id;
-		bid_fname += dir_name;
-		bid_fname += "/";
 		bid_fname += entry.path();
 		GetBid(bid_fname, bid);
 
