@@ -37,6 +37,8 @@
 
 #define DB_AUCTION_UNFINISHED -1
 
+#define DB_SHOW_ASSET_ERROR ""
+
 typedef struct {
 	std::string user_id;
 	std::string name;

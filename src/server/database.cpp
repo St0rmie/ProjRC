@@ -663,6 +663,9 @@ std::string Database::GetAssetFname(std::string a_id) {
 	dir_name += "/ASSET";
 
 	/* Tratar desta parte eventualmente quando perceber a função*/
+	if (fs::is_empty(dir_name)) {
+		return "";
+	}
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
 		asset_fname = entry.path();
 		break;
@@ -1008,6 +1011,10 @@ AuctionList Database::List() {
 
 std::string Database::ShowAsset(std::string a_id) {
 	std::string asset_fname = GetAssetFname(a_id);
+
+	if (asset_fname == "") {
+		return DB_SHOW_ASSET_ERROR;
+	}
 
 	std::string asset = GetAssetData(a_id, asset_fname);
 
