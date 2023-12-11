@@ -118,6 +118,7 @@ int Database::CreateUserDir(std::string user_id) {
 
 int Database::CreateAuctionDir(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
+		std::cout << "A1" << std::endl;
 		return -1;
 	}
 
@@ -132,12 +133,15 @@ int Database::CreateAuctionDir(std::string a_id) {
 	const char *asset_dirname = asset_dir.c_str();
 
 	if (mkdir(a_id_dirname, 0700) == -1) {
+		std::cout << a_id_dirname << std::endl;
 		return -1;
 	}
 	if (mkdir(bid_dirname, 0700) == -1) {
+		std::cout << "A3" << std::endl;
 		return -1;
 	}
 	if (mkdir(asset_dirname, 0700) == -1) {
+		std::cout << "A4" << std::endl;
 		return -1;
 	}
 
@@ -347,7 +351,7 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 	FILE *fp;
 	time_t fulltime;
 	std::string current_date = GetCurrentDate();
-	uint32_t current_time = time(&fulltime);
+	time_t current_time = time(&fulltime);
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/START_";
@@ -365,7 +369,7 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 	content += " ";
 	content += current_date;
 	content += " ";
-	content += current_time;
+	content += std::to_string(current_time);
 
 	const char *file_content = content.c_str();
 
@@ -401,18 +405,17 @@ int Database::CreateEndFile(std::string a_id) {
 	Start start;
 	time_t fulltime;
 	std::string current_date = GetCurrentDate();
-	uint32_t current_time = time(&fulltime);
+	time_t current_time = time(&fulltime);
 	GetStart(a_id, start);
 	uint32_t start_time = start.current_time;
-	uint32_t time_passed = start_time - current_time;
-
+	uint32_t time_passed = current_time - start_time;
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/END_";
 	dir_name += a_id;
 	dir_name += ".txt";
 
 	std::string content = current_date + " ";
-	content += time_passed;
+	content += std::to_string(time_passed);
 
 	const char *file_content = content.c_str();
 
@@ -476,10 +479,10 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 	FILE *fp;
 	time_t fulltime;
 	std::string current_date = GetCurrentDate();
-	uint32_t current_time = time(&fulltime);
+	time_t current_time = time(&fulltime);
 	GetStart(a_id, start);
 	uint32_t start_time = start.current_time;
-	uint32_t time_passed = start_time - current_time;
+	uint32_t time_passed = current_time - start_time;
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/BIDS/";
@@ -679,16 +682,6 @@ std::string Database::GetAssetData(std::string a_id, std::string asset_fname) {
 	file.close();
 	return buffer.str();
 }
-
-/*  Juntar num create auction que cria tudo da auction
-    Juntar num create user que cria tudo do user
-    Juntar num close auction geral
-    Juntar num close user geral
-    List auctions (use cpp thing): user's auctions; all auctions; aunctions in
-    which user bidded
-    Fazer wrappers (aka passes parameters and looks neat for interace)
-    Ver outros commandos
-    */
 
 int Database::CreateBaseDir() {
 	const char *asdir = "ASDIR";
@@ -895,16 +888,16 @@ AuctionList Database::MyAuctions(std::string user_id) {
 			dir_name += aid;
 			dir_name += ".txt";
 
-			if (CheckEndExists(dir_name.c_str()) == 0) {
+			if (CheckEndExists(dir_name.c_str()) == -1) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
-				uint32_t current_time = time(&fulltime);
-				uint32_t time_passed = start_time - current_time;
+				time_t current_time = time(&fulltime);
+				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
-				uint32_t overtime = time_passed - timeactive;
 
-				if (overtime >= 0) {
+				if (time_passed > timeactive) {
 					Close(aid);
+					auction.active = false;
 				} else {
 					auction.active = true;
 				}
@@ -939,16 +932,16 @@ AuctionList Database::MyBids(std::string user_id) {
 			dir_name += aid;
 			dir_name += ".txt";
 
-			if (CheckEndExists(dir_name.c_str()) == 0) {
+			if (CheckEndExists(dir_name.c_str()) == -1) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
-				uint32_t current_time = time(&fulltime);
-				uint32_t time_passed = start_time - current_time;
+				time_t current_time = time(&fulltime);
+				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
-				uint32_t overtime = time_passed - timeactive;
 
-				if (overtime >= 0) {
+				if (time_passed > timeactive) {
 					Close(aid);
+					auction.active = false;
 				} else {
 					auction.active = true;
 				}
@@ -982,16 +975,16 @@ AuctionList Database::List() {
 			dir_name += aid;
 			dir_name += ".txt";
 
-			if (CheckEndExists(dir_name.c_str()) == 0) {
+			if (CheckEndExists(dir_name.c_str()) == -1) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
-				uint32_t current_time = time(&fulltime);
-				uint32_t time_passed = start_time - current_time;
+				time_t current_time = time(&fulltime);
+				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
-				uint32_t overtime = time_passed - timeactive;
 
-				if (overtime >= 0) {
+				if (time_passed > timeactive) {
 					Close(aid);
+					auction.active = false;
 				} else {
 					auction.active = true;
 				}
@@ -1027,12 +1020,11 @@ Record Database::ShowRecord(std::string a_id) {
 	result.start_date = start.current_date;
 	result.timeactive = start.timeactive;
 	uint32_t start_time = start.current_time;
-	uint32_t current_time = time(&fulltime);
-	uint32_t time_passed = start_time - current_time;
+	time_t current_time = time(&fulltime);
+	uint32_t time_passed = current_time - start_time;
 	uint32_t timeactive = stoi(start.timeactive);
-	uint32_t overtime = time_passed - timeactive;
 
-	if (overtime >= 0) {
+	if (time_passed > timeactive) {
 		Close(a_id);
 		finished = 1;
 	} else {
