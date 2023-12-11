@@ -207,7 +207,7 @@ int Database::RegisterHost(std::string user_id, std::string a_id) {
 	FILE *fp;
 
 	std::string host_name = "ASDIR/USERS/" + user_id;
-	host_name += "/HOSTED";
+	host_name += "/HOSTED/";
 	host_name += a_id;
 	host_name += ".txt";
 
@@ -820,7 +820,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 			new_aid.erase(new_aid.begin(), new_aid.end() - 3);
 			n_new_aid = stoi(new_aid);
 
-			if (aid < n_new_aid) {
+			if (aid <= n_new_aid) {
 				aid = n_new_aid + 1;
 			}
 		}
@@ -834,14 +834,18 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 	}
 	std::cout << "B" << std::endl;
 	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
-	                    timeactive)) {
+	                    timeactive) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
 	std::cout << "C" << std::endl;
-	if (CreateAssetFile(c_aid, asset_fname, fsize, data)) {
+	if (CreateAssetFile(c_aid, asset_fname, fsize, data) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
 	std::cout << "D" << std::endl;
+
+	if (RegisterHost(user_id, c_aid) == -1) {
+		return DB_OPEN_CREATE_FAIL;  // Failed to create hosted file
+	}
 
 	return aid;
 }
@@ -901,6 +905,8 @@ AuctionList Database::MyAuctions(std::string user_id) {
 				} else {
 					auction.active = true;
 				}
+			} else {
+				auction.active = false;
 			}
 
 			result.push_back(auction);
@@ -945,6 +951,8 @@ AuctionList Database::MyBids(std::string user_id) {
 				} else {
 					auction.active = true;
 				}
+			} else {
+				auction.active = false;
 			}
 
 			result.push_back(auction);
@@ -988,6 +996,8 @@ AuctionList Database::List() {
 				} else {
 					auction.active = true;
 				}
+			} else {
+				auction.active = false;
 			}
 
 			result.push_back(auction);
