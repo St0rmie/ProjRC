@@ -84,9 +84,11 @@ void Client::sendUdpMessageAndAwaitReply(ProtocolMessage &out_message,
 		} catch (ConnectionTimeoutException &e) {
 			if (triesLeft == 0) {
 				std::cout << "[ERROR] Couldn't send message" << std::endl;
+				return;
 			}
 		} catch (InvalidMessageException &e) {
 			std::cout << "[ERROR] Invalid Message." << std::endl;
+			return;
 		} catch (UnexpectedMessageException &e) {
 			std::cout << "[ERROR] Unexpected Message." << std::endl;
 			return;

@@ -246,6 +246,7 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 		}
 
 	} catch (InvalidMessageException &e) {
+		std::cout << "INVALID MESSAGE EXCEPTION" << std::endl;
 		message_out.status = ServerOpenAuction::status::ERR;
 	} catch (std::exception &e) {
 		std::cout << "Failed to handle open auction request." << e.what()

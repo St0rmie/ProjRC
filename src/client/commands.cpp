@@ -466,9 +466,11 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 
 		case ServerOpenAuction::status::NLG:
 			std::cout << "[ERROR] Not logged in." << std::endl;
+			break;
 
 		case ServerOpenAuction::status::ERR:
 			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			break;
 
 		default:
 			throw InvalidMessageException();
