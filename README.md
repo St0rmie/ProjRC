@@ -14,6 +14,10 @@ Work harder son
 - Rework Prints (WIP)
 
 ## Server
+- Verbose mode
+- ERR when no handle is found
+- (fix) timeout udp
+- (pretty) improve Error prints
 
 ## Database
 
