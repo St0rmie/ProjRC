@@ -598,16 +598,16 @@ int Database::GetBid(std::string bid_fname, BidInfo &result) {
 std::string Database::GetCurrentDate() {
 	time_t fulltime;
 	struct tm *current_time;
-	char time_str[20];
-	char *current_date;
+	char time_str[40];
 	time(&fulltime);  // Get current time in seconds starting at 1970
 	current_time = gmtime(&fulltime);  // Convert time to YYYY−MM−DD HH:MM:SS
-	sprintf(current_date, "%4d-%02d-%02d %02d:%02d:%02d",
+	sprintf(time_str, "%4u-%02u-%02u %02u:%02u:%02u",
 	        current_time->tm_year + 1900, current_time->tm_year + 1,
 	        current_time->tm_mday, current_time->tm_hour, current_time->tm_min,
 	        current_time->tm_sec);
-	std::string str(current_date);
-	return current_date;
+	std::string str(time_str);
+	std::cout << str << std::endl;
+	return str;
 }
 
 // 1 it is, 0 is not, -1 is error
@@ -824,6 +824,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
 			new_aid = entry.path();
+			new_aid.erase(new_aid.begin(), new_aid.end() - 3);
 			n_new_aid = stoi(new_aid);
 
 			if (aid < n_new_aid) {
@@ -834,16 +835,20 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 
 	std::string c_aid = convert_auction_id_to_str(aid);
 
+	std::cout << "A" << std::endl;
 	if (CreateAuctionDir(c_aid) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create auction dir
 	}
+	std::cout << "B" << std::endl;
 	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
 	                    timeactive)) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
+	std::cout << "C" << std::endl;
 	if (CreateAssetFile(c_aid, asset_fname, fsize, data)) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
+	std::cout << "D" << std::endl;
 
 	return aid;
 }
@@ -881,10 +886,8 @@ AuctionList Database::MyAuctions(std::string user_id) {
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
 			std::string aid = entry.path();
-			aid.pop_back();
-			aid.pop_back();
-			aid.pop_back();
-			aid.pop_back();
+			aid.erase(aid.end() - 4, aid.end());
+			aid.erase(aid.begin(), aid.end() - 3);
 
 			auction.a_id = aid;
 			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
@@ -927,10 +930,8 @@ AuctionList Database::MyBids(std::string user_id) {
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
 			std::string aid = entry.path();
-			aid.pop_back();
-			aid.pop_back();
-			aid.pop_back();
-			aid.pop_back();
+			aid.erase(aid.end() - 4, aid.end());
+			aid.erase(aid.begin(), aid.end() - 3);
 
 			auction.a_id = aid;
 			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
@@ -973,6 +974,7 @@ AuctionList Database::List() {
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
 			std::string aid = entry.path();
+			aid.erase(aid.begin(), aid.end() - 3);
 
 			auction.a_id = aid;
 			std::string dir_name = "ASDIR/AUCTIONS/" + aid;

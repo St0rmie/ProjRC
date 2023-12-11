@@ -96,7 +96,7 @@ class TcpMessage : public MessageAdapter {
 		char buf[SOCKET_BUFFER_LEN];
 		ssize_t n = read(_fd, &buf, SOCKET_BUFFER_LEN);
 
-		if (n == -1) {
+		if (n <= 0) {
 			throw InvalidMessageException();
 		}
 

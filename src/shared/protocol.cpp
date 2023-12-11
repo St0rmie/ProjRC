@@ -631,7 +631,7 @@ void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	assetf_name = readString(buffer, MAX_FILENAME_SIZE);
 	readSpace(buffer);
-	size_t fsize = (size_t) stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
+	size_t fsize = (size_t) stoi(readString(buffer, MAX_FILE_SIZE_LENGTH));
 	readSpace(buffer);
 	fdata = readFile(buffer, fsize);
 	readDelimiter(buffer);
@@ -659,9 +659,9 @@ void ServerOpenAuction::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerOpenAuction::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
-	readSpace(buffer);
 	if (status_str == "OK") {
 		status = OK;
+		readSpace(buffer);
 		auction_id = readAuctionId(buffer);
 		readDelimiter(buffer);
 	} else if (status_str == "NOK") {
