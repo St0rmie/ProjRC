@@ -118,6 +118,7 @@ int Database::CreateUserDir(std::string user_id) {
 
 int Database::CreateAuctionDir(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
+		std::cout << "A1" << std::endl;
 		return -1;
 	}
 
@@ -132,12 +133,15 @@ int Database::CreateAuctionDir(std::string a_id) {
 	const char *asset_dirname = asset_dir.c_str();
 
 	if (mkdir(a_id_dirname, 0700) == -1) {
+		std::cout << a_id_dirname << std::endl;
 		return -1;
 	}
 	if (mkdir(bid_dirname, 0700) == -1) {
+		std::cout << "A3" << std::endl;
 		return -1;
 	}
 	if (mkdir(asset_dirname, 0700) == -1) {
+		std::cout << "A4" << std::endl;
 		return -1;
 	}
 
@@ -203,7 +207,7 @@ int Database::RegisterHost(std::string user_id, std::string a_id) {
 	FILE *fp;
 
 	std::string host_name = "ASDIR/USERS/" + user_id;
-	host_name += "/HOSTED";
+	host_name += "/HOSTED/";
 	host_name += a_id;
 	host_name += ".txt";
 
@@ -347,7 +351,7 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 	FILE *fp;
 	time_t fulltime;
 	std::string current_date = GetCurrentDate();
-	uint32_t current_time = time(&fulltime);
+	time_t current_time = time(&fulltime);
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/START_";
@@ -365,7 +369,7 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 	content += " ";
 	content += current_date;
 	content += " ";
-	content += current_time;
+	content += std::to_string(current_time);
 
 	const char *file_content = content.c_str();
 
@@ -401,18 +405,17 @@ int Database::CreateEndFile(std::string a_id) {
 	Start start;
 	time_t fulltime;
 	std::string current_date = GetCurrentDate();
-	uint32_t current_time = time(&fulltime);
+	time_t current_time = time(&fulltime);
 	GetStart(a_id, start);
 	uint32_t start_time = start.current_time;
-	uint32_t time_passed = start_time - current_time;
-
+	uint32_t time_passed = current_time - start_time;
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/END_";
 	dir_name += a_id;
 	dir_name += ".txt";
 
 	std::string content = current_date + " ";
-	content += time_passed;
+	content += std::to_string(time_passed);
 
 	const char *file_content = content.c_str();
 
@@ -476,10 +479,10 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 	FILE *fp;
 	time_t fulltime;
 	std::string current_date = GetCurrentDate();
-	uint32_t current_time = time(&fulltime);
+	time_t current_time = time(&fulltime);
 	GetStart(a_id, start);
 	uint32_t start_time = start.current_time;
-	uint32_t time_passed = start_time - current_time;
+	uint32_t time_passed = current_time - start_time;
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/BIDS/";
@@ -649,46 +652,35 @@ int Database::CorrectPassword(std::string user_id, std::string password) {
 	}
 }
 
-std::string Database::GetAssetFname(std::string a_id) {
+std::string Database::GetAssetDir(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
 		return "";
 	}
 
-	std::string asset_fname;
+	std::string asset_dir;
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/ASSET";
 
 	/* Tratar desta parte eventualmente quando perceber a função*/
+	if (fs::is_empty(dir_name)) {
+		return "";
+	}
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
-		asset_fname = entry.path();
+		asset_dir = entry.path();
 		break;
 	}
 
-	return asset_fname;
+	return asset_dir;
 }
 
 std::string Database::GetAssetData(std::string a_id, std::string asset_fname) {
-	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
-	dir_name += "/ASSET/";
-	dir_name += asset_fname;
-
-	std::ifstream file(dir_name);
+	std::ifstream file(asset_fname);
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	file.close();
 	return buffer.str();
 }
-
-/*  Juntar num create auction que cria tudo da auction
-    Juntar num create user que cria tudo do user
-    Juntar num close auction geral
-    Juntar num close user geral
-    List auctions (use cpp thing): user's auctions; all auctions; aunctions in
-    which user bidded
-    Fazer wrappers (aka passes parameters and looks neat for interace)
-    Ver outros commandos
-    */
 
 int Database::CreateBaseDir() {
 	const char *asdir = "ASDIR";
@@ -827,7 +819,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 			new_aid.erase(new_aid.begin(), new_aid.end() - 3);
 			n_new_aid = stoi(new_aid);
 
-			if (aid < n_new_aid) {
+			if (aid <= n_new_aid) {
 				aid = n_new_aid + 1;
 			}
 		}
@@ -841,14 +833,18 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 	}
 	std::cout << "B" << std::endl;
 	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
-	                    timeactive)) {
+	                    timeactive) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
 	std::cout << "C" << std::endl;
-	if (CreateAssetFile(c_aid, asset_fname, fsize, data)) {
+	if (CreateAssetFile(c_aid, asset_fname, fsize, data) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
 	std::cout << "D" << std::endl;
+
+	if (RegisterHost(user_id, c_aid) == -1) {
+		return DB_OPEN_CREATE_FAIL;  // Failed to create hosted file
+	}
 
 	return aid;
 }
@@ -895,19 +891,21 @@ AuctionList Database::MyAuctions(std::string user_id) {
 			dir_name += aid;
 			dir_name += ".txt";
 
-			if (CheckEndExists(dir_name.c_str()) == 0) {
+			if (CheckEndExists(dir_name.c_str()) == -1) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
-				uint32_t current_time = time(&fulltime);
-				uint32_t time_passed = start_time - current_time;
+				time_t current_time = time(&fulltime);
+				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
-				uint32_t overtime = time_passed - timeactive;
 
-				if (overtime >= 0) {
+				if (time_passed > timeactive) {
 					Close(aid);
+					auction.active = false;
 				} else {
 					auction.active = true;
 				}
+			} else {
+				auction.active = false;
 			}
 
 			result.push_back(auction);
@@ -939,19 +937,21 @@ AuctionList Database::MyBids(std::string user_id) {
 			dir_name += aid;
 			dir_name += ".txt";
 
-			if (CheckEndExists(dir_name.c_str()) == 0) {
+			if (CheckEndExists(dir_name.c_str()) == -1) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
-				uint32_t current_time = time(&fulltime);
-				uint32_t time_passed = start_time - current_time;
+				time_t current_time = time(&fulltime);
+				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
-				uint32_t overtime = time_passed - timeactive;
 
-				if (overtime >= 0) {
+				if (time_passed > timeactive) {
 					Close(aid);
+					auction.active = false;
 				} else {
 					auction.active = true;
 				}
+			} else {
+				auction.active = false;
 			}
 
 			result.push_back(auction);
@@ -982,19 +982,21 @@ AuctionList Database::List() {
 			dir_name += aid;
 			dir_name += ".txt";
 
-			if (CheckEndExists(dir_name.c_str()) == 0) {
+			if (CheckEndExists(dir_name.c_str()) == -1) {
 				GetStart(aid, start);
 				uint32_t start_time = start.current_time;
-				uint32_t current_time = time(&fulltime);
-				uint32_t time_passed = start_time - current_time;
+				time_t current_time = time(&fulltime);
+				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
-				uint32_t overtime = time_passed - timeactive;
 
-				if (overtime >= 0) {
+				if (time_passed > timeactive) {
 					Close(aid);
+					auction.active = false;
 				} else {
 					auction.active = true;
 				}
+			} else {
+				auction.active = false;
 			}
 
 			result.push_back(auction);
@@ -1004,11 +1006,63 @@ AuctionList Database::List() {
 }
 
 std::string Database::ShowAsset(std::string a_id) {
-	std::string asset_fname = GetAssetFname(a_id);
+	std::string asset_dir = GetAssetDir(a_id);
 
-	std::string asset = GetAssetData(a_id, asset_fname);
+	if (asset_dir == "") {
+		return DB_SHOW_ASSET_ERROR;
+	}
+
+	std::string asset = GetAssetData(a_id, asset_dir);
 
 	return asset;
+}
+
+int Database::Bid(std::string user_id, std::string password, std::string a_id,
+                  std::string value) {
+	if (CheckUserLoggedIn(user_id) != 0) {
+		return DB_BID_REFUSE;  // Not Logged in
+	}
+	if (CorrectPassword(user_id, password) != 1) {
+		return DB_BID_REFUSE;  // Wrong Password
+	}
+
+	BidInfo bid;
+
+	std::string end_dir_name = "ASDIR/AUCTIONS/" + a_id;
+	end_dir_name += "/END_";
+	end_dir_name += a_id;
+	end_dir_name += ".txt";
+
+	if (CheckEndExists(end_dir_name.c_str()) == 0) {
+		return DB_BID_AUCTION_ENDED;
+	}
+
+	std::string bid_dir_name = "ASDIR/AUCTIONS/" + a_id;
+	bid_dir_name += "/BIDS";
+
+	std::string bid_fname;
+
+	if (!(fs::is_empty(bid_dir_name))) {
+		for (const auto &entry : fs::directory_iterator(bid_dir_name)) {
+			bid_fname += entry.path();
+			GetBid(bid_fname, bid);
+			std::string old_value = bid.value;
+
+			if (old_value >= value) {
+				return DB_BID_REFUSE;
+			}
+		}
+	}
+
+	if (RegisterBid(user_id, a_id) == -1) {
+		return DB_BID_REFUSE;
+	}
+
+	if (CreateBidFile(a_id, user_id, value) == -1) {
+		return DB_BID_REFUSE;
+	}
+
+	return DB_BID_ACCEPT;
 }
 
 Record Database::ShowRecord(std::string a_id) {
@@ -1027,12 +1081,11 @@ Record Database::ShowRecord(std::string a_id) {
 	result.start_date = start.current_date;
 	result.timeactive = start.timeactive;
 	uint32_t start_time = start.current_time;
-	uint32_t current_time = time(&fulltime);
-	uint32_t time_passed = start_time - current_time;
+	time_t current_time = time(&fulltime);
+	uint32_t time_passed = current_time - start_time;
 	uint32_t timeactive = stoi(start.timeactive);
-	uint32_t overtime = time_passed - timeactive;
 
-	if (overtime >= 0) {
+	if (time_passed > timeactive) {
 		Close(a_id);
 		finished = 1;
 	} else {
@@ -1046,9 +1099,6 @@ Record Database::ShowRecord(std::string a_id) {
 
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
 		n++;
-		bid_fname = "ASDIR/AUCTIONS/" + a_id;
-		bid_fname += dir_name;
-		bid_fname += "/";
 		bid_fname += entry.path();
 		GetBid(bid_fname, bid);
 

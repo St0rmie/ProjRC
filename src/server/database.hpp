@@ -37,6 +37,12 @@
 
 #define DB_AUCTION_UNFINISHED -1
 
+#define DB_SHOW_ASSET_ERROR ""
+
+#define DB_BID_REFUSE        -1
+#define DB_BID_ACCEPT        0
+#define DB_BID_AUCTION_ENDED -2
+
 typedef struct {
 	std::string user_id;
 	std::string name;
@@ -99,7 +105,7 @@ class Database {
 	int GetBid(std::string bid_fname, BidInfo &result);
 	std::string GetCurrentDate();
 	int CorrectPassword(std::string user_id, std::string password);
-	std::string GetAssetFname(std::string a_id);
+	std::string GetAssetDir(std::string a_id);
 	std::string GetAssetData(std::string a_id, std::string asset_fname);
 
    public:
@@ -116,6 +122,8 @@ class Database {
 	AuctionList MyBids(std::string user_id);
 	AuctionList List();
 	std::string ShowAsset(std::string a_id);
+	int Bid(std::string user_id, std::string password, std::string a_id,
+	        std::string value);
 	Record ShowRecord(std::string a_id);
 };
 
