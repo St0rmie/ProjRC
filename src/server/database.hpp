@@ -86,6 +86,7 @@ typedef struct {
 	uint32_t end_timeelapsed;
 } AuctionRecord;
 
+
 class Database {
    protected:
 	int CheckUserExisted(const char *user_id_dirname);
