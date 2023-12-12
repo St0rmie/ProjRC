@@ -1,5 +1,6 @@
 #include "handlers.hpp"
 
+#include "output.hpp"
 #include "shared/protocol.hpp"
 
 void LoginRequest::handle(MessageAdapter &message, Server &server,
@@ -26,7 +27,8 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerLoginUser::status::ERR;
 	} catch (...) {
-		std::cout << "Failed to handle login request." << std::endl;
+		printError("Failed to handle 'LOGIN' request.");
+		return;
 	}
 
 	send_udp_message(message_out, address.socket,
@@ -58,7 +60,8 @@ void LogoutRequest::handle(MessageAdapter &message, Server &server,
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerLogout::status::ERR;
 	} catch (...) {
-		std::cout << "Failed to handle login request." << std::endl;
+		printError("Failed to handle 'LOGOUT' request.");
+		return;
 	}
 
 	send_udp_message(message_out, address.socket,
@@ -90,7 +93,7 @@ void UnregisterRequest::handle(MessageAdapter &message, Server &server,
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerUnregister::status::ERR;
 	} catch (...) {
-		std::cout << "Failed to handle unregister request." << std::endl;
+		printError("Failed to handle 'UNREGISTER' request.");
 		return;
 	}
 
@@ -123,7 +126,8 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerListAllAuctions::status::ERR;
 	} catch (...) {
-		std::cout << "Failed to handle login request." << std::endl;
+		printError("Failed to handle 'LIST' request.");
+		return;
 	}
 
 	send_udp_message(message_out, address.socket,
@@ -158,7 +162,8 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerListBiddedAuctions::status::ERR;
 	} catch (...) {
-		std::cout << "Failed to handle login request." << std::endl;
+		printError("Failed to handle 'LIST MY BIDS' request.");
+		return;
 	}
 
 	send_udp_message(message_out, address.socket,
@@ -193,7 +198,8 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerListStartedAuctions::status::ERR;
 	} catch (...) {
-		std::cout << "Failed to handle login request." << std::endl;
+		printError("Failed to handle 'LIST MY AUCTIONS' request.");
+		return;
 	}
 
 	send_udp_message(message_out, address.socket,
@@ -208,25 +214,14 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 	try {
 		message_in.readMessage(message);
 
-		std::string user_id = std::to_string(message_in.user_id);
-		AuctionList a_list = server._database.ShowRecord(user_id);
-		size_t list_size = a_list.size();
-		list_size = 2;
+		std::string auction_id =
+			convert_auction_id_to_str(message_in.auction_id);
+		Record record = server._database.ShowRecord(auction_id);
 
-		if (list_size == 0) {
-			message_out.status = ServerShowRecord::status::NOK;
-		} else {
-			message_out.status = ServerShowRecord::status::OK;
-			for (AuctionListing a : a_list) {
-				int state = a.active ? 1 : 0;
-				std::string auction_str = a.a_id + " " + std::to_string(state);
-				message_out.auctions.push_back(auction_str);
-			}
-		}
 	} catch (InvalidMessageException &e) {
-		message_out.status = ServerListStartedAuctions::status::ERR;
+		message_out.status = ServerShowRecord::status::ERR;
 	} catch (...) {
-		std::cout << "Failed to handle login request." << std::endl;
+		printError("Failed to handle 'SHOW RECORD' request.");
 	}
 
 	send_udp_message(message_out, address.socket,
@@ -249,7 +244,6 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 			message_in.assetf_name, start_value, timeactive, message_in.fsize,
 			message_in.fdata);
 
-		std::cout << "AID: " << aid << std::endl;
 		if (aid > 0) {
 			message_out.status = ServerOpenAuction::status::OK;
 			message_out.auction_id = (uint32_t) aid;
@@ -260,11 +254,10 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 		}
 
 	} catch (InvalidMessageException &e) {
-		std::cout << "INVALID MESSAGE EXCEPTION" << std::endl;
 		message_out.status = ServerOpenAuction::status::ERR;
-	} catch (std::exception &e) {
-		std::cout << "Failed to handle open auction request." << e.what()
-				  << std::endl;
+	} catch (...) {
+		printError("Failed to handle 'OPEN AUCTION' request.");
+		return;
 	}
 
 	send_tcp_message(message_out, address.socket,
@@ -276,16 +269,61 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
                                  Address &address) {
 	ClientCloseAuction message_in;
 	ServerCloseAuction message_out;
+
+	try {
+		message_in.readMessage(message);
+		std::string user_id = convert_user_id_to_str(message_in.user_id);
+		std::string auction_id =
+			convert_auction_id_to_str(message_in.auction_id);
+
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerCloseAuction::status::ERR;
+	} catch (...) {
+		printError("Failed to handle 'CLOSE AUCTION' request.");
+		return;
+	}
+
+	send_tcp_message(message_out, address.socket,
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
                               Address &address) {
 	ClientShowAsset message_in;
 	ServerShowAsset message_out;
+
+	try {
+		message_in.readMessage(message);
+
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerShowAsset::status::ERR;
+	} catch (...) {
+		printError("Failed to handle 'SHOW ASSET' request.");
+		return;
+	}
+
+	send_tcp_message(message_out, address.socket,
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
 
 void BidRequest::handle(MessageAdapter &message, Server &server,
                         Address &address) {
 	ClientBid message_in;
 	ServerBid message_out;
+
+	try {
+		message_in.readMessage(message);
+
+	} catch (InvalidMessageException &e) {
+		message_out.status = ServerBid::status::ERR;
+	} catch (...) {
+		printError("Failed to handle 'BID' request.");
+		return;
+	}
+
+	send_tcp_message(message_out, address.socket,
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
 }
