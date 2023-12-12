@@ -898,7 +898,7 @@ AuctionList Database::MyAuctions(std::string user_id) {
 				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
 
-				if (time_passed > timeactive) {
+				if (time_passed >= timeactive) {
 					Close(aid);
 					auction.active = false;
 				} else {
@@ -944,7 +944,7 @@ AuctionList Database::MyBids(std::string user_id) {
 				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
 
-				if (time_passed > timeactive) {
+				if (time_passed >= timeactive) {
 					Close(aid);
 					auction.active = false;
 				} else {
@@ -989,7 +989,7 @@ AuctionList Database::List() {
 				uint32_t time_passed = current_time - start_time;
 				uint32_t timeactive = stoi(start.timeactive);
 
-				if (time_passed > timeactive) {
+				if (time_passed >= timeactive) {
 					Close(aid);
 					auction.active = false;
 				} else {
@@ -1085,7 +1085,7 @@ Record Database::ShowRecord(std::string a_id) {
 	uint32_t time_passed = current_time - start_time;
 	uint32_t timeactive = stoi(start.timeactive);
 
-	if (time_passed > timeactive) {
+	if (time_passed >= timeactive) {
 		Close(a_id);
 		finished = 1;
 	} else {
