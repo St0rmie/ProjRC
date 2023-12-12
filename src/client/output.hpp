@@ -1,5 +1,5 @@
-#ifndef __OUTPUT__
-#define __OUTPUT__
+#ifndef __CLI_OUTPUT__
+#define __CLI_OUTPUT__
 
 #include "shared/protocol.hpp"
 

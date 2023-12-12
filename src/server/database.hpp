@@ -69,13 +69,16 @@ typedef std::vector<AuctionListing> AuctionList;
 typedef std::vector<BidInfo> BidList;
 
 typedef struct {
+	std::string host_id;
 	std::string auction_name;
 	std::string asset_fname;
 	std::string start_value;
-	std::string start_date;
-	std::string timeactive;
+	std::string start_datetime;
+	uint32_t timeactive;
 	BidList list;
-	uint32_t finished_ago = DB_AUCTION_UNFINISHED;
+	bool active = false;
+	std::string end_datetime;
+	uint32_t end_timeelapsed;
 } Record;
 
 class Database {
