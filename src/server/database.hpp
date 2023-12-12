@@ -51,7 +51,12 @@ typedef struct {
 	std::string timeactive;
 	std::string current_date;
 	uint32_t current_time;
-} Start;
+} StartInfo;
+
+typedef struct {
+	std::string end_date;
+	uint32_t end_time;
+} EndInfo;
 
 typedef struct {
 	std::string user_id;
@@ -74,12 +79,13 @@ typedef struct {
 	std::string asset_fname;
 	std::string start_value;
 	std::string start_datetime;
-	uint32_t timeactive;
+	std::string timeactive;
 	BidList list;
 	bool active = false;
 	std::string end_datetime;
 	uint32_t end_timeelapsed;
-} Record;
+} AuctionRecord;
+
 
 class Database {
    protected:
@@ -104,12 +110,14 @@ class Database {
 	int CreateAssetFile(std::string a_id, std::string asset_fname, size_t fsize,
 	                    std::string data);
 	int CreateBidFile(std::string a_id, std::string user_id, std::string value);
-	int GetStart(std::string a_id, Start &result);
+	int GetStart(std::string a_id, StartInfo &result);
+	int GetEnd(const char *end_fname, EndInfo &end);
 	int GetBid(std::string bid_fname, BidInfo &result);
 	std::string GetCurrentDate();
 	int CorrectPassword(std::string user_id, std::string password);
 	std::string GetAssetDir(std::string a_id);
 	std::string GetAssetData(std::string a_id, std::string asset_fname);
+	int Close(std::string a_id);
 
    public:
 	int CreateBaseDir();
@@ -120,14 +128,15 @@ class Database {
 	int Open(std::string user_id, std::string name, std::string password,
 	         std::string asset_fname, std::string start_value,
 	         std::string timeactive, size_t fsize, std::string data);
-	int Close(std::string a_id);
+	int CloseAuction(std::string a_id, std::string user_id,
+	                 std::string password);
 	AuctionList MyAuctions(std::string user_id);
 	AuctionList MyBids(std::string user_id);
 	AuctionList List();
 	std::string ShowAsset(std::string a_id);
 	int Bid(std::string user_id, std::string password, std::string a_id,
 	        std::string value);
-	Record ShowRecord(std::string a_id);
+	AuctionRecord ShowRecord(std::string a_id);
 };
 
 #endif
