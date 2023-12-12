@@ -216,10 +216,12 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
-		Record record = server._database.ShowRecord(auction_id);
+		AuctionRecord record = server._database.ShowRecord(auction_id);
 
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerShowRecord::status::ERR;
+	} catch (AuctionNotFound &e) {
+		message_out.status = ServerShowRecord::status::NOK;
 	} catch (...) {
 		printError("Failed to handle 'SHOW RECORD' request.");
 	}

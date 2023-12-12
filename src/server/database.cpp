@@ -1121,7 +1121,10 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	AuctionRecord result;
 	BidList list;
 
-	GetStart(a_id, start);
+	if (GetStart(a_id, start) == -1) {
+		throw AuctionNotFound();
+		return result;
+	};
 	result.auction_name = start.name;
 	result.asset_fname = start.asset_fname;
 	result.start_value = start.start_value;

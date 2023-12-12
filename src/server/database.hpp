@@ -43,6 +43,11 @@
 #define DB_BID_ACCEPT        0
 #define DB_BID_AUCTION_ENDED -2
 
+class AuctionNotFound : public std::runtime_error {
+   public:
+	AuctionNotFound() : std::runtime_error("[ERROR] Couldn't find auction.") {}
+};
+
 typedef struct {
 	std::string user_id;
 	std::string name;
@@ -85,7 +90,6 @@ typedef struct {
 	std::string end_datetime;
 	uint32_t end_timeelapsed;
 } AuctionRecord;
-
 
 class Database {
    protected:
