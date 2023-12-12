@@ -116,6 +116,7 @@ class Database {
 	int CorrectPassword(std::string user_id, std::string password);
 	std::string GetAssetDir(std::string a_id);
 	std::string GetAssetData(std::string a_id, std::string asset_fname);
+	int Close(std::string a_id);
 
    public:
 	int CreateBaseDir();
@@ -126,7 +127,8 @@ class Database {
 	int Open(std::string user_id, std::string name, std::string password,
 	         std::string asset_fname, std::string start_value,
 	         std::string timeactive, size_t fsize, std::string data);
-	int Close(std::string a_id);
+	int CloseAuction(std::string a_id, std::string user_id,
+	                 std::string password);
 	AuctionList MyAuctions(std::string user_id);
 	AuctionList MyBids(std::string user_id);
 	AuctionList List();

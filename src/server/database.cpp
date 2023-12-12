@@ -686,6 +686,24 @@ int Database::CorrectPassword(std::string user_id, std::string password) {
 	}
 }
 
+int Database::Close(std::string a_id) {
+	int ended = CreateEndFile(a_id);
+
+	if (ended == -1) {
+		return DB_CLOSE_NOK;  // Error
+	}
+
+	if (ended == 0) {
+		return DB_CLOSE_OK;  // Auction successfully closed
+	}
+
+	if (ended == 2) {
+		return DB_CLOSE_ENDED_ALREADY;  // Auction time already ended
+	}
+
+	return -1;
+}
+
 std::string Database::GetAssetDir(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
 		return "";
@@ -883,22 +901,16 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 	return aid;
 }
 
-int Database::Close(std::string a_id) {
-	int ended = CreateEndFile(a_id);
-
-	if (ended == -1) {
-		return DB_CLOSE_NOK;  // Error
+int Database::CloseAuction(std::string a_id, std::string user_id,
+                           std::string password) {
+	if (CheckUserLoggedIn(user_id) != 0) {
+		return DB_CLOSE_NOK;  // Not Logged in
+	}
+	if (CorrectPassword(user_id, password) != 1) {
+		return DB_CLOSE_NOK;  // Wrong Password
 	}
 
-	if (ended == 0) {
-		return DB_CLOSE_OK;  // Auction successfully closed
-	}
-
-	if (ended == 2) {
-		return DB_CLOSE_ENDED_ALREADY;  // Auction time already ended
-	}
-
-	return -1;
+	return (Close(a_id));
 }
 
 AuctionList Database::MyAuctions(std::string user_id) {
