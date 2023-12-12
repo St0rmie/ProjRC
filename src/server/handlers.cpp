@@ -174,7 +174,7 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 		message_in.readMessage(message);
 
 		std::string user_id = std::to_string(message_in.user_id);
-		AuctionList a_list = server._database.MyBids(user_id);
+		AuctionList a_list = server._database.MyAuctions(user_id);
 		size_t list_size = a_list.size();
 		list_size = 2;
 
@@ -208,9 +208,23 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 	try {
 		message_in.readMessage(message);
 
-		// DATABASE OPERATIONS
+		std::string user_id = std::to_string(message_in.user_id);
+		AuctionList a_list = server._database.ShowRecord(user_id);
+		size_t list_size = a_list.size();
+		list_size = 2;
+
+		if (list_size == 0) {
+			message_out.status = ServerShowRecord::status::NOK;
+		} else {
+			message_out.status = ServerShowRecord::status::OK;
+			for (AuctionListing a : a_list) {
+				int state = a.active ? 1 : 0;
+				std::string auction_str = a.a_id + " " + std::to_string(state);
+				message_out.auctions.push_back(auction_str);
+			}
+		}
 	} catch (InvalidMessageException &e) {
-		message_out.status = ServerShowRecord::status::ERR;
+		message_out.status = ServerListStartedAuctions::status::ERR;
 	} catch (...) {
 		std::cout << "Failed to handle login request." << std::endl;
 	}
