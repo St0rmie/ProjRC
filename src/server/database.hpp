@@ -48,6 +48,25 @@ class AuctionNotFound : public std::runtime_error {
 	AuctionNotFound() : std::runtime_error("[ERROR] Couldn't find auction.") {}
 };
 
+class UserNotLoggedIn : public std::runtime_error {
+   public:
+	UserNotLoggedIn()
+		: std::runtime_error(
+			  "[ERROR] User can't perform this action unlogged.") {}
+};
+
+class AuctionNotOwnedByUser : public std::runtime_error {
+   public:
+	AuctionNotOwnedByUser()
+		: std::runtime_error("[ERROR] User doesn't own the auction.") {}
+};
+
+class AuctionAlreadyClosed : public std::runtime_error {
+   public:
+	AuctionAlreadyClosed()
+		: std::runtime_error("[ERROR] Auction is already closed.") {}
+};
+
 typedef struct {
 	std::string user_id;
 	std::string name;

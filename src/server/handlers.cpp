@@ -277,6 +277,8 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 		std::string user_id = convert_user_id_to_str(message_in.user_id);
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
+		int res = server._database.CloseAuction(user_id, message_in.password,
+		                                        auction_id);
 
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerCloseAuction::status::ERR;
