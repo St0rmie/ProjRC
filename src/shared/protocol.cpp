@@ -936,18 +936,6 @@ void await_udp_message(ProtocolMessage &message, int socketfd) {
 }
 
 void await_tcp_message(ProtocolMessage &message, int socketfd) {
-	std::stringstream data;
-	char buffer[SOCKET_BUFFER_LEN];
-	ssize_t bytes_read;
-	memset(buffer, 0, SOCKET_BUFFER_LEN);
-	/*while ((bytes_read = read(socketfd, &buffer, SOCKET_BUFFER_LEN)) > 0) {
-	    if (bytes_read == -1) {
-	        throw MessageReceiveException();
-	    }
-
-	    data.write(buffer, bytes_read);
-	    memset(buffer, 0, SOCKET_BUFFER_LEN);
-	};*/
 	TcpMessage tcp_message(socketfd);
 	message.readMessage(tcp_message);
 }
