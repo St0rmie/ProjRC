@@ -1229,6 +1229,7 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	};
 
 	result.auction_name = start.name;
+	result.host_id = start.user_id;
 	result.asset_fname = start.asset_fname;
 	result.start_value = start.start_value;
 	result.start_datetime = start.current_date;
@@ -1277,6 +1278,5 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	}
 
 	result.list = list;
-	std::cout << "sr ended" << std::endl;
 	return result;
 }
