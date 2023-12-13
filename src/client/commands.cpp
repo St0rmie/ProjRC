@@ -93,7 +93,9 @@ void LoginCommand::handle(std::string args, Client &client) {
 	message_out.password = convert_password(password);
 
 	ServerLoginUser message_in;
-	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	}
 
 	// Check status
 	switch (message_in.status) {
@@ -138,7 +140,9 @@ void LogoutCommand::handle(std::string args, Client &client) {
 	message_out.password = client.getPassword();
 
 	ServerLogout message_in;
-	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	}
 
 	// Check status
 	switch (message_in.status) {
@@ -181,7 +185,9 @@ void UnregisterCommand::handle(std::string args, Client &client) {
 	message_out.password = client.getPassword();
 
 	ServerUnregister message_in;
-	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	}
 
 	// Check status
 	switch (message_in.status) {
@@ -224,7 +230,9 @@ void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
 	message_out.user_id = client.getLoggedInUser();
 
 	ServerListStartedAuctions message_in;
-	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	}
 
 	// Check status
 	switch (message_in.status) {
@@ -270,7 +278,9 @@ void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 	message_out.user_id = client.getLoggedInUser();
 
 	ServerListBiddedAuctions message_in;
-	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	}
 
 	// Check status
 	switch (message_in.status) {
@@ -306,16 +316,13 @@ void ListAllAuctionsCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	if (client.isLoggedIn() == false) {
-		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
-		return;
-	}
-
 	// Populate and send packet
 	ClientListAllAuctions message_out;
 
 	ServerListAllAuctions message_in;
-	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	}
 
 	// Check status
 	switch (message_in.status) {
@@ -369,7 +376,9 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 	message_out.auction_id = convert_auction_id(a_id);
 
 	ServerShowRecord message_in;
-	client.sendUdpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	}
 
 	// Check status
 	switch (message_in.status) {
@@ -403,6 +412,11 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 
 	if (parsed_args.size() != 4) {
 		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		return;
+	}
+
+	if (client.isLoggedIn() == false) {
+		printError("User not logged in.");
 		return;
 	}
 
@@ -451,7 +465,9 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	message_out.fdata = readFromFile(pathname, message_out.fsize);
 
 	ServerOpenAuction message_in;
-	client.sendTcpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	};
 
 	// Check status
 	switch (message_in.status) {
@@ -491,6 +507,12 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
+	if (client.isLoggedIn() == true) {
+		std::cout << "[ERROR] Already Logged In. Please logout first."
+				  << std::endl;
+		return;
+	}
+
 	std::string a_id = parsed_args[0];
 
 	if (verify_auction_id(a_id) == -1) {
@@ -506,7 +528,9 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 	message_out.auction_id = stoi(a_id);
 
 	ServerCloseAuction message_in;
-	client.sendTcpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	};
 
 	// Check status
 	switch (message_in.status) {
@@ -573,7 +597,9 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 	message_out.auction_id = stoi(a_id);
 
 	ServerShowAsset message_in;
-	client.sendTcpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	};
 
 	// Check status
 	switch (message_in.status) {
@@ -610,6 +636,12 @@ void BidCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
+	if (client.isLoggedIn() == true) {
+		std::cout << "[ERROR] Already Logged In. Please logout first."
+				  << std::endl;
+		return;
+	}
+
 	std::string a_id = parsed_args[0];
 	uint32_t value = stoi(parsed_args[1]);
 
@@ -632,7 +664,9 @@ void BidCommand::handle(std::string args, Client &client) {
 	message_out.value = value;
 
 	ServerBid message_in;
-	client.sendTcpMessageAndAwaitReply(message_out, message_in);
+	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	};
 
 	// Check status
 	switch (message_in.status) {

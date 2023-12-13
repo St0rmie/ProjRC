@@ -203,12 +203,10 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 
 		std::string user_id = std::to_string(message_in.user_id);
 		AuctionList a_list = server._database.MyAuctions(user_id);
-		size_t list_size = a_list.size();
-		list_size = 2;
 
 		if (server._database.CheckUserLoggedIn(user_id) != 0) {
 			message_out.status = ServerListStartedAuctions::status::NLG;
-		} else if (list_size == 0) {
+		} else if (a_list.size() == 0) {
 			message_out.status = ServerListStartedAuctions::status::NOK;
 		} else {
 			message_out.status = ServerListStartedAuctions::status::OK;
@@ -247,21 +245,23 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 		AuctionRecord record = server._database.ShowRecord(auction_id);
 		std::cout << "22222" << std::endl;
 		message_out.status = ServerShowRecord::status::OK;
-		message_out.host_UID =
-			static_cast<uint32_t>(std::stoul(record.host_id));
+		std::cout << record.host_id << std::endl;
+		message_out.host_UID = static_cast<uint32_t>(stoi(record.host_id));
+		std::cout << "33333" << std::endl;
 		message_out.auction_name = record.auction_name;
 		message_out.asset_fname = record.asset_fname;
 		message_out.start_value =
-			static_cast<uint32_t>(std::stoul(record.start_value));
+			static_cast<uint32_t>(stoi(record.start_value));
+		std::cout << "44444" << std::endl;
 		message_out.start_date_time =
 			convert_str_to_date(record.start_datetime);
-		message_out.timeactive =
-			static_cast<uint32_t>(std::stoul(record.timeactive));
+		message_out.timeactive = static_cast<uint32_t>(stoi(record.timeactive));
+		std::cout << "55555" << std::endl;
 
 		for (BidInfo b : record.list) {
 			bid bid;
-			bid.bidder_UID = static_cast<uint32_t>(std::stoul(b.user_id));
-			bid.bid_value = static_cast<uint32_t>(std::stoul(b.value));
+			bid.bidder_UID = static_cast<uint32_t>(stoi(b.user_id));
+			bid.bid_value = static_cast<uint32_t>(stoi(b.value));
 			bid.bid_date_time = convert_str_to_date(b.current_date);
 			bid.bid_sec_time = b.time_passed;
 			message_out.bids.push_back(bid);
@@ -278,8 +278,9 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 		message_out.status = ServerShowRecord::status::ERR;
 	} catch (AuctionNotFound &e) {
 		message_out.status = ServerShowRecord::status::NOK;
-	} catch (...) {
+	} catch (std::exception &e) {
 		printError("Failed to handle 'SHOW RECORD' request.");
+		std::cout << e.what() << std::endl;
 		return;
 	}
 

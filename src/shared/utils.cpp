@@ -66,8 +66,8 @@ std::string convert_password(std::string string) {
 
 std::string convert_date_to_str(datetime date) {
 	std::string date_str;
-	date_str += date.year + ":" + date.month;
-	date_str += ":" + date.day;
+	date_str += date.year + "-" + date.month;
+	date_str += "-" + date.day;
 	date_str += " ";
 	date_str += date.hours + ":" + date.minutes;
 	date_str += ":" + date.seconds;
@@ -75,23 +75,16 @@ std::string convert_date_to_str(datetime date) {
 }
 
 datetime convert_str_to_date(std::string str) {
-	char four[4], two[2], one;
-	std::stringstream ss(str);
 	datetime result;
-
-	ss >> four;
-	result.year = four;
-	ss >> one >> two;
-	result.month = two;
-	ss >> one >> two;
-	result.day = two;
-	ss >> one >> two;
-	result.hours = two;
-	ss >> one >> two;
-	result.minutes = two;
-	ss >> one >> two;
-	result.seconds = two;
-
+	int year, month, day, hours, minutes, seconds;
+	sscanf(str.c_str(), "%d-%d-%d %d:%d:%d", &year, &month, &day, &hours,
+	       &minutes, &seconds);
+	result.year = std::to_string(year);
+	result.month = std::to_string(month);
+	result.day = std::to_string(day);
+	result.hours = std::to_string(hours);
+	result.minutes = std::to_string(minutes);
+	result.seconds = std::to_string(seconds);
 	return result;
 }
 

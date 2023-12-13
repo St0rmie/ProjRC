@@ -4,14 +4,14 @@
 #include <netdb.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <algorithm>
 
+#include "shared/config.hpp"
 #include "shared/protocol.hpp"
 #include "shared/verifications.hpp"
-#include "shared/config.hpp"
 
 #define LOGGED_OUT -1
 
@@ -58,10 +58,10 @@ class Client {
 	bool isLoggedIn();
 	uint32_t getLoggedInUser();
 	std::string getPassword();
-	void sendUdpMessageAndAwaitReply(ProtocolMessage& out_message,
-	                                 ProtocolMessage& in_message);
-	void sendTcpMessageAndAwaitReply(ProtocolMessage& out_message,
-	                                 ProtocolMessage& in_message);
+	int sendUdpMessageAndAwaitReply(ProtocolMessage& out_message,
+	                                ProtocolMessage& in_message);
+	int sendTcpMessageAndAwaitReply(ProtocolMessage& out_message,
+	                                ProtocolMessage& in_message);
 };
 
 void printError(std::string error_description);
