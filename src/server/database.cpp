@@ -21,6 +21,7 @@
 namespace fs = std::filesystem;
 
 int Database::CheckUserExisted(const char *user_id_dirname) {
+	std::cout << user_id_dirname << std::endl;
 	DIR *dir = opendir(user_id_dirname);
 
 	if (dir) {
@@ -567,34 +568,35 @@ int Database::GetStart(std::string a_id, StartInfo &result) {
 int Database::GetEnd(const char *end_fname, EndInfo &end) {
 	FILE *fp;
 	char content[200];
-
 	fp = fopen(end_fname, "r");
 	if (fp == NULL) {
+		std::cout << "shitty fname" << std::endl;
 		return -1;
 	}
-
 	if (fgets(content, 200, fp) == NULL) {
+		std::cout << "dafuq" << std::endl;
 		return -1;
 	}
-
 	std::stringstream ss(content);
 	std::vector<std::string> parsed_content;
 	std::string cont;
 
 	while (ss >> cont) {
 		parsed_content.push_back(cont);
+		std::cout << "shit" << std::endl;
 	}
 
 	if (parsed_content.size() != 3) {
+		std::cout << "this borking" << std::endl;
 		return -1;
 	}
 
 	end.end_date = parsed_content[0] + " ";
 	end.end_date += parsed_content[1];
-	end.end_date = stoi(parsed_content[7]);
+	end.end_time = stoi(parsed_content[2]);
 
 	fclose(fp);
-
+	std::cout << "getendends" << std::endl;
 	return 0;
 }
 
@@ -645,7 +647,7 @@ std::string Database::GetCurrentDate() {
 	time(&fulltime);  // Get current time in seconds starting at 1970
 	current_time = gmtime(&fulltime);  // Convert time to YYYY−MM−DD HH:MM:SS
 	sprintf(time_str, "%4u-%02u-%02u %02u:%02u:%02u",
-	        current_time->tm_year + 1900, current_time->tm_year + 1,
+	        current_time->tm_year + 1900, current_time->tm_mon + 1,
 	        current_time->tm_mday, current_time->tm_hour, current_time->tm_min,
 	        current_time->tm_sec);
 	std::string str(time_str);
@@ -757,6 +759,7 @@ int Database::CheckAuctionBelongs(std::string a_id, std::string user_id) {
 /* 0 exists, -1 doesn't*/
 int Database::CheckAuctionExists(std::string a_id) {
 	std::string a_id_dirname = "ASDIR/AUCTIONS/" + a_id;
+	std::cout << "a_id_dirname" << std::endl;
 
 	DIR *dir = opendir((a_id_dirname.c_str()));
 
@@ -952,22 +955,27 @@ int Database::CloseAuction(std::string a_id, std::string user_id,
 	std::string user_id_dir = "ASDIR/USERS/" + user_id;
 	const char *user_id_dirname = user_id_dir.c_str();
 	if (CheckUserExisted(user_id_dirname) == -1) {
+		std::cout << "dis shit" << std::endl;
 		throw UserDoesNotExist();
 		return DB_CLOSE_NOK;  // User doesn't exist
 	}
 	if (CheckUserLoggedIn(user_id) != 0) {
+		std::cout << "dis shit2" << std::endl;
 		throw UserNotLoggedIn();
 		return DB_CLOSE_NOK;  // Not Logged in
 	}
 	if (CorrectPassword(user_id, password) != 1) {
+		std::cout << "dis shit3" << std::endl;
 		throw IncorrectPassword();
 		return DB_CLOSE_NOK;  // Wrong Password
 	}
 	if (CheckAuctionExists(a_id) == -1) {
+		std::cout << "dis shit4" << std::endl;
 		throw AuctionNotFound();
 		return DB_CLOSE_NOK;
 	}
 	if (CheckAuctionBelongs(a_id, user_id) == -1) {
+		std::cout << "dis shit5" << std::endl;
 		throw AuctionNotOwnedByUser();
 		return DB_CLOSE_NOK;
 	}
@@ -977,6 +985,7 @@ int Database::CloseAuction(std::string a_id, std::string user_id,
 	dir_name += a_id;
 	dir_name += ".txt";
 	if (CheckEndExists(dir_name.c_str()) == 0) {
+		std::cout << "dis shit6" << std::endl;
 		throw AuctionAlreadyClosed();
 		return DB_CLOSE_NOK;
 	}
@@ -1218,6 +1227,7 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 		throw AuctionNotFound();
 		return result;
 	};
+
 	result.auction_name = start.name;
 	result.asset_fname = start.asset_fname;
 	result.start_value = start.start_value;
@@ -1241,9 +1251,7 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 			finished = time_passed - timeactive;
 			result.end_timeelapsed = finished;
 		} else {
-			std::cout << "00000" << std::endl;
 			GetEnd(end_dir_name.c_str(), end);
-			std::cout << "11111" << std::endl;
 			result.active = false;
 			result.end_datetime = end.end_date;
 			result.end_timeelapsed = end.end_time;
@@ -1269,5 +1277,6 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	}
 
 	result.list = list;
+	std::cout << "sr ended" << std::endl;
 	return result;
 }
