@@ -530,14 +530,24 @@ void ClientShowRecord::readMessage(MessageAdapter &buffer) {
 
 std::stringstream ServerShowRecord::buildMessage() {
 	std::stringstream buffer;
+	buffer << protocol_code << " ";
 	if (status == ServerShowRecord::status::OK) {
-		buffer << "OK"
-			   << "\n";
+		buffer << "OK ";
+		buffer << host_UID;
+		buffer << " " << auction_name;
+		buffer << " " << asset_fname;
+		buffer << " " << start_value;
+		buffer << " " << convert_date_to_str(start_date_time);
+		buffer << " " << timeactive;
 		for (bid bid : bids) {
-			buffer << "B " << bid.bidder_UID;
+			buffer << " B " << bid.bidder_UID;
 			buffer << " " << bid.bid_value;
 			buffer << " " << convert_date_to_str(bid.bid_date_time);
 			buffer << " " << bid.bid_sec_time;
+		}
+		if (end_sec_time > 0) {
+			buffer << " E " << convert_date_to_str(end_date_time);
+			buffer << " " << end_sec_time;
 		}
 	} else if (status == ServerShowRecord::status::NOK) {
 		buffer << "NOK";
@@ -709,6 +719,8 @@ std::stringstream ServerCloseAuction::buildMessage() {
 		buffer << "EOW";
 	} else if (status == ServerCloseAuction::status::END) {
 		buffer << "END";
+	} else if (status == ServerCloseAuction::status::NOK) {
+		buffer << "NOK";
 	} else if (status == ServerCloseAuction::status::ERR) {
 		buffer << "ERR";
 	} else {

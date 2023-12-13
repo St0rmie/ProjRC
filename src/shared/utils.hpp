@@ -47,6 +47,7 @@ std::string convert_auction_id_to_str(uint32_t aid);
 uint32_t convert_auction_value(std::string string);
 std::string convert_password(std::string string);
 std::string convert_date_to_str(datetime date);
+datetime convert_str_to_date(std::string str);
 
 // -----------------------------------
 // | Reading and writing on files	 |

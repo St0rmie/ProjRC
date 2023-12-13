@@ -384,7 +384,7 @@ class ServerOpenAuction : public ProtocolMessage {
 class ServerCloseAuction : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_CLOSE_AUC_SERVER;
-	enum status { OK, NLG, EAU, EOW, END, ERR };
+	enum status { OK, NLG, EAU, EOW, END, ERR, NOK };
 	status status;
 
 	std::stringstream buildMessage();

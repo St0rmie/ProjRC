@@ -74,6 +74,27 @@ std::string convert_date_to_str(datetime date) {
 	return date_str;
 }
 
+datetime convert_str_to_date(std::string str) {
+	char four[4], two[2], one;
+	std::stringstream ss(str);
+	datetime result;
+
+	ss >> four;
+	result.year = four;
+	ss >> one >> two;
+	result.month = two;
+	ss >> one >> two;
+	result.day = two;
+	ss >> one >> two;
+	result.hours = two;
+	ss >> one >> two;
+	result.minutes = two;
+	ss >> one >> two;
+	result.seconds = two;
+
+	return result;
+}
+
 // -----------------------------------
 // | Reading and writing on files	 |
 // -----------------------------------

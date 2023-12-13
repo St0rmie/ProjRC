@@ -39,9 +39,9 @@
 
 #define DB_SHOW_ASSET_ERROR asset
 
-#define DB_BID_REFUSE        -1
-#define DB_BID_ACCEPT        0
-#define DB_BID_AUCTION_ENDED -2
+#define DB_BID_NOK    -2
+#define DB_BID_REFUSE -1
+#define DB_BID_ACCEPT 0
 
 class AuctionNotFound : public std::runtime_error {
    public:
@@ -53,6 +53,16 @@ class UserNotLoggedIn : public std::runtime_error {
 	UserNotLoggedIn()
 		: std::runtime_error(
 			  "[ERROR] User can't perform this action unlogged.") {}
+};
+
+class UserDoesNotExist : public std::runtime_error {
+   public:
+	UserDoesNotExist() : std::runtime_error("[ERROR] User does not exist.") {}
+};
+
+class IncorrectPassword : public std::runtime_error {
+   public:
+	IncorrectPassword() : std::runtime_error("[ERROR] Incorrect password.") {}
 };
 
 class AuctionNotOwnedByUser : public std::runtime_error {
@@ -70,6 +80,17 @@ class AuctionAlreadyClosed : public std::runtime_error {
 class AssetDoesNotExist : public std::runtime_error {
    public:
 	AssetDoesNotExist() : std::runtime_error("[ERROR] Asset does not exist.") {}
+};
+
+class LargerBidAlreadyExists : public std::runtime_error {
+   public:
+	LargerBidAlreadyExists()
+		: std::runtime_error("[ERROR] Larger bid already exists.") {}
+};
+
+class BidOnSelf : public std::runtime_error {
+   public:
+	BidOnSelf() : std::runtime_error("[ERROR] User can't bid on self.") {}
 };
 
 typedef struct {
@@ -150,6 +171,7 @@ class Database {
 	std::string GetCurrentDate();
 	int CorrectPassword(std::string user_id, std::string password);
 	std::string GetAssetDir(std::string a_id);
+	int CheckAuctionExists(std::string a_id);
 	int CheckAuctionBelongs(std::string a_id, std::string user_id);
 	std::string GetAssetData(std::string a_id, std::string asset_fname);
 	int Close(std::string a_id);

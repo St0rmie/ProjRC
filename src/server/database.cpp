@@ -233,7 +233,7 @@ int Database::RegisterBid(std::string user_id, std::string a_id) {
 	FILE *fp;
 
 	std::string bid_name = "ASDIR/USERS/" + user_id;
-	bid_name += "/BIDDED";
+	bid_name += "/BIDDED/";
 	bid_name += a_id;
 	bid_name += ".txt";
 
@@ -754,6 +754,22 @@ int Database::CheckAuctionBelongs(std::string a_id, std::string user_id) {
 	return -1;
 }
 
+/* 0 exists, -1 doesn't*/
+int Database::CheckAuctionExists(std::string a_id) {
+	std::string a_id_dirname = "ASDIR/AUCTIONS/" + a_id;
+
+	DIR *dir = opendir((a_id_dirname.c_str()));
+
+	if (dir) {
+		closedir(dir);
+		return 0;
+	} else if (ENOENT == errno) {
+		return -1;
+	}
+
+	return -1;
+}
+
 std::string Database::GetAssetData(std::string a_id, std::string asset_fname) {
 	std::ifstream file(asset_fname);
 	std::stringstream buffer;
@@ -933,15 +949,35 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 
 int Database::CloseAuction(std::string a_id, std::string user_id,
                            std::string password) {
+	std::string user_id_dir = "ASDIR/USERS/" + user_id;
+	const char *user_id_dirname = user_id_dir.c_str();
+	if (CheckUserExisted(user_id_dirname) == -1) {
+		throw UserDoesNotExist();
+		return DB_CLOSE_NOK;  // User doesn't exist
+	}
 	if (CheckUserLoggedIn(user_id) != 0) {
 		throw UserNotLoggedIn();
 		return DB_CLOSE_NOK;  // Not Logged in
 	}
 	if (CorrectPassword(user_id, password) != 1) {
+		throw IncorrectPassword();
 		return DB_CLOSE_NOK;  // Wrong Password
+	}
+	if (CheckAuctionExists(a_id) == -1) {
+		throw AuctionNotFound();
+		return DB_CLOSE_NOK;
 	}
 	if (CheckAuctionBelongs(a_id, user_id) == -1) {
 		throw AuctionNotOwnedByUser();
+		return DB_CLOSE_NOK;
+	}
+
+	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
+	dir_name += "/END";
+	dir_name += a_id;
+	dir_name += ".txt";
+	if (CheckEndExists(dir_name.c_str()) == 0) {
+		throw AuctionAlreadyClosed();
 		return DB_CLOSE_NOK;
 	}
 
@@ -1117,14 +1153,14 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
                   std::string value) {
 	if (CheckUserLoggedIn(user_id) != 0) {
 		throw UserNotLoggedIn();
-		return DB_BID_REFUSE;  // Not Logged in
+		return DB_BID_NOK;  // Not Logged in
 	}
 	if (CorrectPassword(user_id, password) != 1) {
-		return DB_BID_REFUSE;  // Wrong Password
+		return DB_BID_NOK;  // Wrong Password
 	}
-	if (CheckAuctionBelongs(a_id, user_id) == -1) {
+	if (CheckAuctionBelongs(a_id, user_id) == 0) {
 		throw AuctionNotOwnedByUser();
-		return DB_CLOSE_NOK;
+		return DB_BID_NOK;
 	}
 
 	BidInfo bid;
@@ -1136,7 +1172,7 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 
 	if (CheckEndExists(end_dir_name.c_str()) == 0) {
 		throw AuctionAlreadyClosed();
-		return DB_BID_AUCTION_ENDED;
+		return DB_BID_NOK;
 	}
 
 	std::string bid_dir_name = "ASDIR/AUCTIONS/" + a_id;
@@ -1151,7 +1187,8 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 			std::string old_value = bid.value;
 
 			if (old_value >= value) {
-				return DB_BID_REFUSE;
+				throw LargerBidAlreadyExists();
+				return DB_BID_NOK;
 			}
 		}
 	}
@@ -1204,7 +1241,9 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 			finished = time_passed - timeactive;
 			result.end_timeelapsed = finished;
 		} else {
+			std::cout << "00000" << std::endl;
 			GetEnd(end_dir_name.c_str(), end);
+			std::cout << "11111" << std::endl;
 			result.active = false;
 			result.end_datetime = end.end_date;
 			result.end_timeelapsed = end.end_time;
@@ -1217,7 +1256,6 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	dir_name += "/BIDS";
 
 	std::string bid_fname;
-
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
 		n++;
 		bid_fname += entry.path();
