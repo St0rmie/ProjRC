@@ -203,12 +203,10 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 
 		std::string user_id = std::to_string(message_in.user_id);
 		AuctionList a_list = server._database.MyAuctions(user_id);
-		size_t list_size = a_list.size();
-		list_size = 2;
 
 		if (server._database.CheckUserLoggedIn(user_id) != 0) {
 			message_out.status = ServerListStartedAuctions::status::NLG;
-		} else if (list_size == 0) {
+		} else if (a_list.size() == 0) {
 			message_out.status = ServerListStartedAuctions::status::NOK;
 		} else {
 			message_out.status = ServerListStartedAuctions::status::OK;

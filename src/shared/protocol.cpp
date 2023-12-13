@@ -390,6 +390,9 @@ void ServerListStartedAuctions::readMessage(MessageAdapter &buffer) {
 		while ((auc = readAuctionAndState(buffer)).length() > 0) {
 			ServerListStartedAuctions::auctions.push_back(auc);
 		}
+		if (auctions.size() == 0) {
+			status = ERR;
+		}
 	} else if (status_str == "NOK") {
 		status = NOK;
 	} else if (status_str == "NLG") {
@@ -448,6 +451,9 @@ void ServerListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 		while ((auc = readAuctionAndState(buffer)).length() > 0) {
 			ServerListBiddedAuctions::auctions.push_back(auc);
 		}
+		if (auctions.size() == 0) {
+			status = ERR;
+		}
 	} else if (status_str == "NOK") {
 		status = NOK;
 	} else if (status_str == "NLG") {
@@ -501,6 +507,9 @@ void ServerListAllAuctions::readMessage(MessageAdapter &buffer) {
 		std::string auc;
 		while ((auc = readAuctionAndState(buffer)).length() > 0) {
 			ServerListAllAuctions::auctions.push_back(auc);
+		}
+		if (auctions.size() == 0) {
+			status = ERR;
 		}
 	} else if (status_str == "NOK") {
 		status = NOK;

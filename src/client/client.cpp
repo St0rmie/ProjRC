@@ -72,28 +72,29 @@ void Client::resolveServerAddress(std::string &hostname, std::string &port) {
 	}
 }
 
-void Client::sendUdpMessageAndAwaitReply(ProtocolMessage &out_message,
-                                         ProtocolMessage &in_message) {
+int Client::sendUdpMessageAndAwaitReply(ProtocolMessage &out_message,
+                                        ProtocolMessage &in_message) {
 	int triesLeft = UDP_MAX_TRIES;
 	while (triesLeft > 0) {
 		--triesLeft;
 		try {
 			this->sendUdpMessage(out_message);
 			this->waitForUdpMessage(in_message);
-			return;
+			return 0;
 		} catch (ConnectionTimeoutException &e) {
 			if (triesLeft == 0) {
 				std::cout << "[ERROR] Couldn't send message" << std::endl;
-				return;
+				return -1;
 			}
 		} catch (InvalidMessageException &e) {
 			std::cout << "[ERROR] Invalid Message." << std::endl;
-			return;
+			return -1;
 		} catch (UnexpectedMessageException &e) {
 			std::cout << "[ERROR] Unexpected Message." << std::endl;
-			return;
+			return -1;
 		}
 	}
+	return -1;
 }
 
 void Client::sendUdpMessage(ProtocolMessage &message) {
@@ -105,16 +106,18 @@ void Client::waitForUdpMessage(ProtocolMessage &message) {
 	await_udp_message(message, _udp_socket_fd);
 }
 
-void Client::sendTcpMessageAndAwaitReply(ProtocolMessage &out_message,
-                                         ProtocolMessage &in_message) {
+int Client::sendTcpMessageAndAwaitReply(ProtocolMessage &out_message,
+                                        ProtocolMessage &in_message) {
 	try {
 		openTcpSocket();
 		sendTcpMessage(out_message);
 		waitForTcpMessage(in_message);
 	} catch (...) {
 		closeTcpSocket();
+		return -1;
 	}
 	closeTcpSocket();
+	return 0;
 }
 
 void Client::openTcpSocket() {
