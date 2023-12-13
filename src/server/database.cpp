@@ -21,7 +21,6 @@
 namespace fs = std::filesystem;
 
 int Database::CheckUserExisted(const char *user_id_dirname) {
-	std::cout << user_id_dirname << std::endl;
 	DIR *dir = opendir(user_id_dirname);
 
 	if (dir) {
@@ -119,7 +118,6 @@ int Database::CreateUserDir(std::string user_id) {
 
 int Database::CreateAuctionDir(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
-		std::cout << "A1" << std::endl;
 		return -1;
 	}
 
@@ -134,15 +132,12 @@ int Database::CreateAuctionDir(std::string a_id) {
 	const char *asset_dirname = asset_dir.c_str();
 
 	if (mkdir(a_id_dirname, 0700) == -1) {
-		std::cout << a_id_dirname << std::endl;
 		return -1;
 	}
 	if (mkdir(bid_dirname, 0700) == -1) {
-		std::cout << "A3" << std::endl;
 		return -1;
 	}
 	if (mkdir(asset_dirname, 0700) == -1) {
-		std::cout << "A4" << std::endl;
 		return -1;
 	}
 
@@ -651,7 +646,6 @@ std::string Database::GetCurrentDate() {
 	        current_time->tm_mday, current_time->tm_hour, current_time->tm_min,
 	        current_time->tm_sec);
 	std::string str(time_str);
-	std::cout << str << std::endl;
 	return str;
 }
 
@@ -1150,10 +1144,11 @@ AssetInfo Database::ShowAsset(std::string a_id) {
 		return DB_SHOW_ASSET_ERROR;
 	}
 
-	asset_dir.erase(asset_dir.begin(), asset_dir.begin() + 25);
-
 	asset.fdata = GetAssetData(a_id, asset_dir);
 	asset.fsize = (asset.fdata).size();
+
+	asset_dir.erase(asset_dir.begin(), asset_dir.begin() + 25);
+	asset.asset_fname = asset_dir;
 
 	return asset;
 }
