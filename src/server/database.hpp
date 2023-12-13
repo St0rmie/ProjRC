@@ -37,7 +37,7 @@
 
 #define DB_AUCTION_UNFINISHED -1
 
-#define DB_SHOW_ASSET_ERROR ""
+#define DB_SHOW_ASSET_ERROR asset
 
 #define DB_BID_REFUSE        -1
 #define DB_BID_ACCEPT        0
@@ -67,6 +67,11 @@ class AuctionAlreadyClosed : public std::runtime_error {
 		: std::runtime_error("[ERROR] Auction is already closed.") {}
 };
 
+class AssetDoesNotExist : public std::runtime_error {
+   public:
+	AssetDoesNotExist() : std::runtime_error("[ERROR] Asset does not exist.") {}
+};
+
 typedef struct {
 	std::string user_id;
 	std::string name;
@@ -88,6 +93,12 @@ typedef struct {
 	std::string current_date;
 	uint32_t time_passed;
 } BidInfo;
+
+typedef struct {
+	std::string asset_fname;
+	size_t fsize;
+	std::string fdata;
+} AssetInfo;
 
 typedef struct {
 	std::string a_id;
@@ -139,6 +150,7 @@ class Database {
 	std::string GetCurrentDate();
 	int CorrectPassword(std::string user_id, std::string password);
 	std::string GetAssetDir(std::string a_id);
+	int CheckAuctionBelongs(std::string a_id, std::string user_id);
 	std::string GetAssetData(std::string a_id, std::string asset_fname);
 	int Close(std::string a_id);
 
@@ -156,7 +168,7 @@ class Database {
 	AuctionList MyAuctions(std::string user_id);
 	AuctionList MyBids(std::string user_id);
 	AuctionList List();
-	std::string ShowAsset(std::string a_id);
+	AssetInfo ShowAsset(std::string a_id);
 	int Bid(std::string user_id, std::string password, std::string a_id,
 	        std::string value);
 	AuctionRecord ShowRecord(std::string a_id);
