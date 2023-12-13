@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -18,10 +19,10 @@
 #include "shared/utils.hpp"
 #include "shared/verifications.hpp"
 
+std::mutex write_mutex;
 namespace fs = std::filesystem;
 
 int Database::CheckUserExisted(const char *user_id_dirname) {
-	std::cout << user_id_dirname << std::endl;
 	DIR *dir = opendir(user_id_dirname);
 
 	if (dir) {
@@ -119,7 +120,6 @@ int Database::CreateUserDir(std::string user_id) {
 
 int Database::CreateAuctionDir(std::string a_id) {
 	if (verify_auction_id(a_id) == -1) {
-		std::cout << "A1" << std::endl;
 		return -1;
 	}
 
@@ -134,15 +134,12 @@ int Database::CreateAuctionDir(std::string a_id) {
 	const char *asset_dirname = asset_dir.c_str();
 
 	if (mkdir(a_id_dirname, 0700) == -1) {
-		std::cout << a_id_dirname << std::endl;
 		return -1;
 	}
 	if (mkdir(bid_dirname, 0700) == -1) {
-		std::cout << "A3" << std::endl;
 		return -1;
 	}
 	if (mkdir(asset_dirname, 0700) == -1) {
-		std::cout << "A4" << std::endl;
 		return -1;
 	}
 
@@ -163,12 +160,17 @@ int Database::CreateLogin(std::string user_id) {
 
 	const char *user_id_fname = user_id_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(user_id_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
 	fclose(fp);
+
+	write_mutex.unlock();
 	return 0;
 }
 
@@ -185,14 +187,20 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 	const char *password_fname = password_name.c_str();
 	const char *password_file = password.c_str();
 
+	write_mutex.lock();
+
 	FILE *fp = fopen(password_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
 	fprintf(fp, "%s", password_file);
 
 	fclose(fp);
+
+	write_mutex.unlock();
+
 	return 0;
 }
 
@@ -214,11 +222,16 @@ int Database::RegisterHost(std::string user_id, std::string a_id) {
 
 	const char *host_fname = host_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(host_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 	fclose(fp);
+
+	write_mutex.unlock();
 	return 0;
 }
 
@@ -240,11 +253,17 @@ int Database::RegisterBid(std::string user_id, std::string a_id) {
 
 	const char *bid_fname = bid_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(bid_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
+
 	fclose(fp);
+
+	write_mutex.unlock();
 	return 0;
 }
 
@@ -376,14 +395,19 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 
 	const char *dir_fname = dir_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
+
+	write_mutex.unlock();
 	return 0;
 }
 
@@ -429,14 +453,19 @@ int Database::CreateEndFile(std::string a_id) {
 		return 2;
 	}
 
+	write_mutex.lock();
+
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
+
+	write_mutex.unlock();
 
 	return 0;
 }
@@ -454,14 +483,19 @@ int Database::CreateAssetFile(std::string a_id, std::string asset_fname,
 	dir_name += asset_fname;
 
 	std::ofstream file;
+
+	write_mutex.lock();
+
 	file.open(dir_name, std::ofstream::trunc);
 	if (!file.good()) {
+		write_mutex.unlock();
 		return -1;
 	}
 
 	file << data << std::endl;
-
 	file.close();
+
+	write_mutex.unlock();
 
 	return 0;
 }
@@ -507,14 +541,19 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 
 	const char *dir_fname = dir_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
+
+	write_mutex.unlock();
 
 	return 0;
 }
@@ -651,7 +690,6 @@ std::string Database::GetCurrentDate() {
 	        current_time->tm_mday, current_time->tm_hour, current_time->tm_min,
 	        current_time->tm_sec);
 	std::string str(time_str);
-	std::cout << str << std::endl;
 	return str;
 }
 
@@ -1150,10 +1188,11 @@ AssetInfo Database::ShowAsset(std::string a_id) {
 		return DB_SHOW_ASSET_ERROR;
 	}
 
-	asset_dir.erase(asset_dir.begin(), asset_dir.begin() + 25);
-
 	asset.fdata = GetAssetData(a_id, asset_dir);
 	asset.fsize = (asset.fdata).size();
+
+	asset_dir.erase(asset_dir.begin(), asset_dir.begin() + 25);
+	asset.asset_fname = asset_dir;
 
 	return asset;
 }
