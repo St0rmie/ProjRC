@@ -245,11 +245,6 @@ void wait_for_tcp_message(Server &server, RequestManager &manager) {
 			"Failed to set TCP read timeout socket option");
 	}
 
-	char addr_str[INET_ADDRSTRLEN + 1] = {0};
-	inet_ntop(AF_INET, &addr_from.addr.sin_addr, addr_str, INET_ADDRSTRLEN);
-	std::cout << "Receiving incoming TCP connection from " << addr_str << ":"
-			  << ntohs(addr_from.addr.sin_port) << std::endl;
-
 	try {
 		pid_t pid = fork();
 		if (pid < 0) {

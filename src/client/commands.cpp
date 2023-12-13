@@ -323,7 +323,7 @@ void ListAllAuctionsCommand::handle(std::string args, Client &client) {
 		case ServerListAllAuctions::status::OK:;
 			std::cout
 				<< "[SUCCESS] Listing \nAuctions registered on the server:"
-				<< ":" << std::endl;
+				<< std::endl;
 			for (std::string auc : message_in.auctions) {
 				std::cout << "\t" << auc << std::endl;
 			}
@@ -530,6 +530,11 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 
 		case ServerCloseAuction::status::END:
 			std::cout << "[ERROR] Auction already ended" << std::endl;
+			break;
+
+		case ServerCloseAuction::status::NOK:
+			std::cout << "[ERROR] UID doesn't exist or wrong Password."
+					  << std::endl;
 			break;
 
 		case ServerCloseAuction::status::ERR:

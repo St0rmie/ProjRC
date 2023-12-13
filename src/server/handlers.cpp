@@ -110,10 +110,8 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 		message_in.readMessage(message);
 
 		AuctionList a_list = server._database.List();
-		size_t list_size = a_list.size();
-		list_size = 2;
 
-		if (list_size == 0) {
+		if (a_list.size() == 0) {
 			message_out.status = ServerListAllAuctions::status::NOK;
 		} else {
 			message_out.status = ServerListAllAuctions::status::OK;
@@ -144,12 +142,10 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 
 		std::string user_id = std::to_string(message_in.user_id);
 		AuctionList a_list = server._database.MyBids(user_id);
-		size_t list_size = a_list.size();
-		list_size = 2;
 
 		if (server._database.CheckUserLoggedIn(user_id) != 0) {
 			message_out.status = ServerListBiddedAuctions::status::NLG;
-		} else if (list_size == 0) {
+		} else if (a_list.size() == 0) {
 			message_out.status = ServerListBiddedAuctions::status::NOK;
 		} else {
 			message_out.status = ServerListBiddedAuctions::status::OK;
@@ -213,10 +209,38 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 	ServerShowRecord message_out;
 	try {
 		message_in.readMessage(message);
-
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
+		std::cout << "11111" << std::endl;
 		AuctionRecord record = server._database.ShowRecord(auction_id);
+		std::cout << "22222" << std::endl;
+		message_out.status = ServerShowRecord::status::OK;
+		message_out.host_UID =
+			static_cast<uint32_t>(std::stoul(record.host_id));
+		message_out.auction_name = record.auction_name;
+		message_out.asset_fname = record.asset_fname;
+		message_out.start_value =
+			static_cast<uint32_t>(std::stoul(record.start_value));
+		message_out.start_date_time =
+			convert_str_to_date(record.start_datetime);
+		message_out.timeactive =
+			static_cast<uint32_t>(std::stoul(record.timeactive));
+
+		for (BidInfo b : record.list) {
+			bid bid;
+			bid.bidder_UID = static_cast<uint32_t>(std::stoul(b.user_id));
+			bid.bid_value = static_cast<uint32_t>(std::stoul(b.value));
+			bid.bid_date_time = convert_str_to_date(b.current_date);
+			bid.bid_sec_time = b.time_passed;
+			message_out.bids.push_back(bid);
+		}
+
+		if (!record.active) {
+			message_out.end_date_time =
+				convert_str_to_date(record.end_datetime);
+			message_out.end_sec_time = record.end_timeelapsed;
+		}
+		std::cout << message_out.buildMessage().str() << std::endl;
 
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerShowRecord::status::ERR;
@@ -224,6 +248,7 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 		message_out.status = ServerShowRecord::status::NOK;
 	} catch (...) {
 		printError("Failed to handle 'SHOW RECORD' request.");
+		return;
 	}
 
 	send_udp_message(message_out, address.socket,
@@ -280,6 +305,18 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 		int res = server._database.CloseAuction(user_id, message_in.password,
 		                                        auction_id);
 
+	} catch (UserDoesNotExist &e) {
+		message_out.status = ServerCloseAuction::status::NOK;
+	} catch (IncorrectPassword &e) {
+		message_out.status = ServerCloseAuction::status::NOK;
+	} catch (UserNotLoggedIn &e) {
+		message_out.status = ServerCloseAuction::status::NLG;
+	} catch (AuctionNotFound &e) {
+		message_out.status = ServerCloseAuction::status::EAU;
+	} catch (AuctionNotOwnedByUser &e) {
+		message_out.status = ServerCloseAuction::status::EOW;
+	} catch (AuctionAlreadyClosed &e) {
+		message_out.status = ServerCloseAuction::status::END;
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerCloseAuction::status::ERR;
 	} catch (...) {
@@ -299,7 +336,16 @@ void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
 
 	try {
 		message_in.readMessage(message);
+		std::string aid_str = convert_auction_id_to_str(message_in.auction_id);
+		AssetInfo ast_info = server._database.ShowAsset(aid_str);
 
+		message_out.status = ServerShowAsset::status::OK;
+		message_out.fname = ast_info.asset_fname;
+		message_out.fsize = ast_info.fsize;
+		message_out.fdata = ast_info.fdata;
+
+	} catch (AssetDoesNotExist &e) {
+		message_out.status = ServerShowAsset::status::NOK;
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerShowAsset::status::ERR;
 	} catch (...) {
@@ -319,7 +365,26 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 
 	try {
 		message_in.readMessage(message);
+		std::string user_id = convert_user_id_to_str(message_in.user_id);
+		std::string auction_id =
+			convert_auction_id_to_str(message_in.auction_id);
+		std::string bid_value = std::to_string(message_in.value);
+		int res = server._database.Bid(user_id, message_in.password, auction_id,
+		                               bid_value);
+		if (res == DB_BID_NOK) {
+			message_out.status = ServerBid::status::NOK;
+		} else {
+			message_out.status = ServerBid::status::ACC;
+		}
 
+	} catch (AuctionAlreadyClosed &e) {
+		message_out.status = ServerBid::status::NOK;
+	} catch (UserNotLoggedIn &e) {
+		message_out.status = ServerBid::status::NLG;
+	} catch (LargerBidAlreadyExists &e) {
+		message_out.status = ServerBid::status::REF;
+	} catch (BidOnSelf &e) {
+		message_out.status = ServerBid::status::ILG;
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerBid::status::ERR;
 	} catch (...) {

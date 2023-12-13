@@ -3,6 +3,10 @@
 
 #include <string>
 
-void printError(std::string message);
+#include "server.hpp"
 
+void printError(std::string message);
+void printInfo(std::string message);
+
+void printAddressIncomingRequest(Address &addr_from);
 #endif
