@@ -164,6 +164,7 @@ int Database::CreateLogin(std::string user_id) {
 
 	fp = fopen(user_id_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
@@ -190,6 +191,7 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 
 	FILE *fp = fopen(password_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
@@ -224,6 +226,7 @@ int Database::RegisterHost(std::string user_id, std::string a_id) {
 
 	fp = fopen(host_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 	fclose(fp);
@@ -254,8 +257,10 @@ int Database::RegisterBid(std::string user_id, std::string a_id) {
 
 	fp = fopen(bid_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
+
 	fclose(fp);
 
 	write_mutex.unlock();
@@ -394,6 +399,7 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
@@ -451,6 +457,7 @@ int Database::CreateEndFile(std::string a_id) {
 
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
@@ -481,6 +488,7 @@ int Database::CreateAssetFile(std::string a_id, std::string asset_fname,
 
 	file.open(dir_name, std::ofstream::trunc);
 	if (!file.good()) {
+		write_mutex.unlock();
 		return -1;
 	}
 
@@ -537,6 +545,7 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
+		write_mutex.unlock();
 		return -1;
 	}
 
