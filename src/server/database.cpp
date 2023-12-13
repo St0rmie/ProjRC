@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -18,6 +19,7 @@
 #include "shared/utils.hpp"
 #include "shared/verifications.hpp"
 
+std::mutex write_mutex;
 namespace fs = std::filesystem;
 
 int Database::CheckUserExisted(const char *user_id_dirname) {
@@ -158,12 +160,16 @@ int Database::CreateLogin(std::string user_id) {
 
 	const char *user_id_fname = user_id_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(user_id_fname, "w");
 	if (fp == NULL) {
 		return -1;
 	}
 
 	fclose(fp);
+
+	write_mutex.unlock();
 	return 0;
 }
 
@@ -180,6 +186,8 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 	const char *password_fname = password_name.c_str();
 	const char *password_file = password.c_str();
 
+	write_mutex.lock();
+
 	FILE *fp = fopen(password_fname, "w");
 	if (fp == NULL) {
 		return -1;
@@ -188,6 +196,9 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 	fprintf(fp, "%s", password_file);
 
 	fclose(fp);
+
+	write_mutex.unlock();
+
 	return 0;
 }
 
@@ -209,11 +220,15 @@ int Database::RegisterHost(std::string user_id, std::string a_id) {
 
 	const char *host_fname = host_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(host_fname, "w");
 	if (fp == NULL) {
 		return -1;
 	}
 	fclose(fp);
+
+	write_mutex.unlock();
 	return 0;
 }
 
@@ -235,11 +250,15 @@ int Database::RegisterBid(std::string user_id, std::string a_id) {
 
 	const char *bid_fname = bid_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(bid_fname, "w");
 	if (fp == NULL) {
 		return -1;
 	}
 	fclose(fp);
+
+	write_mutex.unlock();
 	return 0;
 }
 
@@ -371,6 +390,8 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 
 	const char *dir_fname = dir_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
 		return -1;
@@ -379,6 +400,8 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
+
+	write_mutex.unlock();
 	return 0;
 }
 
@@ -424,6 +447,8 @@ int Database::CreateEndFile(std::string a_id) {
 		return 2;
 	}
 
+	write_mutex.lock();
+
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
 		return -1;
@@ -432,6 +457,8 @@ int Database::CreateEndFile(std::string a_id) {
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
+
+	write_mutex.unlock();
 
 	return 0;
 }
@@ -449,14 +476,18 @@ int Database::CreateAssetFile(std::string a_id, std::string asset_fname,
 	dir_name += asset_fname;
 
 	std::ofstream file;
+
+	write_mutex.lock();
+
 	file.open(dir_name, std::ofstream::trunc);
 	if (!file.good()) {
 		return -1;
 	}
 
 	file << data << std::endl;
-
 	file.close();
+
+	write_mutex.unlock();
 
 	return 0;
 }
@@ -502,6 +533,8 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 
 	const char *dir_fname = dir_name.c_str();
 
+	write_mutex.lock();
+
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
 		return -1;
@@ -510,6 +543,8 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
+
+	write_mutex.unlock();
 
 	return 0;
 }
