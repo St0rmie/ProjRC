@@ -313,7 +313,6 @@ void ListAllAuctionsCommand::handle(std::string args, Client &client) {
 
 	// Populate and send packet
 	ClientListAllAuctions message_out;
-	message_out.user_id = client.getLoggedInUser();
 
 	ServerListAllAuctions message_in;
 	client.sendUdpMessageAndAwaitReply(message_out, message_in);

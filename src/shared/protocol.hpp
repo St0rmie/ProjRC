@@ -220,7 +220,6 @@ class ClientListBiddedAuctions : public ProtocolMessage {
 class ClientListAllAuctions : public ProtocolMessage {
    public:
 	std::string protocol_code = CODE_LIST_ALLAUC_USER;
-	uint32_t user_id;
 
 	std::stringstream buildMessage();
 	void readMessage(MessageAdapter &buffer);

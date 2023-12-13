@@ -745,6 +745,8 @@ void ServerCloseAuction::readMessage(MessageAdapter &buffer) {
 		status = EOW;
 	} else if (status_str == "END") {
 		status = END;
+	} else if (status_str == "NOK") {
+		status = NOK;
 	} else if (status_str == "ERR") {
 		status = ERR;
 	} else {

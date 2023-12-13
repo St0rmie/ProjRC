@@ -9,6 +9,11 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 	ServerLoginUser message_out;
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInLoginRequest(message_in);
+		}
+
 		std::string user_id = std::to_string(message_in.user_id);
 		int res = server._database.LoginUser(user_id, message_in.password);
 		switch (res) {
@@ -42,6 +47,11 @@ void LogoutRequest::handle(MessageAdapter &message, Server &server,
 	ServerLogout message_out;
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInLogoutRequest(message_in);
+		}
+
 		std::string user_id = std::to_string(message_in.user_id);
 		int res = server._database.Logout(user_id, message_in.password);
 		switch (res) {
@@ -75,6 +85,11 @@ void UnregisterRequest::handle(MessageAdapter &message, Server &server,
 	ServerUnregister message_out;
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInUnregisterRequest(message_in);
+		}
+
 		std::string user_id = std::to_string(message_in.user_id);
 		int res = server._database.Unregister(user_id, message_in.password);
 		switch (res) {
@@ -108,6 +123,10 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	ServerListAllAuctions message_out;
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInListAllRequest(message_in);
+		}
 
 		AuctionList a_list = server._database.List();
 
@@ -139,6 +158,10 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	ServerListBiddedAuctions message_out;
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInListBiddedRequest(message_in);
+		}
 
 		std::string user_id = std::to_string(message_in.user_id);
 		AuctionList a_list = server._database.MyBids(user_id);
@@ -173,6 +196,10 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	ServerListStartedAuctions message_out;
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInListStartedRequest(message_in);
+		}
 
 		std::string user_id = std::to_string(message_in.user_id);
 		AuctionList a_list = server._database.MyAuctions(user_id);
@@ -209,6 +236,11 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 	ServerShowRecord message_out;
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInShowRecordRequest(message_in);
+		}
+
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
 		std::cout << "11111" << std::endl;
@@ -263,6 +295,11 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInOpenAuctionRequest(message_in);
+		}
+
 		std::string user_id = convert_user_id_to_str(message_in.user_id);
 		std::string start_value = std::to_string(message_in.start_value);
 		std::string timeactive = std::to_string(message_in.timeactive);
@@ -299,11 +336,16 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInCloseAuctionRequest(message_in);
+		}
+
 		std::string user_id = convert_user_id_to_str(message_in.user_id);
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
-		int res = server._database.CloseAuction(user_id, message_in.password,
-		                                        auction_id);
+		int res = server._database.CloseAuction(auction_id, user_id,
+		                                        message_in.password);
 
 	} catch (UserDoesNotExist &e) {
 		message_out.status = ServerCloseAuction::status::NOK;
@@ -336,6 +378,11 @@ void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
 
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInShowAssetRequest(message_in);
+		}
+
 		std::string aid_str = convert_auction_id_to_str(message_in.auction_id);
 		AssetInfo ast_info = server._database.ShowAsset(aid_str);
 
@@ -365,6 +412,11 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 
 	try {
 		message_in.readMessage(message);
+		if (server._verbose) {
+			printAddressIncomingRequest(address);
+			printInBidRequest(message_in);
+		}
+
 		std::string user_id = convert_user_id_to_str(message_in.user_id);
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
