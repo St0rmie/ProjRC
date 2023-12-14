@@ -1,9 +1,9 @@
 #!/bin/bash
 
-START="5"
+START="9"
 END="9"
 
-HOST="193.136.128.108"
+HOST="193.136.128.109"
 PORT="58086"
 
 rm *.html
