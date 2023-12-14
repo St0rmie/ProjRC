@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <condition_variable>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -20,7 +21,6 @@
 #include "shared/utils.hpp"
 #include "shared/verifications.hpp"
 
-std::mutex write_mutex;
 namespace fs = std::filesystem;
 
 bool CompareByAid(const AuctionListing &a, const AuctionListing &b) {
@@ -167,17 +167,18 @@ int Database::CreateLogin(std::string user_id) {
 
 	const char *user_id_fname = user_id_name.c_str();
 
-	write_mutex.lock();
+	semaphore(acquire());
 
 	fp = fopen(user_id_fname, "w");
 	if (fp == NULL) {
-		write_mutex.unlock();
+		semaphore(release());
 		return -1;
 	}
 
 	fclose(fp);
 
-	write_mutex.unlock();
+	semaphore(release());
+
 	return 0;
 }
 
@@ -194,11 +195,11 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 	const char *password_fname = password_name.c_str();
 	const char *password_file = password.c_str();
 
-	write_mutex.lock();
+	semaphore(acquire());
 
 	FILE *fp = fopen(password_fname, "w");
 	if (fp == NULL) {
-		write_mutex.unlock();
+		semaphore(release());
 		return -1;
 	}
 
@@ -206,7 +207,7 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 
 	fclose(fp);
 
-	write_mutex.unlock();
+	semaphore(release());
 
 	return 0;
 }
@@ -229,16 +230,17 @@ int Database::RegisterHost(std::string user_id, std::string a_id) {
 
 	const char *host_fname = host_name.c_str();
 
-	write_mutex.lock();
+	semaphore(acquire());
 
 	fp = fopen(host_fname, "w");
 	if (fp == NULL) {
-		write_mutex.unlock();
+		semaphore(release());
 		return -1;
 	}
 	fclose(fp);
 
-	write_mutex.unlock();
+	semaphore(release());
+
 	return 0;
 }
 
@@ -260,17 +262,18 @@ int Database::RegisterBid(std::string user_id, std::string a_id) {
 
 	const char *bid_fname = bid_name.c_str();
 
-	write_mutex.lock();
+	semaphore(acquire());
 
 	fp = fopen(bid_fname, "w");
 	if (fp == NULL) {
-		write_mutex.unlock();
+		semaphore(release());
 		return -1;
 	}
 
 	fclose(fp);
 
-	write_mutex.unlock();
+	semaphore(release());
+
 	return 0;
 }
 
@@ -402,11 +405,11 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 
 	const char *dir_fname = dir_name.c_str();
 
-	write_mutex.lock();
+	semaphore(acquire());
 
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
-		write_mutex.unlock();
+		semaphore(release());
 		return -1;
 	}
 
@@ -414,7 +417,8 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 
 	fclose(fp);
 
-	write_mutex.unlock();
+	semaphore(release());
+
 	return 0;
 }
 
@@ -460,11 +464,11 @@ int Database::CreateEndFile(std::string a_id) {
 		return 2;
 	}
 
-	write_mutex.lock();
+	semaphore(acquire());
 
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
-		write_mutex.unlock();
+		semaphore(release());
 		return -1;
 	}
 
@@ -472,7 +476,7 @@ int Database::CreateEndFile(std::string a_id) {
 
 	fclose(fp);
 
-	write_mutex.unlock();
+	semaphore(release());
 
 	return 0;
 }
@@ -489,18 +493,18 @@ int Database::CreateAssetFile(std::string a_id, std::string asset_fname,
 
 	std::ofstream file;
 
-	write_mutex.lock();
+	semaphore(acquire());
 
 	file.open(dir_name, std::ofstream::trunc);
 	if (!file.good()) {
-		write_mutex.unlock();
+		semaphore(release());
 		return -1;
 	}
 
 	file << data;
 	file.close();
 
-	write_mutex.unlock();
+	semaphore(release());
 
 	return 0;
 }
@@ -546,11 +550,11 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 
 	const char *dir_fname = dir_name.c_str();
 
-	write_mutex.lock();
+	semaphore(acquire());
 
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
-		write_mutex.unlock();
+		semaphore(release());
 		return -1;
 	}
 
@@ -558,7 +562,7 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 
 	fclose(fp);
 
-	write_mutex.unlock();
+	semaphore(release());
 
 	return 0;
 }
@@ -1240,13 +1244,17 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 	}
 
 	std::string bid_dir_name = "ASDIR/AUCTIONS/" + a_id;
-	bid_dir_name += "/BIDS";
+	bid_dir_name += "/BIDS/";
 
 	std::string bid_fname;
 
-	if (!(fs::is_empty(bid_dir_name))) {
+	if (fs::is_empty(bid_dir_name)) {
+	} else {
 		for (const auto &entry : fs::directory_iterator(bid_dir_name)) {
-			bid_fname += entry.path();
+			bid_fname = entry.path();
+
+			std::cout << bid_fname << std::endl;
+
 			GetBid(bid_fname, bid);
 			std::string old_value = bid.value;
 
@@ -1322,12 +1330,12 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	std::string bid_fname;
 	for (const auto &entry : fs::directory_iterator(dir_name)) {
 		n++;
-		bid_fname += entry.path();
+		bid_fname = entry.path();
 		GetBid(bid_fname, bid);
 
 		list.push_back(bid);
 
-		if (n = 50) {
+		if (n == 50) {
 			break;
 		}
 	}
