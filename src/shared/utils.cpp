@@ -77,14 +77,21 @@ std::string convert_date_to_str(Datetime date) {
 Datetime convert_str_to_date(std::string str) {
 	Datetime result;
 	int year, month, day, hours, minutes, seconds;
-	sscanf(str.c_str(), "%d-%d-%d %d:%d:%d", &year, &month, &day, &hours,
-	       &minutes, &seconds);
-	result.year = std::to_string(year);
-	result.month = std::to_string(month);
-	result.day = std::to_string(day);
-	result.hours = std::to_string(hours);
-	result.minutes = std::to_string(minutes);
-	result.seconds = std::to_string(seconds);
+	char buffer[10];
+	sscanf(str.c_str(), "%04d-%02d-%02d %02d:%02d:%02d", &year, &month, &day,
+	       &hours, &minutes, &seconds);
+	sprintf(buffer, "%04d", year);
+	result.year = std::string(buffer, 4);
+	sprintf(buffer, "%02d", month);
+	result.month = std::string(buffer, 2);
+	sprintf(buffer, "%02d", day);
+	result.day = std::string(buffer, 2);
+	sprintf(buffer, "%02d", hours);
+	result.hours = std::string(buffer, 2);
+	sprintf(buffer, "%02d", minutes);
+	result.minutes = std::string(buffer, 2);
+	sprintf(buffer, "%02d", seconds);
+	result.seconds = std::string(buffer, 2);
 	return result;
 }
 

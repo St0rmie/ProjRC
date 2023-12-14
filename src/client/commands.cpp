@@ -464,6 +464,8 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	}
 	message_out.fdata = readFromFile(pathname);
 
+	std::cout << "FILE SIZE: " << message_out.Fsize << std::endl;
+	std::cout << "FDATA SIZE: " << message_out.fdata.length() << std::endl;
 	ServerOpenAuction message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
@@ -507,8 +509,8 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	if (client.isLoggedIn() == true) {
-		std::cout << "[ERROR] Already Logged In. Please logout first."
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] User not Logged In. Please login first."
 				  << std::endl;
 		return;
 	}
