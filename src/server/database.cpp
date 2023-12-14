@@ -471,12 +471,10 @@ int Database::CreateEndFile(std::string a_id) {
 }
 
 int Database::CreateAssetFile(std::string a_id, std::string asset_fname,
-                              size_t fsize, std::string data) {
+                              std::string data) {
 	if (verify_auction_id(a_id) == -1) {
 		return -1;
 	}
-
-	FILE *fp;
 
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
 	dir_name += "/ASSET/";
@@ -811,7 +809,7 @@ int Database::CheckAuctionExists(std::string a_id) {
 	return -1;
 }
 
-std::string Database::GetAssetData(std::string a_id, std::string asset_fname) {
+std::string Database::GetAssetData(std::string asset_fname) {
 	std::ifstream file(asset_fname);
 	std::stringstream buffer;
 	buffer << file.rdbuf();
@@ -937,6 +935,7 @@ int Database::Unregister(std::string user_id, std::string password) {
 int Database::Open(std::string user_id, std::string name, std::string password,
                    std::string asset_fname, std::string start_value,
                    std::string timeactive, size_t fsize, std::string data) {
+	(void) fsize;
 	if (CheckUserLoggedIn(user_id) != 0) {
 		throw UserNotLoggedIn();
 		return DB_OPEN_NOT_LOGGED_IN;  // Not Logged in
@@ -976,7 +975,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
 	std::cout << "C" << std::endl;
-	if (CreateAssetFile(c_aid, asset_fname, fsize, data) == -1) {
+	if (CreateAssetFile(c_aid, asset_fname, data) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
 	std::cout << "D" << std::endl;
@@ -1050,12 +1049,12 @@ AuctionList Database::MyAuctions(std::string user_id) {
 			aid.erase(aid.begin(), aid.end() - 3);
 
 			auction.a_id = aid;
-			std::string dir_name = "ASDIR/AUCTIONS/" + aid;
-			dir_name += "/END_";
-			dir_name += aid;
-			dir_name += ".txt";
+			std::string aid_dir_name = "ASDIR/AUCTIONS/" + aid;
+			aid_dir_name += "/END_";
+			aid_dir_name += aid;
+			aid_dir_name += ".txt";
 
-			if (CheckEndExists(dir_name.c_str()) == -1) {
+			if (CheckEndExists(aid_dir_name.c_str()) == -1) {
 				if (GetStart(aid, start) == -1) {
 					throw AuctionNotFound();
 					return result;
@@ -1082,18 +1081,18 @@ AuctionList Database::MyAuctions(std::string user_id) {
 }
 
 AuctionList Database::MyBids(std::string user_id) {
-	std::string dir_name = "ASDIR/USERS/" + user_id;
-	dir_name += "/BIDDED";
+	std::string bidded_dir_name = "ASDIR/USERS/" + user_id;
+	bidded_dir_name += "/BIDDED";
 
 	AuctionList result;
 	AuctionListing auction;
 	StartInfo start;
 	time_t fulltime;
 
-	if (fs::is_empty(dir_name)) {
+	if (fs::is_empty(bidded_dir_name)) {
 		return result;  // Returns empty list which means user made no bids
 	} else {
-		for (const auto &entry : fs::directory_iterator(dir_name)) {
+		for (const auto &entry : fs::directory_iterator(bidded_dir_name)) {
 			std::string aid = entry.path();
 			aid.erase(aid.end() - 4, aid.end());
 			aid.erase(aid.begin(), aid.end() - 3);
@@ -1131,18 +1130,18 @@ AuctionList Database::MyBids(std::string user_id) {
 }
 
 AuctionList Database::List() {
-	std::string dir_name = "ASDIR/AUCTIONS";
+	std::string Dir_name = "ASDIR/AUCTIONS";
 
 	AuctionList result;
 	AuctionListing auction;
 	StartInfo start;
 	time_t fulltime;
 
-	if (fs::is_empty(dir_name)) {
+	if (fs::is_empty(Dir_name)) {
 		return result;  // Returns empty list which means no auctions were ever
 		                // made
 	} else {
-		for (const auto &entry : fs::directory_iterator(dir_name)) {
+		for (const auto &entry : fs::directory_iterator(Dir_name)) {
 			std::string aid = entry.path();
 			aid.erase(aid.begin(), aid.end() - 3);
 
@@ -1188,7 +1187,7 @@ AssetInfo Database::ShowAsset(std::string a_id) {
 		return DB_SHOW_ASSET_ERROR;
 	}
 
-	asset.fdata = GetAssetData(a_id, asset_dir);
+	asset.fdata = GetAssetData(asset_dir);
 	asset.fsize = (asset.fdata).size();
 
 	asset_dir.erase(asset_dir.begin(), asset_dir.begin() + 25);

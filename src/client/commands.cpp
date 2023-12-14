@@ -457,12 +457,12 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	message_out.start_value = convert_auction_value(start_value);
 	message_out.timeactive = stoi(timeactive);
 	message_out.assetf_name = asset_fname;
-	message_out.fsize = getFileSize(pathname);
-	if (message_out.fsize == -1) {
+	message_out.Fsize = getFileSize(pathname);
+	if (message_out.Fsize == -1) {
 		throw FileException();
 		return;
 	}
-	message_out.fdata = readFromFile(pathname, message_out.fsize);
+	message_out.fdata = readFromFile(pathname);
 
 	ServerOpenAuction message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
@@ -612,7 +612,7 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 			std::cout << "[ERROR] Auction doesn't exist." << std::endl;
 			break;
 
-		case ServerCloseAuction::status::ERR:
+		case ServerShowAsset::status::ERR:
 			std::cout << "[ERROR] Wrong format sent." << std::endl;
 			break;
 

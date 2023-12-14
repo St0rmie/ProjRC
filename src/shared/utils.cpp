@@ -5,13 +5,13 @@
 // -----------------------------------
 // | Extract date and time			 |
 // -----------------------------------
-std::string extractDate(datetime datetime) {
+std::string extractDate(Datetime datetime) {
 	std::stringstream out;
 	out << datetime.year << "-" << datetime.month << "-" << datetime.day;
 	return out.str();
 };
 
-std::string extractTime(datetime datetime) {
+std::string extractTime(Datetime datetime) {
 	std::stringstream out;
 	out << datetime.hours << ":" << datetime.minutes << ":" << datetime.seconds;
 	return out.str();
@@ -64,7 +64,7 @@ std::string convert_password(std::string string) {
 	return string;
 }
 
-std::string convert_date_to_str(datetime date) {
+std::string convert_date_to_str(Datetime date) {
 	std::string date_str;
 	date_str += date.year + "-" + date.month;
 	date_str += "-" + date.day;
@@ -74,8 +74,8 @@ std::string convert_date_to_str(datetime date) {
 	return date_str;
 }
 
-datetime convert_str_to_date(std::string str) {
-	datetime result;
+Datetime convert_str_to_date(std::string str) {
+	Datetime result;
 	int year, month, day, hours, minutes, seconds;
 	sscanf(str.c_str(), "%d-%d-%d %d:%d:%d", &year, &month, &day, &hours,
 	       &minutes, &seconds);
@@ -129,7 +129,7 @@ void saveToFile(std::string file_name, std::string path,
 	file.close();
 }
 
-std::string readFromFile(std::string pathname, int size) {
+std::string readFromFile(std::string pathname) {
 	std::ifstream file(pathname);
 	std::stringstream buffer;
 	buffer << file.rdbuf();

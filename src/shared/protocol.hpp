@@ -100,7 +100,7 @@ class TcpMessage : public MessageAdapter {
 			throw InvalidMessageException();
 		}
 
-		for (int i = n - 1; i >= 0; i--) {
+		for (ssize_t i = n - 1; i >= 0; i--) {
 			_buffer.push_back(buf[i]);
 		}
 	}
@@ -151,8 +151,8 @@ class ProtocolMessage {
 	std::string readPassword(MessageAdapter &buffer);
 	std::string readAuctionAndState(MessageAdapter &buffer);
 	bool checkIfOver(MessageAdapter &buffer);
-	datetime readDate(MessageAdapter &buffer);
-	void parseDate(datetime date, std::string date_str);
+	Datetime readDate(MessageAdapter &buffer);
+	void parseDate(Datetime date, std::string date_str);
 	std::string readFile(MessageAdapter &buffer, uint32_t max_len);
 
    public:
@@ -244,7 +244,7 @@ class ClientOpenAuction : public ProtocolMessage {
 	uint32_t timeactive;
 	std::string name;
 	std::string assetf_name;
-	size_t fsize;
+	size_t Fsize;
 	std::string fdata;
 
 	std::stringstream buildMessage();
@@ -358,10 +358,10 @@ class ServerShowRecord : public ProtocolMessage {
 	std::string auction_name;
 	std::string asset_fname;
 	uint32_t start_value;
-	datetime start_date_time;
+	Datetime start_date_time;
 	uint32_t timeactive;
-	std::vector<bid> bids;
-	datetime end_date_time;
+	std::vector<Bid> bids;
+	Datetime end_date_time;
 	uint32_t end_sec_time = 0;
 	status status;
 

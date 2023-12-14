@@ -146,8 +146,8 @@ bool ProtocolMessage::checkIfOver(MessageAdapter &buffer) {
 	}
 }
 
-datetime ProtocolMessage::readDate(MessageAdapter &buffer) {
-	datetime date;
+Datetime ProtocolMessage::readDate(MessageAdapter &buffer) {
+	Datetime date;
 	date.year = readString(buffer, 4);
 	readChar(buffer, '-');
 	date.month = readString(buffer, 2);
@@ -548,7 +548,7 @@ std::stringstream ServerShowRecord::buildMessage() {
 		buffer << " " << start_value;
 		buffer << " " << convert_date_to_str(start_date_time);
 		buffer << " " << timeactive;
-		for (bid bid : bids) {
+		for (Bid bid : bids) {
 			buffer << " B " << bid.bidder_UID;
 			buffer << " " << bid.bid_value;
 			buffer << " " << convert_date_to_str(bid.bid_date_time);
@@ -590,7 +590,7 @@ void ServerShowRecord::readMessage(MessageAdapter &buffer) {
 		timeactive = stoi(readString(buffer, MAX_TIMEACTIVE_SIZE));
 		if (readCharEqual(buffer, ' ')) {
 			while (readCharEqual(buffer, 'B')) {
-				bid bid;
+				Bid bid;
 				readSpace(buffer);
 				bid.bidder_UID = readUserId(buffer);
 				readSpace(buffer);
@@ -632,7 +632,7 @@ std::stringstream ClientOpenAuction::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " " << user_id << " " << password << " " << name
 		   << " " << start_value << " " << timeactive << " " << assetf_name
-		   << " " << fsize << " " << fdata << std::endl;
+		   << " " << Fsize << " " << fdata << std::endl;
 	return buffer;
 }
 

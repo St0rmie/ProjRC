@@ -74,6 +74,7 @@ void printInUnregisterRequest(ClientUnregister request) {
 }
 
 void printInListAllRequest(ClientListAllAuctions request) {
+	(void) request;
 	std::string message =
 		"\tIncoming 'LIST ALL AUCTIONS':\n\t<- (no arguments) ";
 	printInfo(message);
@@ -113,7 +114,7 @@ void printInOpenAuctionRequest(ClientOpenAuction request) {
 	message += "\n\t<- Asset File Name: ";
 	message += request.assetf_name;
 	message += "\n\t<- Asset File Size: ";
-	message += request.fsize / 1000000;
+	message += request.Fsize / 1000000;
 	message += " MB";
 	message += "\n\t<- Asset File Data Length: ";
 	message += request.fdata.length();

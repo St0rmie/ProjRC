@@ -181,7 +181,7 @@ void RequestManager::callHandlerRequest(MessageAdapter &message, Server &server,
 }
 
 void processUDP(Server &server, RequestManager &manager) {
-	int ex_trial;
+	int ex_trial = 0;
 	while (true) {
 		try {
 			wait_for_udp_message(server, manager);
