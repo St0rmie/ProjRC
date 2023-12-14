@@ -673,7 +673,7 @@ void BidCommand::handle(std::string args, Client &client) {
 	// Check status
 	switch (message_in.status) {
 		case ServerBid::status::NOK:
-			printError("Auction isn't active.");
+			printError("Auction isn't active or does not exist.");
 			break;
 
 		case ServerBid::status::NLG:

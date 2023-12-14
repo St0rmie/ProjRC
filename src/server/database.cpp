@@ -1218,6 +1218,10 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 	if (CorrectPassword(user_id, password) != 1) {
 		return DB_BID_NOK;  // Wrong Password
 	}
+	if (CheckAuctionExists(a_id) == -1) {
+		throw AuctionNotFound();
+		return DB_BID_NOK;
+	}
 	if (CheckAuctionBelongs(a_id, user_id) == 0) {
 		throw BidOnSelf();
 		return DB_BID_NOK;

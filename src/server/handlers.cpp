@@ -446,6 +446,8 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 		message_out.status = ServerBid::status::NOK;
 	} catch (UserNotLoggedIn &e) {
 		message_out.status = ServerBid::status::NLG;
+	} catch (AuctionNotFound &e) {
+		message_out.status = ServerBid::status::NOK;
 	} catch (LargerBidAlreadyExists &e) {
 		message_out.status = ServerBid::status::REF;
 	} catch (BidOnSelf &e) {
