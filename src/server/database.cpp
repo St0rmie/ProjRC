@@ -29,6 +29,12 @@ bool CompareByAid(const AuctionListing &a, const AuctionListing &b) {
 	return (a_aid < b_aid);
 }
 
+bool CompareByValue(const BidInfo &a, const BidInfo &b) {
+	uint32_t a_aid = stoi(a.value);
+	uint32_t b_aid = stoi(b.value);
+	return (a_aid < b_aid);
+}
+
 int Database::CheckUserExisted(const char *user_id_dirname) {
 	DIR *dir = opendir(user_id_dirname);
 
@@ -1281,8 +1287,8 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	time_t fulltime;
 	StartInfo start;
 	EndInfo end;
-	uint32_t finished;
 	uint32_t n = 0;
+	uint32_t finished;
 	AuctionRecord result;
 	BidList list;
 
@@ -1332,12 +1338,13 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 		n++;
 		bid_fname = entry.path();
 		GetBid(bid_fname, bid);
-
 		list.push_back(bid);
+	}
 
-		if (n == 50) {
-			break;
-		}
+	std::sort(list.begin(), list.end(), CompareByValue);
+
+	if (n > 50) {
+		list.erase(list.begin(), list.end() - 50);
 	}
 
 	result.list = list;
