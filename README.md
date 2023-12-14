@@ -4,7 +4,7 @@ RC @ IST - Project 2023/2024
 
 ## TODO LIST
 
-Work harder son
+- Server nao lida bem com bids em auctions que não existem.
 
 ## Client
 
@@ -12,10 +12,12 @@ Work harder son
 - Rework Exceptions
 - Prevent Exceptions
 - Rework Prints (WIP)
+- Logout on exit
+- Terminal history
 
 ## Server
+
 - Verbose mode
-- ERR when no handle is found
 - (fix) timeout udp
 - (pretty) improve Error prints
 

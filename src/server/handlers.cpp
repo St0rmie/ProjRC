@@ -452,8 +452,9 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 		message_out.status = ServerBid::status::ILG;
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerBid::status::ERR;
-	} catch (...) {
+	} catch (std::exception &e) {
 		printError("Failed to handle 'BID' request.");
+		std::cout << e.what() << std::endl;
 		return;
 	}
 

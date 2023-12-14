@@ -13,7 +13,7 @@
 #include "shared/protocol.hpp"
 #include "shared/verifications.hpp"
 
-#define LOGGED_OUT -1
+#define LOGGED_OUT 0
 
 // Thrown when there is an error when trying to create a socket
 class SocketException : public std::runtime_error {

@@ -490,7 +490,7 @@ int Database::CreateAssetFile(std::string a_id, std::string asset_fname,
 		return -1;
 	}
 
-	file << data << std::endl;
+	file << data;
 	file.close();
 
 	write_mutex.unlock();
@@ -1206,7 +1206,7 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 		return DB_BID_NOK;  // Wrong Password
 	}
 	if (CheckAuctionBelongs(a_id, user_id) == 0) {
-		throw AuctionNotOwnedByUser();
+		throw BidOnSelf();
 		return DB_BID_NOK;
 	}
 
