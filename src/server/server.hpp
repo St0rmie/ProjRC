@@ -34,6 +34,7 @@ class Server {
 	void sendTcpMessage(ProtocolMessage& message);
 	void waitForTcpMessage(ProtocolMessage& message);
 	void closeTcpSocket();
+	void setupSignalHandlers();
 	void configServer(int argc, char* argv[]);
 	void setup_sockets();
 	void resolveServerAddress(std::string& port);
