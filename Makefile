@@ -46,7 +46,7 @@ endif
 
 LDFLAGS = -fsanitize=address -lasan
 
-CXXFLAGS += -fdiagnostics-color=always
+#CXXFLAGS += -fdiagnostics-color=always
 #CXXFLAGS += -Wall					Comparison issues
 CXXFLAGS += -Werror
 #CXXFLAGS += -Wextra 				Missing comparisons and unused minor stuff
