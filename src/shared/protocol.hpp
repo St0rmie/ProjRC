@@ -20,6 +20,12 @@ class UnexpectedMessageException : public std::runtime_error {
 	UnexpectedMessageException() : std::runtime_error("Unexpected Message") {}
 };
 
+// Thrown when the MessageID matches the error code
+class ERRCodeMessageException : public std::runtime_error {
+   public:
+	ERRCodeMessageException() : std::runtime_error("Error code") {}
+};
+
 // Thrown when the MessageID is correct, but the schema is wrong
 class InvalidMessageException : public std::runtime_error {
    public:
@@ -415,7 +421,7 @@ class ServerBid : public ProtocolMessage {
 
 class ServerError : public ProtocolMessage {
    public:
-	std::string protocol_code = CODE_BID_SERVER;
+	std::string protocol_code = CODE_ERROR;
 	enum status { ERR };
 	status status = ERR;
 

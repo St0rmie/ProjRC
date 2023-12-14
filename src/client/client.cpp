@@ -90,7 +90,10 @@ int Client::sendUdpMessageAndAwaitReply(ProtocolMessage &out_message,
 			std::cout << "[ERROR] Invalid Message." << std::endl;
 			return -1;
 		} catch (UnexpectedMessageException &e) {
-			std::cout << "[ERROR] Unexpected Message." << std::endl;
+			printError("Unexpected Message.");
+			return -1;
+		} catch (ERRCodeMessageException &e) {
+			printError("ERR code message received.");
 			return -1;
 		}
 	}
@@ -112,6 +115,22 @@ int Client::sendTcpMessageAndAwaitReply(ProtocolMessage &out_message,
 		openTcpSocket();
 		sendTcpMessage(out_message);
 		waitForTcpMessage(in_message);
+	} catch (ConnectionTimeoutException &e) {
+		std::cout << "[ERROR] Couldn't send message" << std::endl;
+		closeTcpSocket();
+		return -1;
+	} catch (InvalidMessageException &e) {
+		std::cout << "[ERROR] Invalid Message." << std::endl;
+		closeTcpSocket();
+		return -1;
+	} catch (UnexpectedMessageException &e) {
+		printError("Unexpected Message.");
+		closeTcpSocket();
+		return -1;
+	} catch (ERRCodeMessageException &e) {
+		printError("ERR code message received.");
+		closeTcpSocket();
+		return -1;
 	} catch (...) {
 		closeTcpSocket();
 		return -1;

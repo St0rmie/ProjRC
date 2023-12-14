@@ -636,8 +636,8 @@ void BidCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	if (client.isLoggedIn() == true) {
-		std::cout << "[ERROR] Already Logged In. Please logout first."
+	if (client.isLoggedIn() == false) {
+		std::cout << "[ERROR] User not Logged In. Please login first."
 				  << std::endl;
 		return;
 	}

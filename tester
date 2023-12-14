@@ -1,7 +1,7 @@
 #!/bin/bash
 
-START="1"
-END="4"
+START="5"
+END="9"
 
 HOST="193.136.128.108"
 PORT="58086"

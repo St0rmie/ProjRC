@@ -102,4 +102,20 @@ class UnregisterRequest : public RequestHandler {
 	UnregisterRequest() : RequestHandler(CODE_UNREGISTER_USER) {}
 };
 
+class WrongRequestUDP : public RequestHandler {
+	virtual void handle(MessageAdapter &message, Server &client,
+	                    Address &address);
+
+   public:
+	WrongRequestUDP() : RequestHandler(CODE_ERROR) {}
+};
+
+class WrongRequestTCP : public RequestHandler {
+	virtual void handle(MessageAdapter &message, Server &client,
+	                    Address &address);
+
+   public:
+	WrongRequestTCP() : RequestHandler(CODE_ERROR) {}
+};
+
 #endif
