@@ -4,7 +4,15 @@
 #include <netdb.h>
 #include <unistd.h>
 
+#include <csignal>
+
 #include "handlers.hpp"
+
+void Server::setupSignalHandlers() {
+	// ignore SIGPIPE
+	signal(SIGPIPE, SIG_IGN);
+	signal(SIGCHLD, SIG_IGN);
+}
 
 void Server::configServer(int argc, char *argv[]) {
 	int opt;
@@ -26,6 +34,8 @@ void Server::configServer(int argc, char *argv[]) {
 	if (verify_port_number(_port) == -1) {
 		exit(EXIT_FAILURE);
 	};
+
+	setupSignalHandlers();
 }
 
 Server::Server(int argc, char *argv[]) {

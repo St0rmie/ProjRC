@@ -1,0 +1,12 @@
+#!/bin/bash
+
+START="1"
+END="4"
+
+HOST="193.136.128.108"
+PORT="58086"
+
+rm *.html
+for ((c=$START; c<=$END; c++)) do
+    echo "$HOST $PORT $c" | nc tejo.tecnico.ulisboa.pt 59000 > "result${c}.html"
+done

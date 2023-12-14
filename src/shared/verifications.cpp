@@ -1,8 +1,10 @@
 #include "verifications.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 int verify_user_id(std::string user_id) {
 	if (user_id.size() != 6) {
@@ -50,8 +52,21 @@ int verify_name(std::string name) {
 	return 0;
 }
 
+int check_fname_not_forbidden(std::string fname) {
+	std::vector<std::string> forbidden = {"..", "/", "."};
+	if (std::find(forbidden.begin(), forbidden.end(), fname) !=
+	    forbidden.end()) {
+		return 0;
+	};
+	return -1;
+}
+
 int verify_asset_fname(std::string asset_fname) {
 	std::ifstream file;
+
+	if (check_fname_not_forbidden(asset_fname) == -1) {
+		return -1;
+	}
 
 	file.open("assets/" + asset_fname);
 

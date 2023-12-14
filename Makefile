@@ -81,11 +81,12 @@ user: $(CLIENT_OBJECTS) $(CLIENT_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS)
 	$(CC) -o user $(LDFLAGS) $(CXXFLAGS) $(CLIENT_OBJECTS) $(CLIENT_HEADERS) $(SHARED_OBJECTS) $(SHARED_HEADERS) 
 
 clean:
-	rm -f $(OBJECTS) $(TARGETS) $(TARGET_EXECS) project.zip
+	rm -f $(OBJECTS) $(TARGETS) $(TARGET_EXECS) project.zip *.html
 
 clean-database:
 	rm -rf ASDIR
 
 package:
 	cp README.md readme.txt
-	zip project.zip $(SOURCES) $(HEADERS) Makefile .clang-format readme.txt *.xlsx
+	zip project.zip src $(SOURCES) $(HEADERS) Makefile .clang-format readme.txt tester
+	rm readme.txt
