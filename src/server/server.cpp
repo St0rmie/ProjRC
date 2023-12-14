@@ -7,6 +7,7 @@
 #include <csignal>
 
 #include "handlers.hpp"
+#include "output.hpp"
 
 void Server::setupSignalHandlers() {
 	// ignore SIGPIPE
@@ -56,41 +57,20 @@ void Server::setup_sockets() {
 	if ((_udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
 		throw UnrecoverableException("Failed to create a UDP socket");
 	}
-	struct timeval read_timeout_udp;
-	read_timeout_udp.tv_sec = SERVER_UDP_TIMEOUT;
-	read_timeout_udp.tv_usec = 0;
-	if (setsockopt(_udp_socket_fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout_udp,
-	               sizeof(read_timeout_udp)) < 0) {
-		throw UnrecoverableException(
-			"Failed to set UDP read timeout socket option");
-	}
+	// UDP socket doesn't have a timeout.
 
 	// Create a TCP socket
 	if ((_tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		throw UnrecoverableException("Failed to create a TCP socket");
 	}
 	const int enable = 1;
+
+	// Force reuse of the socket.
 	if (setsockopt(_tcp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable,
 	               sizeof(int)) < 0) {
 		throw UnrecoverableException(
 			"Failed to set TCP reuse address socket option");
 	}
-	/*struct timeval read_timeout;
-	read_timeout.tv_sec = TCP_READ_TIMEOUT_SECONDS;
-	read_timeout.tv_usec = 0;
-	if (setsockopt(this->_tcp_socket_fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout,
-	               sizeof(read_timeout)) < 0) {
-	    throw UnrecoverableException(
-	        "Failed to set TCP read timeout socket option");
-	}
-	struct timeval write_timeout;
-	write_timeout.tv_sec = TCP_WRITE_TIMEOUT_SECONDS;
-	write_timeout.tv_usec = 0;
-	if (setsockopt(this->_tcp_socket_fd, SOL_SOCKET, SO_SNDTIMEO,
-	               &write_timeout, sizeof(write_timeout)) < 0) {
-	    throw UnrecoverableException(
-	        "Failed to set TCP write timeout socket option");
-	}*/
 }
 
 void Server::resolveServerAddress(std::string &port) {
@@ -218,12 +198,6 @@ void wait_for_udp_message(Server &server, RequestManager &manager) {
 	stream.write(buffer, n);
 	addr_from.socket = server._udp_socket_fd;
 
-	char addr_str[INET_ADDRSTRLEN + 1] = {0};
-	inet_ntop(AF_INET, &addr_from.addr.sin_addr, addr_str, INET_ADDRSTRLEN);
-	std::cout << "Receiving incoming UDP message from " << addr_str << ":"
-			  << ntohs(addr_from.addr.sin_port)
-			  << "\n\t <-- MESSAGE: " << stream.str() << std::endl;
-
 	StreamMessage message(stream);
 	manager.callHandlerRequest(message, server, addr_from, UDP_MESSAGE);
 
@@ -278,14 +252,31 @@ void processTCPChild(Server &server, RequestManager &manager, Address addr_from,
                      int connection_fd) {
 	try {
 		close(server._tcp_socket_fd);
+
+		struct timeval read_timeout;
+		read_timeout.tv_sec = TCP_READ_TIMEOUT_SECONDS;
+		read_timeout.tv_usec = 0;
+		if (setsockopt(connection_fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout,
+		               sizeof(read_timeout)) < 0) {
+			throw UnrecoverableException(
+				"[ERROR] Failed to set TCP read timeout socket option");
+		}
+		struct timeval write_timeout;
+		write_timeout.tv_sec = TCP_WRITE_TIMEOUT_SECONDS;
+		write_timeout.tv_usec = 0;
+		if (setsockopt(connection_fd, SOL_SOCKET, SO_SNDTIMEO, &write_timeout,
+		               sizeof(write_timeout)) < 0) {
+			throw UnrecoverableException(
+				"[ERROR] Failed to set TCP write timeout socket option");
+		}
+
 		addr_from.socket = connection_fd;
 		TcpMessage message(connection_fd);
 		manager.callHandlerRequest(message, server, addr_from, TCP_MESSAGE);
 		close(connection_fd);
 		exit(EXIT_SUCCESS);
 	} catch (std::exception &e) {
-		std::cout << "[ERROR] Handling tcp request. Child process exiting."
-				  << e.what() << std::endl;
+		printError("Handling tcp request. Child process exiting.");
 		exit(EXIT_FAILURE);
 	}
 }

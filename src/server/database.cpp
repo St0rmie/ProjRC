@@ -806,7 +806,6 @@ int Database::CheckAuctionBelongs(std::string a_id, std::string user_id) {
 /* 0 exists, -1 doesn't*/
 int Database::CheckAuctionExists(std::string a_id) {
 	std::string a_id_dirname = "ASDIR/AUCTIONS/" + a_id;
-	std::cout << "a_id_dirname" << std::endl;
 
 	DIR *dir = opendir((a_id_dirname.c_str()));
 
@@ -976,20 +975,18 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 
 	std::string c_aid = convert_auction_id_to_str(aid);
 
-	std::cout << "A" << std::endl;
 	if (CreateAuctionDir(c_aid) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create auction dir
 	}
-	std::cout << "B" << std::endl;
+
 	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
 	                    timeactive) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
-	std::cout << "C" << std::endl;
+
 	if (CreateAssetFile(c_aid, asset_fname, data) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
-	std::cout << "D" << std::endl;
 
 	if (RegisterHost(user_id, c_aid) == -1) {
 		return DB_OPEN_CREATE_FAIL;  // Failed to create hosted file

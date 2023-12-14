@@ -464,8 +464,6 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	}
 	message_out.fdata = readFromFile(pathname);
 
-	std::cout << "FILE SIZE: " << message_out.Fsize << std::endl;
-	std::cout << "FDATA SIZE: " << message_out.fdata.length() << std::endl;
 	ServerOpenAuction message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
