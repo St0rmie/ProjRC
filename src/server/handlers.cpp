@@ -28,6 +28,9 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 			case DB_LOGIN_REGISTER:
 				message_out.status = ServerLoginUser::status::REG;
 				break;
+
+			default:
+				throw InvalidMessageException();
 		}
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerLoginUser::status::ERR;
@@ -66,6 +69,9 @@ void LogoutRequest::handle(MessageAdapter &message, Server &server,
 			case DB_LOGOUT_NOK:
 				message_out.status = ServerLogout::status::NOK;
 				break;
+
+			default:
+				throw InvalidMessageException();
 		}
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerLogout::status::ERR;
@@ -104,6 +110,9 @@ void UnregisterRequest::handle(MessageAdapter &message, Server &server,
 			case DB_UNREGISTER_NOK:
 				message_out.status = ServerUnregister::status::NOK;
 				break;
+
+			default:
+				throw InvalidMessageException();
 		}
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerUnregister::status::ERR;
@@ -259,7 +268,7 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 		std::cout << "55555" << std::endl;
 
 		for (BidInfo b : record.list) {
-			bid bid;
+			Bid bid;
 			bid.bidder_UID = static_cast<uint32_t>(stoi(b.user_id));
 			bid.bid_value = static_cast<uint32_t>(stoi(b.value));
 			bid.bid_date_time = convert_str_to_date(b.current_date);
@@ -306,7 +315,7 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 		std::string timeactive = std::to_string(message_in.timeactive);
 		int aid = server._database.Open(
 			user_id, message_in.name, message_in.password,
-			message_in.assetf_name, start_value, timeactive, message_in.fsize,
+			message_in.assetf_name, start_value, timeactive, message_in.Fsize,
 			message_in.fdata);
 
 		if (aid > 0) {
@@ -347,6 +356,9 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 			convert_auction_id_to_str(message_in.auction_id);
 		int res = server._database.CloseAuction(auction_id, user_id,
 		                                        message_in.password);
+		if (res != DB_CLOSE_NOK) {
+			message_out.status = ServerCloseAuction::status::OK;
+		}
 
 	} catch (UserDoesNotExist &e) {
 		message_out.status = ServerCloseAuction::status::NOK;

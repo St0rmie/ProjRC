@@ -44,25 +44,25 @@ ifeq ($(strip $(DEBUG)), yes)
 	CXXFLAGS += -g
 endif
 
-#LDFLAGS = -fsanitize=address -lasan
+LDFLAGS = -fsanitize=address -lasan
 
-#CXXFLAGS += -fdiagnostics-color=always
-#CXXFLAGS += -Wall
-#CXXFLAGS += -Werror
-#CXXFLAGS += -Wextra
-#CXXFLAGS += -Wcast-align
-#CXXFLAGS += -Wconversion
-#CXXFLAGS += -Wfloat-equal
-#CXXFLAGS += -Wformat=2
-#CXXFLAGS += -Wnull-dereference
-#CXXFLAGS += -Wshadow
-#CXXFLAGS += -Wsign-conversion
-#CXXFLAGS += -Wswitch-default
-#CXXFLAGS += -Wswitch-enum
-#CXXFLAGS += -Wundef
-#CXXFLAGS += -Wunreachable-code
-#CXXFLAGS += -Wunused
-#LDFLAGS += -pthread
+CXXFLAGS += -fdiagnostics-color=always
+#CXXFLAGS += -Wall					Comparison issues
+CXXFLAGS += -Werror
+#CXXFLAGS += -Wextra 				Missing comparisons and unused minor stuff
+CXXFLAGS += -Wcast-align
+#CXXFLAGS += -Wconversion 			HELL
+CXXFLAGS += -Wfloat-equal
+CXXFLAGS += -Wformat=2
+CXXFLAGS += -Wnull-dereference
+CXXFLAGS += -Wshadow
+#CXXFLAGS += -Wsign-conversion  	HELL
+CXXFLAGS += -Wswitch-default
+CXXFLAGS += -Wswitch-enum
+CXXFLAGS += -Wundef
+CXXFLAGS += -Wunreachable-code
+CXXFLAGS += -Wunused
+LDFLAGS += -pthread
 
 
 .PHONY: all clean fmt fmt-check package

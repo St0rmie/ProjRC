@@ -163,7 +163,7 @@ class Database {
 	                    std::string timeactive);
 	int CheckEndExists(const char *end_fname);
 	int CreateEndFile(std::string a_id);
-	int CreateAssetFile(std::string a_id, std::string asset_fname, size_t fsize,
+	int CreateAssetFile(std::string a_id, std::string asset_fname,
 	                    std::string data);
 	int CreateBidFile(std::string a_id, std::string user_id, std::string value);
 	int GetStart(std::string a_id, StartInfo &result);
@@ -174,7 +174,7 @@ class Database {
 	std::string GetAssetDir(std::string a_id);
 	int CheckAuctionExists(std::string a_id);
 	int CheckAuctionBelongs(std::string a_id, std::string user_id);
-	std::string GetAssetData(std::string a_id, std::string asset_fname);
+	std::string GetAssetData(std::string asset_fname);
 	int Close(std::string a_id);
 
    public:

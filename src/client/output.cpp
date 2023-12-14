@@ -19,7 +19,7 @@ void printRecord(std::string aid, ServerShowRecord message) {
 				  << "--------------------------------------------------"
 				  << std::endl;
 	}
-	for (bid bid : message.bids) {
+	for (Bid bid : message.bids) {
 		std::cout << bid.bidder_UID << "\t\t" << bid.bid_value << "\t\t"
 				  << extractDate(bid.bid_date_time) << "\t"
 				  << extractTime(bid.bid_date_time) << "\t" << bid.bid_sec_time
