@@ -1307,19 +1307,19 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	end_dir_name += a_id;
 	end_dir_name += ".txt";
 
-	if (time_passed >= timeactive) {
-		if (CheckEndExists(end_dir_name.c_str()) == -1) {
-			Close(a_id);
-			result.active = false;
-			result.end_datetime = current_time;
-			finished = time_passed - timeactive;
-			result.end_timeelapsed = finished;
-		} else {
-			GetEnd(end_dir_name.c_str(), end);
-			result.active = false;
-			result.end_datetime = end.end_date;
-			result.end_timeelapsed = end.end_time;
-		}
+	if (CheckEndExists(end_dir_name.c_str()) == 0) {
+		GetEnd(end_dir_name.c_str(), end);
+		result.active = false;
+		result.end_datetime = end.end_date;
+		result.end_timeelapsed = end.end_time;
+
+	} else if (time_passed >= timeactive) {
+		Close(a_id);
+		result.active = false;
+		result.end_datetime = current_time;
+		finished = time_passed - timeactive;
+		result.end_timeelapsed = finished;
+
 	} else {
 		result.active = true;
 	}
