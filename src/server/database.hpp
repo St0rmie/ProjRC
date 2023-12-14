@@ -8,6 +8,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <algorithm>
+#include <condition_variable>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -142,6 +144,28 @@ typedef struct {
 	std::string end_datetime;
 	uint32_t end_timeelapsed;
 } AuctionRecord;
+
+bool CompareByAid(const AuctionListing &a, const AuctionListing &b);
+
+class semaphore {
+	std::mutex mutex_;
+	std::condition_variable condition_;
+	unsigned long count_ = 0;  // Initialized as locked.
+
+   public:
+	void release() {
+		std::lock_guard<decltype(mutex_)> lock(mutex_);
+		++count_;
+		condition_.notify_one();
+	}
+
+	void acquire() {
+		std::unique_lock<decltype(mutex_)> lock(mutex_);
+		while (!count_)  // Handle spurious wake-ups.
+			condition_.wait(lock);
+		--count_;
+	}
+};
 
 class Database {
    protected:
