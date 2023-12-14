@@ -29,6 +29,12 @@ bool CompareByAid(const AuctionListing &a, const AuctionListing &b) {
 	return (a_aid < b_aid);
 }
 
+bool CompareByValue(const BidInfo &a, const BidInfo &b) {
+	uint32_t a_aid = stoi(a.value);
+	uint32_t b_aid = stoi(b.value);
+	return (a_aid < b_aid);
+}
+
 int Database::CheckUserExisted(const char *user_id_dirname) {
 	DIR *dir = opendir(user_id_dirname);
 
@@ -1278,8 +1284,8 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	time_t fulltime;
 	StartInfo start;
 	EndInfo end;
-	uint32_t finished;
 	uint32_t n = 0;
+	uint32_t finished;
 	AuctionRecord result;
 	BidList list;
 
@@ -1304,19 +1310,19 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	end_dir_name += a_id;
 	end_dir_name += ".txt";
 
-	if (time_passed >= timeactive) {
-		if (CheckEndExists(end_dir_name.c_str()) == -1) {
-			Close(a_id);
-			result.active = false;
-			result.end_datetime = current_time;
-			finished = time_passed - timeactive;
-			result.end_timeelapsed = finished;
-		} else {
-			GetEnd(end_dir_name.c_str(), end);
-			result.active = false;
-			result.end_datetime = end.end_date;
-			result.end_timeelapsed = end.end_time;
-		}
+	if (CheckEndExists(end_dir_name.c_str()) == 0) {
+		GetEnd(end_dir_name.c_str(), end);
+		result.active = false;
+		result.end_datetime = end.end_date;
+		result.end_timeelapsed = end.end_time;
+
+	} else if (time_passed >= timeactive) {
+		Close(a_id);
+		result.active = false;
+		result.end_datetime = current_time;
+		finished = time_passed - timeactive;
+		result.end_timeelapsed = finished;
+
 	} else {
 		result.active = true;
 	}
@@ -1329,12 +1335,13 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 		n++;
 		bid_fname = entry.path();
 		GetBid(bid_fname, bid);
-
 		list.push_back(bid);
+	}
 
-		if (n == 50) {
-			break;
-		}
+	std::sort(list.begin(), list.end(), CompareByValue);
+
+	if (n > 50) {
+		list.erase(list.begin(), list.end() - 50);
 	}
 
 	result.list = list;

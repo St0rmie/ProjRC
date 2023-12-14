@@ -146,6 +146,7 @@ typedef struct {
 } AuctionRecord;
 
 bool CompareByAid(const AuctionListing &a, const AuctionListing &b);
+bool CompareByValue(const BidInfo &a, const BidInfo &b);
 
 class semaphore {
 	std::mutex mutex_;
