@@ -8,6 +8,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -142,6 +143,8 @@ typedef struct {
 	std::string end_datetime;
 	uint32_t end_timeelapsed;
 } AuctionRecord;
+
+bool CompareByAid(const AuctionListing &a, const AuctionListing &b);
 
 class Database {
    protected:

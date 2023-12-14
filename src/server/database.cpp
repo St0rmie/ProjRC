@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -21,6 +22,12 @@
 
 std::mutex write_mutex;
 namespace fs = std::filesystem;
+
+bool CompareByAid(const AuctionListing &a, const AuctionListing &b) {
+	uint32_t a_aid = stoi(a.a_id);
+	uint32_t b_aid = stoi(b.a_id);
+	return (a_aid < b_aid);
+}
 
 int Database::CheckUserExisted(const char *user_id_dirname) {
 	DIR *dir = opendir(user_id_dirname);
@@ -1077,6 +1084,8 @@ AuctionList Database::MyAuctions(std::string user_id) {
 			result.push_back(auction);
 		}
 	}
+
+	std::sort(result.begin(), result.end(), CompareByAid);
 	return result;
 }
 
@@ -1126,6 +1135,8 @@ AuctionList Database::MyBids(std::string user_id) {
 			result.push_back(auction);
 		}
 	}
+
+	std::sort(result.begin(), result.end(), CompareByAid);
 	return result;
 }
 
@@ -1174,6 +1185,8 @@ AuctionList Database::List() {
 			result.push_back(auction);
 		}
 	}
+
+	std::sort(result.begin(), result.end(), CompareByAid);
 	return result;
 }
 
