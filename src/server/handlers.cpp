@@ -250,22 +250,17 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
-		std::cout << "11111" << std::endl;
 		AuctionRecord record = server._database.ShowRecord(auction_id);
-		std::cout << "22222" << std::endl;
 		message_out.status = ServerShowRecord::status::OK;
 		std::cout << record.host_id << std::endl;
 		message_out.host_UID = static_cast<uint32_t>(stoi(record.host_id));
-		std::cout << "33333" << std::endl;
 		message_out.auction_name = record.auction_name;
 		message_out.asset_fname = record.asset_fname;
 		message_out.start_value =
 			static_cast<uint32_t>(stoi(record.start_value));
-		std::cout << "44444" << std::endl;
 		message_out.start_date_time =
 			convert_str_to_date(record.start_datetime);
 		message_out.timeactive = static_cast<uint32_t>(stoi(record.timeactive));
-		std::cout << "55555" << std::endl;
 
 		for (BidInfo b : record.list) {
 			Bid bid;

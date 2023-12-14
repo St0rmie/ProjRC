@@ -14,12 +14,15 @@ RC @ IST - Project 2023/2024
 - Rework Prints (WIP)
 - Logout on exit
 - Terminal history
+- Cliente não assume pasta assets
 
 ## Server
 
 - Verbose mode
 - (fix) timeout udp
 - (pretty) improve Error prints
+- end on close not showing on show record
+- properly handle login over login?
 
 ## Database
 

@@ -131,7 +131,7 @@ void saveToFile(std::string file_name, std::string path,
 		throw FileException();
 	}
 
-	file << file_data << std::endl;
+	file << file_data;
 
 	file.close();
 }

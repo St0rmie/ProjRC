@@ -579,9 +579,9 @@ void ServerShowRecord::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerShowRecord::protocol_code);
 	readSpace(buffer);
 	std::string status_str = readString(buffer, MAX_STATUS_SIZE);
-	readSpace(buffer);
 	if (status_str == "OK") {
 		status = OK;
+		readSpace(buffer);
 		host_UID = readUserId(buffer);
 		readSpace(buffer);
 		auction_name = readString(buffer, MAX_AUCTION_NAME_SIZE);
@@ -655,9 +655,9 @@ void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	assetf_name = readString(buffer, MAX_FILENAME_SIZE);
 	readSpace(buffer);
-	size_t fsize = (size_t) stoi(readString(buffer, MAX_FILE_SIZE_LENGTH));
+	Fsize = (size_t) stol(readString(buffer, MAX_FILE_SIZE_LENGTH));
 	readSpace(buffer);
-	fdata = readFile(buffer, fsize);
+	fdata = readFile(buffer, Fsize);
 	readDelimiter(buffer);
 }
 
@@ -920,7 +920,8 @@ void send_udp_message(ProtocolMessage &message, int socketfd,
 		throw MessageSendException();
 	}
 	if (verbose) {
-		std::cout << "\t --> MESSAGE: " << buffer.str() << std::endl;
+		std::cout << "\t[INFO] Outgoing Answer (first 100 characters):\n\t-> "
+				  << buffer.str().substr(0, 100) << std::endl;
 	}
 }
 
@@ -939,7 +940,8 @@ void send_tcp_message(ProtocolMessage &message, int socket_fd,
 		bytes_sent += sent;
 	}
 	if (verbose) {
-		std::cout << "\t --> MESSAGE: " << message_s << std::endl;
+		std::cout << "[INFO] Outgoing Answer (first 100 characters):\n\t-> "
+				  << message_s.substr(0, 100) << std::endl;
 	}
 }
 
