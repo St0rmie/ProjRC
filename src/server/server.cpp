@@ -20,10 +20,10 @@ void Server::configServer(int argc, char *argv[]) {
 	while ((opt = getopt(argc, argv, "p:v")) != -1) {
 		switch (opt) {
 			case 'v':
-				this->_verbose = true;
+				_verbose = true;
 				break;
 			case 'p':
-				this->_port = std::string(optarg);
+				_port = std::string(optarg);
 				break;
 			default:
 				std::cout << "[ERROR] Config error." << std::endl;
@@ -41,7 +41,7 @@ void Server::configServer(int argc, char *argv[]) {
 Server::Server(int argc, char *argv[]) {
 	configServer(argc, argv);
 	// Create a UDP socket
-	if ((this->_udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+	if ((_udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
 		throw UnrecoverableException("[ERROR] Couldn't open socket");
 	}
 	// Creates base for database
@@ -53,24 +53,24 @@ Server::Server(int argc, char *argv[]) {
 
 void Server::setup_sockets() {
 	// Create a UDP socket
-	if ((this->_udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+	if ((_udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
 		throw UnrecoverableException("Failed to create a UDP socket");
 	}
 	struct timeval read_timeout_udp;
 	read_timeout_udp.tv_sec = SERVER_UDP_TIMEOUT;
 	read_timeout_udp.tv_usec = 0;
-	if (setsockopt(this->_udp_socket_fd, SOL_SOCKET, SO_RCVTIMEO,
-	               &read_timeout_udp, sizeof(read_timeout_udp)) < 0) {
+	if (setsockopt(_udp_socket_fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout_udp,
+	               sizeof(read_timeout_udp)) < 0) {
 		throw UnrecoverableException(
 			"Failed to set UDP read timeout socket option");
 	}
 
 	// Create a TCP socket
-	if ((this->_tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+	if ((_tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		throw UnrecoverableException("Failed to create a TCP socket");
 	}
 	const int enable = 1;
-	if (setsockopt(this->_tcp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable,
+	if (setsockopt(_tcp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable,
 	               sizeof(int)) < 0) {
 		throw UnrecoverableException(
 			"Failed to set TCP reuse address socket option");
@@ -102,15 +102,15 @@ void Server::resolveServerAddress(std::string &port) {
 	hints.ai_family = AF_INET;       // IPv4
 	hints.ai_socktype = SOCK_DGRAM;  // UDP socket
 	hints.ai_flags = AI_PASSIVE;     // Listen on 0.0.0.0
-	if ((addr_res = getaddrinfo(NULL, port_str, &hints,
-	                            &this->_server_udp_addr)) != 0) {
+	if ((addr_res = getaddrinfo(NULL, port_str, &hints, &_server_udp_addr)) !=
+	    0) {
 		throw UnrecoverableException(
 			std::string("Failed to get address for UDP connection: ") +
 			gai_strerror(addr_res));
 	}
 	// bind socket
-	if (bind(this->_udp_socket_fd, this->_server_udp_addr->ai_addr,
-	         this->_server_udp_addr->ai_addrlen)) {
+	if (bind(_udp_socket_fd, _server_udp_addr->ai_addr,
+	         _server_udp_addr->ai_addrlen)) {
 		throw UnrecoverableException("Failed to bind UDP address.");
 	}
 
@@ -119,15 +119,15 @@ void Server::resolveServerAddress(std::string &port) {
 	hints.ai_family = AF_INET;        // IPv4
 	hints.ai_socktype = SOCK_STREAM;  // TCP socket
 	hints.ai_flags = AI_PASSIVE;      // Listen on 0.0.0.0
-	if ((addr_res = getaddrinfo(NULL, port.c_str(), &hints,
-	                            &this->_server_tcp_addr)) != 0) {
+	if ((addr_res =
+	         getaddrinfo(NULL, port.c_str(), &hints, &_server_tcp_addr)) != 0) {
 		throw UnrecoverableException(
 			std::string("Failed to get address for TCP connection: ") +
 			gai_strerror(addr_res));
 	}
 
-	if (bind(this->_tcp_socket_fd, this->_server_tcp_addr->ai_addr,
-	         this->_server_tcp_addr->ai_addrlen)) {
+	if (bind(_tcp_socket_fd, _server_tcp_addr->ai_addr,
+	         _server_tcp_addr->ai_addrlen)) {
 		throw UnrecoverableException("Failed to bind TCP address");
 	}
 
@@ -137,44 +137,42 @@ void Server::resolveServerAddress(std::string &port) {
 void RequestManager::registerRequest(std::shared_ptr<RequestHandler> handler,
                                      int type) {
 	if (type == UDP_MESSAGE) {
-		this->_udp_handlers.insert({handler->_protocol_code, handler});
+		_udp_handlers.insert({handler->_protocol_code, handler});
 	} else {
-		this->_tcp_handlers.insert({handler->_protocol_code, handler});
+		_tcp_handlers.insert({handler->_protocol_code, handler});
 	}
 }
 
 void RequestManager::registerRequestHandlers() {
-	this->registerRequest(std::make_shared<LoginRequest>(), UDP_MESSAGE);
-	this->registerRequest(std::make_shared<LogoutRequest>(), UDP_MESSAGE);
-	this->registerRequest(std::make_shared<UnregisterRequest>(), UDP_MESSAGE);
-	this->registerRequest(std::make_shared<ListAllAuctionsRequest>(),
-	                      UDP_MESSAGE);
-	this->registerRequest(std::make_shared<ListBiddedAuctionsRequest>(),
-	                      UDP_MESSAGE);
-	this->registerRequest(std::make_shared<ListStartedAuctionsRequest>(),
-	                      UDP_MESSAGE);
-	this->registerRequest(std::make_shared<ShowRecordRequest>(), UDP_MESSAGE);
-	this->registerRequest(std::make_shared<OpenAuctionRequest>(), TCP_MESSAGE);
-	this->registerRequest(std::make_shared<CloseAuctionRequest>(), TCP_MESSAGE);
-	this->registerRequest(std::make_shared<ShowAssetRequest>(), TCP_MESSAGE);
-	this->registerRequest(std::make_shared<BidRequest>(), TCP_MESSAGE);
+	registerRequest(std::make_shared<LoginRequest>(), UDP_MESSAGE);
+	registerRequest(std::make_shared<LogoutRequest>(), UDP_MESSAGE);
+	registerRequest(std::make_shared<UnregisterRequest>(), UDP_MESSAGE);
+	registerRequest(std::make_shared<ListAllAuctionsRequest>(), UDP_MESSAGE);
+	registerRequest(std::make_shared<ListBiddedAuctionsRequest>(), UDP_MESSAGE);
+	registerRequest(std::make_shared<ListStartedAuctionsRequest>(),
+	                UDP_MESSAGE);
+	registerRequest(std::make_shared<ShowRecordRequest>(), UDP_MESSAGE);
+	registerRequest(std::make_shared<OpenAuctionRequest>(), TCP_MESSAGE);
+	registerRequest(std::make_shared<CloseAuctionRequest>(), TCP_MESSAGE);
+	registerRequest(std::make_shared<ShowAssetRequest>(), TCP_MESSAGE);
+	registerRequest(std::make_shared<BidRequest>(), TCP_MESSAGE);
+	registerRequest(std::make_shared<WrongRequestUDP>(), TCP_MESSAGE);
+	registerRequest(std::make_shared<WrongRequestTCP>(), TCP_MESSAGE);
 }
 
 void RequestManager::callHandlerRequest(MessageAdapter &message, Server &server,
                                         Address &address, int type) {
 	std::string rec_proto_code = message.getn(PROTOCOL_SIZE);
 	if (type == UDP_MESSAGE) {
-		auto handler = this->_udp_handlers.find(rec_proto_code);
-		if (handler == this->_udp_handlers.end()) {
-			throw UnknownHandlerException();
-			return;
+		auto handler = _udp_handlers.find(rec_proto_code);
+		if (handler == _udp_handlers.end()) {
+			handler = _udp_handlers.find(CODE_ERROR);
 		}
 		handler->second->handle(message, server, address);
 	} else {
-		auto handler = this->_tcp_handlers.find(rec_proto_code);
-		if (handler == this->_tcp_handlers.end()) {
-			throw UnknownHandlerException();
-			return;
+		auto handler = _tcp_handlers.find(rec_proto_code);
+		if (handler == _tcp_handlers.end()) {
+			handler = _tcp_handlers.find(CODE_ERROR);
 		}
 		handler->second->handle(message, server, address);
 	}

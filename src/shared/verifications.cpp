@@ -54,7 +54,7 @@ int verify_name(std::string name) {
 
 int check_fname_not_forbidden(std::string fname) {
 	std::vector<std::string> forbidden = {"..", "/", "."};
-	if (std::find(forbidden.begin(), forbidden.end(), fname) !=
+	if (std::find(forbidden.begin(), forbidden.end(), fname) ==
 	    forbidden.end()) {
 		return 0;
 	};

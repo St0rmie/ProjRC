@@ -39,6 +39,7 @@
 #define CODE_SHOW_ASSET_SERVER  "RSA"
 #define CODE_BID_CLIENT         "BID"
 #define CODE_BID_SERVER         "RBD"
+#define CODE_ERROR              "ERR"
 
 #define SERVER_UDP_TIMEOUT 300
 #define UDP_TIMEOUT        5

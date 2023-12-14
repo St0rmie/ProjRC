@@ -449,3 +449,21 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 	                 (struct sockaddr *) &address.addr, address.size,
 	                 server._verbose);
 }
+
+void WrongRequestUDP::handle(MessageAdapter &message, Server &server,
+                             Address &address) {
+	ServerError message_out;
+
+	send_udp_message(message_out, address.socket,
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
+}
+
+void WrongRequestTCP::handle(MessageAdapter &message, Server &server,
+                             Address &address) {
+	ServerError message_out;
+
+	send_tcp_message(message_out, address.socket,
+	                 (struct sockaddr *) &address.addr, address.size,
+	                 server._verbose);
+}

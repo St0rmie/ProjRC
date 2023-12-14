@@ -36,3 +36,6 @@
 
 # Database
 ASDIR
+
+# Test results
+*.html

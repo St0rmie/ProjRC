@@ -33,11 +33,16 @@ bool ProtocolMessage::readCharEqual(MessageAdapter &buffer, char c) {
 void ProtocolMessage::readMessageId(MessageAdapter &buffer,
                                     std::string protocol_code) {
 	char current_char;
+	std::string errcheck;
 	int i = 0;
 	while (protocol_code[i] != '\0') {
 		current_char = readChar(buffer);
+		errcheck += current_char;
 		if (!buffer.good() || current_char != protocol_code[i]) {
 			throw UnexpectedMessageException();
+			if (errcheck == CODE_ERROR) {
+				throw ERRCodeMessageException();
+			}
 		}
 		++i;
 	}
@@ -889,6 +894,17 @@ void ServerBid::readMessage(MessageAdapter &buffer) {
 	} else {
 		throw InvalidMessageException();
 	}
+}
+
+std::stringstream ServerError::buildMessage() {
+	std::stringstream buffer;
+	buffer << protocol_code << std::endl;
+	return buffer;
+}
+
+void ServerError::readMessage(MessageAdapter &buffer) {
+	// Not needed. Receiving a server error will be treated as exception.
+	return;
 }
 
 // -----------------------------------
