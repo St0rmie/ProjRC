@@ -925,7 +925,7 @@ void send_udp_message(ProtocolMessage &message, int socketfd,
 		throw MessageSendException();
 	}
 	if (verbose) {
-		std::cout << "\t[INFO] Outgoing Answer (first 100 characters):\n\t-> "
+		std::cout << "[INFO] Outgoing Answer (first 100 characters):\n\t-> "
 				  << buffer.str().substr(0, 100) << std::endl;
 	}
 }

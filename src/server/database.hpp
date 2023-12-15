@@ -155,8 +155,8 @@ bool CompareByValue(const BidInfo &a, const BidInfo &b);
 
 class Database {
    protected:
-	sem_t *sem;
-	int lock_id;
+	sem_t *_sem;
+	int _lock_id;
 
 	int semaphore_init(int port_n);
 	void semaphore_wait();
@@ -196,7 +196,7 @@ class Database {
 	int Close(std::string a_id);
 
    public:
-	int CreateBaseDir();
+	int CreateBaseDir(int sem_id);
 	int CheckUserLoggedIn(std::string user_id);
 	int LoginUser(std::string user_id, std::string password);
 	int Logout(std::string user_id, std::string password);

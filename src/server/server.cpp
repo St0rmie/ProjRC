@@ -46,7 +46,8 @@ Server::Server(int argc, char *argv[]) {
 		throw UnrecoverableException("[ERROR] Couldn't open socket");
 	}
 	// Creates base for database
-	_database.CreateBaseDir();
+	_database.CreateBaseDir(stoi(_port));
+
 	// Setup sockets
 	setup_sockets();
 	resolveServerAddress(_port);
