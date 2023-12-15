@@ -21,14 +21,9 @@ void CommandManager::registerCommand(std::shared_ptr<CommandHandler> handler) {
 }
 
 void CommandManager::waitCommand(Client &client) {
-	/*std::cout << "> ";
-
-	std::string line;
-	std::getline(std::cin, line);
-
-	if (std::cin.eof()) {
-	    return;
-	}*/
+	if (client.isLoggedIn()) {
+		std::cout << "[" << client.getLoggedInUser() << "]" << std::flush;
+	}
 
 	char *input = readline("> ");
 	add_history(input);
@@ -139,8 +134,8 @@ void LogoutCommand::handle(std::string args, Client &client) {
 	}
 
 	/*if (client.isLoggedIn() == false) {
-	    std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
-	    return;
+	    std::cout << "[ERROR] Not logged in. Please login first." <<
+	std::endl; return;
 	}*/
 
 	// Populate and send packet
@@ -184,8 +179,8 @@ void UnregisterCommand::handle(std::string args, Client &client) {
 	}
 
 	/*if (client.isLoggedIn() == false) {
-	    std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
-	    return;
+	    std::cout << "[ERROR] Not logged in. Please login first." <<
+	std::endl; return;
 	}*/
 
 	// Populate and send packet
