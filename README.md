@@ -4,6 +4,7 @@ RC @ IST - Project 2023/2024
 
 ## TODO LIST
 
+- FIX END DATE ERROR
 - Talvez usar select no wait for tcp message e passar accept para dentro da child
 
 ## Client
@@ -15,16 +16,15 @@ RC @ IST - Project 2023/2024
 ## Server
 
 - (pretty) improve Error prints
-- semaphores database
 
 ## Tests
 
-- 1
-- 2
-- 3
-- 4
-- 5
-- 6
-- 7
-- 8
-- 9
+- 1 - WORKING
+- 2 - WORKING
+- 3 - WORKING
+- 4 - WORKING
+- 5 - WORKING
+- 6 - WORKING
+- 7 - WORKING
+- 8 - WORKING
+- 9 - WORKING BUT ONLY WHEN NOT CLOSED
