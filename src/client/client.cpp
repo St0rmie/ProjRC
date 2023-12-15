@@ -11,7 +11,7 @@ void Client::configClient(int argc, char *argv[]) {
 				this->_port = std::string(optarg);
 				break;
 			default:
-				std::cout << "[ERROR] Config error." << std::endl;
+				printError("Config error.");
 				exit(EXIT_FAILURE);
 		}
 	}
@@ -83,11 +83,11 @@ int Client::sendUdpMessageAndAwaitReply(ProtocolMessage &out_message,
 			return 0;
 		} catch (ConnectionTimeoutException &e) {
 			if (triesLeft == 0) {
-				std::cout << "[ERROR] Couldn't send message" << std::endl;
+				printError("Couldn't send message");
 				return -1;
 			}
 		} catch (InvalidMessageException &e) {
-			std::cout << "[ERROR] Invalid Message." << std::endl;
+			printError("Invalid Message.");
 			return -1;
 		} catch (UnexpectedMessageException &e) {
 			printError("Unexpected Message.");
@@ -116,11 +116,11 @@ int Client::sendTcpMessageAndAwaitReply(ProtocolMessage &out_message,
 		sendTcpMessage(out_message);
 		waitForTcpMessage(in_message);
 	} catch (ConnectionTimeoutException &e) {
-		std::cout << "[ERROR] Couldn't send message" << std::endl;
+		printError("Couldn't send message");
 		closeTcpSocket();
 		return -1;
 	} catch (InvalidMessageException &e) {
-		std::cout << "[ERROR] Invalid Message." << std::endl;
+		printError("Invalid Message.");
 		closeTcpSocket();
 		return -1;
 	} catch (UnexpectedMessageException &e) {
