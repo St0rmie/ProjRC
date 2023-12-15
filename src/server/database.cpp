@@ -24,30 +24,31 @@
 namespace fs = std::filesystem;
 
 int Database::semaphore_init(int lock_id) {
-	std::string sem_name = "sem_ASDIR_P_" + std::to_string(lock_id);
-	int sts;
+	std::string sem_name = "sem_AS_" + std::to_string(lock_id);
 	sem_unlink(sem_name.c_str());
-	sem = sem_open(sem_name.c_str(), O_CREAT | O_EXCL, 0644, 1);
-	if (sem == SEM_FAILED) {
+
+	_sem = sem_open(sem_name.c_str(), O_CREAT, 0644, 1);
+
+	if (_sem == SEM_FAILED) {
 		return -1;
 	}
 	return 0;
 }
 
 void Database::semaphore_wait() {
-	if (sem_wait(sem) == -1)
+	if (sem_wait(_sem) == -1)
 		throw SemException();
 }
 
 void Database::semaphore_post() {
-	if (sem_post(sem) == -1)
+	if (sem_post(_sem) == -1)
 		throw SemException();
 }
 
 int Database::semaphore_destroy() {
-	std::string sem_name = "sem_ASDIR_P_" + std::to_string(lock_id);
-	sem_close(sem);
-	sem_destroy(sem);
+	std::string sem_name = "sem_AS_" + std::to_string(_lock_id);
+	sem_close(_sem);
+	return 0;
 }
 
 bool CompareByAid(const AuctionListing &a, const AuctionListing &b) {
@@ -820,10 +821,14 @@ std::string Database::GetAssetData(std::string asset_fname) {
 	return buffer.str();
 }
 
-int Database::CreateBaseDir() {
+int Database::CreateBaseDir(int sem_id) {
 	const char *asdir = "ASDIR";
 	const char *users = "ASDIR/USERS";
 	const char *auctions = "ASDIR/AUCTIONS";
+
+	if (semaphore_init(sem_id) == -1) {
+		return -1;
+	}
 
 	if (mkdir(asdir, 0700) == -1) {
 		return -1;
@@ -841,97 +846,123 @@ int Database::CreateBaseDir() {
 }
 
 int Database::LoginUser(std::string user_id, std::string password) {
+	semaphore_wait();
 	if (CheckUserLoggedIn(user_id) == 0) {
 		if (CorrectPassword(user_id, password) != 1) {
+			semaphore_post();
 			throw UserNotLoggedIn();
 			return DB_LOGIN_NOK;  // Wrong Password
 		}
+		semaphore_post();
 		return DB_LOGIN_OK;
 	}
 	int created_user = CreateUserDir(user_id);
 
 	if (created_user == -1) {
+		semaphore_post();
 		return DB_LOGIN_NOK;  // Incorrect login
 	}
 
 	if (created_user == 2) {
 		if (CheckUserRegistered(user_id) == 0) {
 			if (CorrectPassword(user_id, password) != 1) {
+				semaphore_post();
 				return DB_LOGIN_NOK;  // Wrong Password
 			}
 			if (CreateLogin(user_id) == -1) {
+				semaphore_post();
 				return DB_LOGIN_NOK;  // Incorrect login
 			}
+			semaphore_post();
 			return DB_LOGIN_OK;  // Successful login
 
 		} else {
 			if (CreatePassword(user_id, password) == -1) {
+				semaphore_post();
 				return DB_LOGIN_NOK;  // Incorrect login
 			}
 			if (CreateLogin(user_id) == -1) {
+				semaphore_post();
 				return DB_LOGIN_NOK;  // Incorrect login
 			}
+			semaphore_post();
 			return DB_LOGIN_REGISTER;  // New user registered
 		}
 	}
 
 	if (CreatePassword(user_id, password) == -1) {
+		semaphore_post();
 		return DB_LOGIN_NOK;  // Incorrect login
 	}
 
 	if (CreateLogin(user_id) == -1) {
+		semaphore_post();
 		return DB_LOGIN_NOK;  // Incorrect login
 	}
 
+	semaphore_post();
 	return DB_LOGIN_REGISTER;  // New user registered
 }
 
 int Database::Logout(std::string user_id, std::string password) {
+	semaphore_wait();
 	if (CorrectPassword(user_id, password) != 1) {
+		semaphore_post();
 		return DB_LOGOUT_NOK;  // Wrong Password
 	}
 
 	int removed_login = EraseLogin(user_id);
 
 	if (removed_login == -1) {
+		semaphore_post();
 		return DB_LOGOUT_UNREGISTERED;  // Unknown user
 	}
 
 	if (removed_login == 0) {
+		semaphore_post();
 		return DB_LOGOUT_OK;  // Successful logout
 	}
 
 	if (removed_login == 2) {
+		semaphore_post();
 		throw UserNotLoggedIn();
 		return DB_LOGOUT_NOK;  // User not logged in
 	}
 
+	semaphore_post();
 	return DB_LOGOUT_NOK;
 }
 
 int Database::Unregister(std::string user_id, std::string password) {
+	semaphore_wait();
 	if (CorrectPassword(user_id, password) != 1) {
+		semaphore_post();
 		return DB_UNREGISTER_NOK;  // Wrong Password
 	}
 
 	if (Logout(user_id, password) == DB_LOGOUT_NOK) {
+		semaphore_post();
 		return DB_UNREGISTER_NOK;  // Couldn't logout when unregistering
 	}
 
 	int erased_password = ErasePassword(user_id);
 
 	if (erased_password == -1) {
+		semaphore_post();
 		return DB_UNREGISTER_NOK;  // Incorrect unregister attempt
 	}
 
 	if (erased_password == 0) {
+		semaphore_post();
 		return DB_UNREGISTER_OK;  // Successful unregister
 	}
 
 	if (erased_password == 2) {
+		semaphore_post();
 		return DB_UNREGISTER_UNKNOWN;  // Unknown user
 	}
 
+	semaphore_post();
 	return DB_UNREGISTER_NOK;
 }
 
@@ -940,10 +971,12 @@ int Database::Open(std::string user_id, std::string name, std::string password,
                    std::string timeactive, size_t fsize, std::string data) {
 	(void) fsize;
 	if (CheckUserLoggedIn(user_id) != 0) {
+		semaphore_post();
 		throw UserNotLoggedIn();
 		return DB_OPEN_NOT_LOGGED_IN;  // Not Logged in
 	}
 	if (CorrectPassword(user_id, password) != 1) {
+		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Wrong Password
 	}
 	uint32_t aid = 0;
@@ -969,22 +1002,27 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 	std::string c_aid = convert_auction_id_to_str(aid);
 
 	if (CreateAuctionDir(c_aid) == -1) {
+		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create auction dir
 	}
 
 	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
 	                    timeactive) == -1) {
+		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
 
 	if (CreateAssetFile(c_aid, asset_fname, data) == -1) {
+		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
 
 	if (RegisterHost(user_id, c_aid) == -1) {
+		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create hosted file
 	}
 
+	semaphore_post();
 	return static_cast<int>(aid);
 }
 
@@ -992,28 +1030,29 @@ int Database::CloseAuction(std::string a_id, std::string user_id,
                            std::string password) {
 	std::string user_id_dir = "ASDIR/USERS/" + user_id;
 	const char *user_id_dirname = user_id_dir.c_str();
+	semaphore_wait();
 	if (CheckUserExisted(user_id_dirname) == -1) {
-		std::cout << "dis shit" << std::endl;
+		semaphore_post();
 		throw UserDoesNotExist();
 		return DB_CLOSE_NOK;  // User doesn't exist
 	}
 	if (CheckUserLoggedIn(user_id) != 0) {
-		std::cout << "dis shit2" << std::endl;
+		semaphore_post();
 		throw UserNotLoggedIn();
 		return DB_CLOSE_NOK;  // Not Logged in
 	}
 	if (CorrectPassword(user_id, password) != 1) {
-		std::cout << "dis shit3" << std::endl;
+		semaphore_post();
 		throw IncorrectPassword();
 		return DB_CLOSE_NOK;  // Wrong Password
 	}
 	if (CheckAuctionExists(a_id) == -1) {
-		std::cout << "dis shit4" << std::endl;
+		semaphore_post();
 		throw AuctionNotFound();
 		return DB_CLOSE_NOK;
 	}
 	if (CheckAuctionBelongs(a_id, user_id) == -1) {
-		std::cout << "dis shit5" << std::endl;
+		semaphore_post();
 		throw AuctionNotOwnedByUser();
 		return DB_CLOSE_NOK;
 	}
@@ -1023,12 +1062,15 @@ int Database::CloseAuction(std::string a_id, std::string user_id,
 	dir_name += a_id;
 	dir_name += ".txt";
 	if (CheckEndExists(dir_name.c_str()) == 0) {
-		std::cout << "dis shit6" << std::endl;
+		semaphore_post();
 		throw AuctionAlreadyClosed();
 		return DB_CLOSE_NOK;
 	}
 
-	return (Close(a_id));
+	int res = Close(a_id);
+
+	semaphore_post();
+	return res;
 }
 
 AuctionList Database::MyAuctions(std::string user_id) {
@@ -1040,7 +1082,10 @@ AuctionList Database::MyAuctions(std::string user_id) {
 	StartInfo start;
 	time_t fulltime;
 
+	semaphore_wait();
+
 	if (fs::is_empty(dir_name)) {
+		semaphore_post();
 		return result;  // Returns empty list which means user hosted no
 		                // auctions
 	} else {
@@ -1057,6 +1102,7 @@ AuctionList Database::MyAuctions(std::string user_id) {
 
 			if (CheckEndExists(aid_dir_name.c_str()) == -1) {
 				if (GetStart(aid, start) == -1) {
+					semaphore_post();
 					throw AuctionNotFound();
 					return result;
 				};
@@ -1081,6 +1127,7 @@ AuctionList Database::MyAuctions(std::string user_id) {
 	}
 
 	std::sort(result.begin(), result.end(), CompareByAid);
+	semaphore_post();
 	return result;
 }
 
@@ -1093,7 +1140,10 @@ AuctionList Database::MyBids(std::string user_id) {
 	StartInfo start;
 	time_t fulltime;
 
+	semaphore_wait();
+
 	if (fs::is_empty(bidded_dir_name)) {
+		semaphore_post();
 		return result;  // Returns empty list which means user made no bids
 	} else {
 		for (const auto &entry : fs::directory_iterator(bidded_dir_name)) {
@@ -1109,6 +1159,7 @@ AuctionList Database::MyBids(std::string user_id) {
 
 			if (CheckEndExists(dir_name.c_str()) == -1) {
 				if (GetStart(aid, start) == -1) {
+					semaphore_post();
 					throw AuctionNotFound();
 					return result;
 				};
@@ -1133,6 +1184,7 @@ AuctionList Database::MyBids(std::string user_id) {
 	}
 
 	std::sort(result.begin(), result.end(), CompareByAid);
+	semaphore_post();
 	return result;
 }
 
@@ -1145,6 +1197,7 @@ AuctionList Database::List() {
 	time_t fulltime;
 
 	if (fs::is_empty(Dir_name)) {
+		semaphore_post();
 		return result;  // Returns empty list which means no auctions were ever
 		                // made
 	} else {
@@ -1160,6 +1213,7 @@ AuctionList Database::List() {
 
 			if (CheckEndExists(dir_name.c_str()) == -1) {
 				if (GetStart(aid, start) == -1) {
+					semaphore_post();
 					throw AuctionNotFound();
 					return result;
 				};
@@ -1184,6 +1238,7 @@ AuctionList Database::List() {
 	}
 
 	std::sort(result.begin(), result.end(), CompareByAid);
+	semaphore_post();
 	return result;
 }
 
@@ -1192,7 +1247,9 @@ AssetInfo Database::ShowAsset(std::string a_id) {
 
 	std::string asset_dir = GetAssetDir(a_id);
 
+	semaphore_wait();
 	if (asset_dir == "") {
+		semaphore_post();
 		throw AssetDoesNotExist();
 		return DB_SHOW_ASSET_ERROR;
 	}
@@ -1203,23 +1260,29 @@ AssetInfo Database::ShowAsset(std::string a_id) {
 	asset_dir.erase(asset_dir.begin(), asset_dir.begin() + 25);
 	asset.asset_fname = asset_dir;
 
+	semaphore_post();
 	return asset;
 }
 
 int Database::Bid(std::string user_id, std::string password, std::string a_id,
                   std::string bid_value) {
+	semaphore_wait();
 	if (CheckUserLoggedIn(user_id) != 0) {
+		semaphore_post();
 		throw UserNotLoggedIn();
 		return DB_BID_NOK;  // Not Logged in
 	}
 	if (CorrectPassword(user_id, password) != 1) {
+		semaphore_post();
 		return DB_BID_NOK;  // Wrong Password
 	}
 	if (CheckAuctionExists(a_id) == -1) {
+		semaphore_post();
 		throw AuctionNotFound();
 		return DB_BID_NOK;
 	}
 	if (CheckAuctionBelongs(a_id, user_id) == 0) {
+		semaphore_post();
 		throw BidOnSelf();
 		return DB_BID_NOK;
 	}
@@ -1234,6 +1297,7 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 	end_dir_name += ".txt";
 
 	if (CheckEndExists(end_dir_name.c_str()) == 0) {
+		semaphore_post();
 		throw AuctionAlreadyClosed();
 		return DB_BID_NOK;
 	}
@@ -1251,6 +1315,7 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 		std::cout << old_value << " vs " << value << std::endl;
 
 		if (old_value >= value) {
+			semaphore_post();
 			throw LargerBidAlreadyExists();
 			return DB_BID_NOK;
 		}
@@ -1264,6 +1329,7 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 			std::cout << old_value << " vs " << value << std::endl;
 
 			if (old_value >= value) {
+				semaphore_post();
 				throw LargerBidAlreadyExists();
 				return DB_BID_NOK;
 			}
@@ -1271,13 +1337,16 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 	}
 
 	if (RegisterBid(user_id, a_id) == -1) {
+		semaphore_post();
 		return DB_BID_REFUSE;
 	}
 
 	if (CreateBidFile(a_id, user_id, bid_value) == -1) {
+		semaphore_post();
 		return DB_BID_REFUSE;
 	}
 
+	semaphore_post();
 	return DB_BID_ACCEPT;
 }
 
@@ -1291,7 +1360,9 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	AuctionRecord result;
 	BidList list;
 
+	semaphore_wait();
 	if (GetStart(a_id, start) == -1) {
+		semaphore_post();
 		throw AuctionNotFound();
 		return result;
 	};
@@ -1347,5 +1418,6 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	}
 
 	result.list = list;
+	semaphore_post();
 	return result;
 }

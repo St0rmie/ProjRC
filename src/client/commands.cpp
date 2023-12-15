@@ -21,11 +21,16 @@ void CommandManager::registerCommand(std::shared_ptr<CommandHandler> handler) {
 }
 
 void CommandManager::waitCommand(Client &client) {
+	std::string line_base;
 	if (client.isLoggedIn()) {
-		std::cout << "[" << client.getLoggedInUser() << "]" << std::flush;
+		line_base += "[";
+		line_base += std::to_string(client.getLoggedInUser());
+		line_base += "] > ";
+	} else {
+		line_base += "> ";
 	}
 
-	char *input = readline("> ");
+	char *input = readline(line_base.c_str());
 	add_history(input);
 	std::string line(input);
 	free(input);
