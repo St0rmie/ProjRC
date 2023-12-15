@@ -96,7 +96,7 @@ void Server::resolveServerAddress(std::string &port) {
 	}
 	// bind socket
 	if (bind(_udp_socket_fd, _server_udp_addr->ai_addr,
-	         _server_udp_addr->ai_addrlen)) {
+	         _server_udp_addr->ai_addrlen) < 0) {
 		throw UnrecoverableException("Failed to bind UDP address.");
 	}
 
@@ -113,7 +113,7 @@ void Server::resolveServerAddress(std::string &port) {
 	}
 
 	if (bind(_tcp_socket_fd, _server_tcp_addr->ai_addr,
-	         _server_tcp_addr->ai_addrlen)) {
+	         _server_tcp_addr->ai_addrlen) < 0) {
 		throw UnrecoverableException("Failed to bind TCP address");
 	}
 
