@@ -1217,7 +1217,7 @@ AssetInfo Database::ShowAsset(std::string a_id) {
 }
 
 int Database::Bid(std::string user_id, std::string password, std::string a_id,
-                  std::string value) {
+                  std::string bid_value) {
 	if (CheckUserLoggedIn(user_id) != 0) {
 		throw UserNotLoggedIn();
 		return DB_BID_NOK;  // Not Logged in
@@ -1235,6 +1235,8 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 	}
 
 	BidInfo bid;
+	StartInfo start;
+	long value = stol(bid_value);
 
 	std::string end_dir_name = "ASDIR/AUCTIONS/" + a_id;
 	end_dir_name += "/END_";
@@ -1252,14 +1254,24 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 	std::string bid_fname;
 
 	if (fs::is_empty(bid_dir_name)) {
+		GetStart(a_id, start);
+
+		long old_value = stol(start.start_value);
+
+		std::cout << old_value << " vs " << value << std::endl;
+
+		if (old_value >= value) {
+			throw LargerBidAlreadyExists();
+			return DB_BID_NOK;
+		}
 	} else {
 		for (const auto &entry : fs::directory_iterator(bid_dir_name)) {
 			bid_fname = entry.path();
 
-			std::cout << bid_fname << std::endl;
-
 			GetBid(bid_fname, bid);
-			std::string old_value = bid.value;
+			long old_value = stol(bid.value);
+
+			std::cout << old_value << " vs " << value << std::endl;
 
 			if (old_value >= value) {
 				throw LargerBidAlreadyExists();
@@ -1272,7 +1284,7 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 		return DB_BID_REFUSE;
 	}
 
-	if (CreateBidFile(a_id, user_id, value) == -1) {
+	if (CreateBidFile(a_id, user_id, bid_value) == -1) {
 		return DB_BID_REFUSE;
 	}
 
