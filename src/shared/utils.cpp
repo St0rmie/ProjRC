@@ -126,6 +126,7 @@ void saveToFile(std::string file_name, std::string path,
                 std::string file_data) {
 	std::string full_path = path + file_name;
 	std::ofstream file;
+	std::cout << full_path << std::endl;
 	file.open(full_path, std::ofstream::trunc);
 	if (!file.good()) {
 		throw FileException();
