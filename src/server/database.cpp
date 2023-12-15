@@ -2,6 +2,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
@@ -13,7 +14,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -22,6 +22,33 @@
 #include "shared/verifications.hpp"
 
 namespace fs = std::filesystem;
+
+int Database::semaphore_init(int lock_id) {
+	std::string sem_name = "sem_ASDIR_P_" + std::to_string(lock_id);
+	int sts;
+	sem_unlink(sem_name.c_str());
+	sem = sem_open(sem_name.c_str(), O_CREAT | O_EXCL, 0644, 1);
+	if (sem == SEM_FAILED) {
+		return -1;
+	}
+	return 0;
+}
+
+void Database::semaphore_wait() {
+	if (sem_wait(sem) == -1)
+		throw SemException();
+}
+
+void Database::semaphore_post() {
+	if (sem_post(sem) == -1)
+		throw SemException();
+}
+
+int Database::semaphore_destroy() {
+	std::string sem_name = "sem_ASDIR_P_" + std::to_string(lock_id);
+	sem_close(sem);
+	sem_destroy(sem);
+}
 
 bool CompareByAid(const AuctionListing &a, const AuctionListing &b) {
 	uint32_t a_aid = stoi(a.a_id);

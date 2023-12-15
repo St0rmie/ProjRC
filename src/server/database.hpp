@@ -3,6 +3,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <semaphore.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
@@ -14,7 +15,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -45,6 +45,11 @@
 #define DB_BID_NOK    -2
 #define DB_BID_REFUSE -1
 #define DB_BID_ACCEPT 0
+
+class SemException : public std::runtime_error {
+   public:
+	SemException() : std::runtime_error("[ERROR] Error in semaphore.") {}
+};
 
 class AuctionNotFound : public std::runtime_error {
    public:
@@ -148,28 +153,16 @@ typedef struct {
 bool CompareByAid(const AuctionListing &a, const AuctionListing &b);
 bool CompareByValue(const BidInfo &a, const BidInfo &b);
 
-class semaphore {
-	std::mutex mutex_;
-	std::condition_variable condition_;
-	unsigned long count_ = 0;  // Initialized as locked.
-
-   public:
-	void release() {
-		std::lock_guard<decltype(mutex_)> lock(mutex_);
-		++count_;
-		condition_.notify_one();
-	}
-
-	void acquire() {
-		std::unique_lock<decltype(mutex_)> lock(mutex_);
-		while (!count_)  // Handle spurious wake-ups.
-			condition_.wait(lock);
-		--count_;
-	}
-};
-
 class Database {
    protected:
+	sem_t *sem;
+	int lock_id;
+
+	int semaphore_init(int port_n);
+	void semaphore_wait();
+	void semaphore_post();
+	int semaphore_destroy();
+
 	int CheckUserExisted(const char *user_id_dirname);
 	int CheckUserRegistered(std::string user_id);
 	int CreateUserDir(std::string user_id);
