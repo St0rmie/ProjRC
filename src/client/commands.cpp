@@ -431,7 +431,7 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 
 	// Defining the arguments extracted
 	std::string name = parsed_args[0];
-	std::string asset_fname = parsed_args[1];
+	std::string asset_path = parsed_args[1];
 	std::string start_value = parsed_args[2];
 	std::string timeactive = parsed_args[3];
 
@@ -440,8 +440,8 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 		std::cout << "[ERROR] Incorrect auction name." << std::endl;
 		return;
 	}
-	if (verify_asset_fname(asset_fname) == -1) {
-		std::cout << "[ERROR] Incorrect asset file name." << std::endl;
+	if (verify_asset_fname(asset_path) == -1) {
+		std::cout << "[ERROR] Incorrect asset file path/name." << std::endl;
 		return;
 	}
 
@@ -455,7 +455,8 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	}
 
 	// Path to file
-	std::string pathname = CLIENT_ASSET_DEFAULT_PATH + asset_fname;
+	std::string assetf_name =
+		asset_path.substr(asset_path.find_last_of("/\\") + 1);
 
 	// Protocol setup
 	// Populate and send message
@@ -465,13 +466,13 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	message_out.name = name;
 	message_out.start_value = convert_auction_value(start_value);
 	message_out.timeactive = stoi(timeactive);
-	message_out.assetf_name = asset_fname;
-	message_out.Fsize = getFileSize(pathname);
+	message_out.assetf_name = assetf_name;
+	message_out.Fsize = getFileSize(asset_path);
 	if (message_out.Fsize == -1) {
 		throw FileException();
 		return;
 	}
-	message_out.fdata = readFromFile(pathname);
+	message_out.fdata = readFromFile(asset_path);
 
 	ServerOpenAuction message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
