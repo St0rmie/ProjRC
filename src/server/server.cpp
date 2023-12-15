@@ -57,16 +57,22 @@ void Server::setup_sockets() {
 	if ((_udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
 		throw UnrecoverableException("Failed to create a UDP socket");
 	}
-	// UDP socket doesn't have a timeout.
+	// Force reuse of the socket.
+	const int enable_udp = 1;
+	if (setsockopt(_udp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable_udp,
+	               sizeof(int)) < 0) {
+		throw UnrecoverableException(
+			"Failed to set UDP reuse address socket option");
+	}
 
 	// Create a TCP socket
 	if ((_tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		throw UnrecoverableException("Failed to create a TCP socket");
 	}
-	const int enable = 1;
+	const int enable_tcp = 1;
 
 	// Force reuse of the socket.
-	if (setsockopt(_tcp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable,
+	if (setsockopt(_tcp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable_tcp,
 	               sizeof(int)) < 0) {
 		throw UnrecoverableException(
 			"Failed to set TCP reuse address socket option");

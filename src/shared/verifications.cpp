@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "config.hpp"
+
 int verify_user_id(std::string user_id) {
 	if (user_id.size() != 6) {
 		return -1;
@@ -61,24 +63,25 @@ int check_fname_not_forbidden(std::string fname) {
 	return -1;
 }
 
-int verify_asset_fname(std::string asset_fname) {
+int verify_asset_fname(std::string asset_path) {
 	std::ifstream file;
+	std::string assetf_name =
+		asset_path.substr(asset_path.find_last_of("/\\") + 1);
 
-	if (check_fname_not_forbidden(asset_fname) == -1) {
+	if (check_fname_not_forbidden(assetf_name) == -1) {
 		return -1;
 	}
 
-	file.open("assets/" + asset_fname);
+	file.open(asset_path);
 
 	if (file) {
 		file.close();
 		return 0;
-	}
-
-	else {
+	} else {
 		file.close();
 		return -1;
 	}
+	return -1;
 }
 
 int verify_start_value(std::string start_value) {

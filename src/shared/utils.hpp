@@ -27,7 +27,7 @@ typedef struct {
 // Thrown when the MessageID does not match what was expected
 class FileException : public std::runtime_error {
    public:
-	FileException() : std::runtime_error("Couldn't open file.") {}
+	FileException() : std::runtime_error("[ERROR] Couldn't open file.") {}
 };
 
 // -----------------------------------
