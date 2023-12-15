@@ -29,7 +29,10 @@ void printRequest(std::string message) {
 
 std::string hidePassword(std::string password) {
 	std::string hidden_password = "";
-	for (int i = 0; i < password.length(); i++) {
+
+	int length = static_cast<int>(password.length());
+
+	for (int i = 0; i < length; i++) {
 		hidden_password += "*";
 	};
 	return hidden_password;

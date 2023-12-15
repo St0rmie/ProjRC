@@ -170,8 +170,7 @@ void Client::sendTcpMessage(ProtocolMessage &message) {
 	if (n == -1) {
 		throw ConnectionTimeoutException();
 	}
-	send_tcp_message(message, _tcp_socket_fd, _server_tcp_addr->ai_addr,
-	                 _server_tcp_addr->ai_addrlen, false);
+	send_tcp_message(message, _tcp_socket_fd, false);
 }
 
 void Client::waitForTcpMessage(ProtocolMessage &message) {

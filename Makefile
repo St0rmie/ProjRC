@@ -46,17 +46,17 @@ endif
 
 #LDFLAGS = -fsanitize=address -lasan
 
-#CXXFLAGS += -fdiagnostics-color=always
-#CXXFLAGS += -Wall					Comparison issues
+CXXFLAGS += -fdiagnostics-color=always
+CXXFLAGS += -Wall
 CXXFLAGS += -Werror
-#CXXFLAGS += -Wextra 				Missing comparisons and unused minor stuff
+CXXFLAGS += -Wextra
 CXXFLAGS += -Wcast-align
-#CXXFLAGS += -Wconversion 			HELL
+CXXFLAGS += -Wconversion
 CXXFLAGS += -Wfloat-equal
 CXXFLAGS += -Wformat=2
 CXXFLAGS += -Wnull-dereference
 CXXFLAGS += -Wshadow
-#CXXFLAGS += -Wsign-conversion  	HELL
+CXXFLAGS += -Wsign-conversion
 CXXFLAGS += -Wswitch-default
 CXXFLAGS += -Wswitch-enum
 CXXFLAGS += -Wundef

@@ -329,9 +329,7 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 		return;
 	}
 
-	send_tcp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size,
-	                 server._verbose);
+	send_tcp_message(message_out, address.socket, server._verbose);
 }
 
 void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
@@ -374,9 +372,7 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 		return;
 	}
 
-	send_tcp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size,
-	                 server._verbose);
+	send_tcp_message(message_out, address.socket, server._verbose);
 }
 
 void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
@@ -408,9 +404,7 @@ void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
 		return;
 	}
 
-	send_tcp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size,
-	                 server._verbose);
+	send_tcp_message(message_out, address.socket, server._verbose);
 }
 
 void BidRequest::handle(MessageAdapter &message, Server &server,
@@ -455,13 +449,13 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 		return;
 	}
 
-	send_tcp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size,
-	                 server._verbose);
+	send_tcp_message(message_out, address.socket, server._verbose);
 }
 
 void WrongRequestUDP::handle(MessageAdapter &message, Server &server,
                              Address &address) {
+	(void) message;
+
 	ServerError message_out;
 
 	send_udp_message(message_out, address.socket,
@@ -471,9 +465,9 @@ void WrongRequestUDP::handle(MessageAdapter &message, Server &server,
 
 void WrongRequestTCP::handle(MessageAdapter &message, Server &server,
                              Address &address) {
+	(void) message;
+
 	ServerError message_out;
 
-	send_tcp_message(message_out, address.socket,
-	                 (struct sockaddr *) &address.addr, address.size,
-	                 server._verbose);
+	send_tcp_message(message_out, address.socket, server._verbose);
 }

@@ -25,7 +25,7 @@ uint32_t convert_user_id(std::string string) {
 	if (verify_user_id(string) == -1) {
 		throw InvalidMessageException();
 	}
-	return std::stoi(string);
+	return (static_cast<uint32_t>(std::stol(string)));
 }
 
 std::string convert_user_id_to_str(uint32_t uid) {
@@ -39,7 +39,7 @@ uint32_t convert_auction_id(std::string string) {
 	if (verify_auction_id(string) == -1) {
 		throw InvalidMessageException();
 	}
-	return std::stoi(string);
+	return (static_cast<uint32_t>(std::stoi(string)));
 }
 
 std::string convert_auction_id_to_str(uint32_t aid) {
@@ -50,7 +50,7 @@ std::string convert_auction_id_to_str(uint32_t aid) {
 }
 
 uint32_t convert_auction_value(std::string string) {
-	uint32_t value = std::stoi(string);
+	uint32_t value = static_cast<uint32_t>(std::stol(string));
 	if (verify_value(value) == -1) {
 		throw InvalidMessageException();
 	}
@@ -145,9 +145,9 @@ std::string readFromFile(std::string pathname) {
 	return buffer.str();
 }
 
-uint32_t getFileSize(std::filesystem::path file_path) {
+long getFileSize(std::filesystem::path file_path) {
 	try {
-		return (uint32_t) std::filesystem::file_size(file_path);
+		return static_cast<long long>(std::filesystem::file_size(file_path));
 	} catch (...) {
 		return -1;
 	}

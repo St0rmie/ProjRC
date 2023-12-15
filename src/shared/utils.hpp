@@ -58,6 +58,6 @@ void readAndSaveToFile(const int fd, const std::string &file_name,
                        const size_t file_size);
 void saveToFile(std::string file_name, std::string path, std::string file_data);
 std::string readFromFile(std::string pathname);
-uint32_t getFileSize(std::filesystem::path file_path);
+long getFileSize(std::filesystem::path file_path);
 
 #endif
