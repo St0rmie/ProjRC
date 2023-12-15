@@ -36,8 +36,10 @@ int Database::semaphore_init(int lock_id) {
 }
 
 void Database::semaphore_wait() {
+	std::cerr << "WAIT FOR LOCK" << std::endl;
 	if (sem_wait(_sem) == -1)
 		throw SemException();
+	std::cerr << "UNLOCK" << std::endl;
 }
 
 void Database::semaphore_post() {
@@ -940,10 +942,11 @@ int Database::Unregister(std::string user_id, std::string password) {
 		return DB_UNREGISTER_NOK;  // Wrong Password
 	}
 
+	semaphore_post();
 	if (Logout(user_id, password) == DB_LOGOUT_NOK) {
-		semaphore_post();
 		return DB_UNREGISTER_NOK;  // Couldn't logout when unregistering
 	}
+	semaphore_wait();
 
 	int erased_password = ErasePassword(user_id);
 
@@ -1391,10 +1394,10 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 
 	} else if (time_passed >= timeactive) {
 		Close(a_id);
+		GetEnd(end_dir_name.c_str(), end);
 		result.active = false;
-		result.end_datetime = std::to_string(current_time);
-		finished = time_passed - timeactive;
-		result.end_timeelapsed = finished;
+		result.end_datetime = end.end_date;
+		result.end_timeelapsed = end.end_time;
 
 	} else {
 		result.active = true;
