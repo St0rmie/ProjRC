@@ -30,7 +30,7 @@ void CommandManager::waitCommand(Client &client) {
 	std::string line(input);
 	free(input);
 
-	int splitIndex = line.find(' ');
+	size_t splitIndex = line.find(' ');
 
 	std::string commandName;
 	if (splitIndex == std::string::npos) {
@@ -460,10 +460,13 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	message_out.password = client.getPassword();
 	message_out.name = name;
 	message_out.start_value = convert_auction_value(start_value);
-	message_out.timeactive = stoi(timeactive);
+	message_out.timeactive = static_cast<uint32_t>(stol(timeactive));
 	message_out.assetf_name = assetf_name;
-	message_out.Fsize = getFileSize(asset_path);
-	if (message_out.Fsize == -1) {
+	message_out.Fsize = static_cast<size_t>(getFileSize(asset_path));
+
+	int Fsize = static_cast<int>(message_out.Fsize);
+
+	if (Fsize == -1) {
 		throw FileException();
 		return;
 	}
@@ -530,7 +533,7 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 	ClientCloseAuction message_out;
 	message_out.user_id = client.getLoggedInUser();
 	message_out.password = client.getPassword();
-	message_out.auction_id = stoi(a_id);
+	message_out.auction_id = static_cast<uint32_t>(stoi(a_id));
 
 	ServerCloseAuction message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
@@ -599,7 +602,7 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 	// Protocol setup
 	// Populate and send message
 	ClientShowAsset message_out;
-	message_out.auction_id = stoi(a_id);
+	message_out.auction_id = static_cast<uint32_t>(stoi(a_id));
 
 	ServerShowAsset message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
@@ -649,7 +652,7 @@ void BidCommand::handle(std::string args, Client &client) {
 	}
 
 	std::string a_id = parsed_args[0];
-	uint32_t value = stoi(parsed_args[1]);
+	uint32_t value = static_cast<uint32_t>(stol(parsed_args[1]));
 
 	if (verify_auction_id(a_id) == -1) {
 		std::cout << "[ERROR] Incorrect AID." << std::endl;
@@ -666,7 +669,7 @@ void BidCommand::handle(std::string args, Client &client) {
 	ClientBid message_out;
 	message_out.user_id = client.getLoggedInUser();
 	message_out.password = client.getPassword();
-	message_out.auction_id = stoi(a_id);
+	message_out.auction_id = static_cast<uint32_t>(stoi(a_id));
 	message_out.value = value;
 
 	ServerBid message_in;

@@ -83,8 +83,9 @@ class StreamMessage : public MessageAdapter {
 		_stream.unget();
 	};
 	std::string getn(int n) {
+		size_t size = static_cast<size_t>(n);
 		std::string str;
-		str.resize(n);
+		str.resize(size);
 		_stream.read(&str[0], n);
 		return str;
 	}
@@ -436,8 +437,7 @@ class ServerError : public ProtocolMessage {
 void send_udp_message(ProtocolMessage &message, int socket,
                       struct sockaddr *address, socklen_t addrlen,
                       bool verbose);
-void send_tcp_message(ProtocolMessage &message, int socketfd,
-                      struct sockaddr *addr, socklen_t addrlen, bool verbose);
+void send_tcp_message(ProtocolMessage &message, int socketfd, bool verbose);
 
 void await_udp_message(ProtocolMessage &Message, int socketfd);
 void await_tcp_message(ProtocolMessage &Message, int socketfd);

@@ -24,14 +24,14 @@
 namespace fs = std::filesystem;
 
 bool CompareByAid(const AuctionListing &a, const AuctionListing &b) {
-	uint32_t a_aid = stoi(a.a_id);
-	uint32_t b_aid = stoi(b.a_id);
+	uint32_t a_aid = static_cast<uint32_t>(stoi(a.a_id));
+	uint32_t b_aid = static_cast<uint32_t>(stoi(b.a_id));
 	return (a_aid < b_aid);
 }
 
 bool CompareByValue(const BidInfo &a, const BidInfo &b) {
-	uint32_t a_aid = stoi(a.value);
-	uint32_t b_aid = stoi(b.value);
+	uint32_t a_aid = static_cast<uint32_t>(stol(a.value));
+	uint32_t b_aid = static_cast<uint32_t>(stol(b.value));
 	return (a_aid < b_aid);
 }
 
@@ -173,17 +173,12 @@ int Database::CreateLogin(std::string user_id) {
 
 	const char *user_id_fname = user_id_name.c_str();
 
-	semaphore(acquire());
-
 	fp = fopen(user_id_fname, "w");
 	if (fp == NULL) {
-		semaphore(release());
 		return -1;
 	}
 
 	fclose(fp);
-
-	semaphore(release());
 
 	return 0;
 }
@@ -201,19 +196,14 @@ int Database::CreatePassword(std::string user_id, std::string password) {
 	const char *password_fname = password_name.c_str();
 	const char *password_file = password.c_str();
 
-	semaphore(acquire());
-
 	FILE *fp = fopen(password_fname, "w");
 	if (fp == NULL) {
-		semaphore(release());
 		return -1;
 	}
 
 	fprintf(fp, "%s", password_file);
 
 	fclose(fp);
-
-	semaphore(release());
 
 	return 0;
 }
@@ -236,16 +226,11 @@ int Database::RegisterHost(std::string user_id, std::string a_id) {
 
 	const char *host_fname = host_name.c_str();
 
-	semaphore(acquire());
-
 	fp = fopen(host_fname, "w");
 	if (fp == NULL) {
-		semaphore(release());
 		return -1;
 	}
 	fclose(fp);
-
-	semaphore(release());
 
 	return 0;
 }
@@ -268,17 +253,12 @@ int Database::RegisterBid(std::string user_id, std::string a_id) {
 
 	const char *bid_fname = bid_name.c_str();
 
-	semaphore(acquire());
-
 	fp = fopen(bid_fname, "w");
 	if (fp == NULL) {
-		semaphore(release());
 		return -1;
 	}
 
 	fclose(fp);
-
-	semaphore(release());
 
 	return 0;
 }
@@ -411,19 +391,14 @@ int Database::CreateStartFile(std::string a_id, std::string user_id,
 
 	const char *dir_fname = dir_name.c_str();
 
-	semaphore(acquire());
-
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
-		semaphore(release());
 		return -1;
 	}
 
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
-
-	semaphore(release());
 
 	return 0;
 }
@@ -447,7 +422,7 @@ int Database::CreateEndFile(std::string a_id) {
 	StartInfo start;
 	time_t fulltime;
 	std::string current_date = GetCurrentDate();
-	time_t current_time = time(&fulltime);
+	uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
 	if (GetStart(a_id, start) == -1) {
 		throw AuctionNotFound();
 		return -1;
@@ -470,19 +445,14 @@ int Database::CreateEndFile(std::string a_id) {
 		return 2;
 	}
 
-	semaphore(acquire());
-
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
-		semaphore(release());
 		return -1;
 	}
 
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
-
-	semaphore(release());
 
 	return 0;
 }
@@ -499,25 +469,20 @@ int Database::CreateAssetFile(std::string a_id, std::string asset_fname,
 
 	std::ofstream file;
 
-	semaphore(acquire());
-
 	file.open(dir_name, std::ofstream::trunc);
 	if (!file.good()) {
-		semaphore(release());
 		return -1;
 	}
 
 	file << data;
 	file.close();
 
-	semaphore(release());
-
 	return 0;
 }
 
 int Database::CreateBidFile(std::string a_id, std::string user_id,
                             std::string value) {
-	if (verify_value(stoi(value)) == -1) {
+	if (verify_value(static_cast<uint32_t>(stol(value))) == -1) {
 		return -1;
 	}
 
@@ -532,7 +497,7 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 	FILE *fp;
 	time_t fulltime;
 	std::string current_date = GetCurrentDate();
-	time_t current_time = time(&fulltime);
+	uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
 	if (GetStart(a_id, start) == -1) {
 		throw AuctionNotFound();
 		return -1;
@@ -556,19 +521,14 @@ int Database::CreateBidFile(std::string a_id, std::string user_id,
 
 	const char *dir_fname = dir_name.c_str();
 
-	semaphore(acquire());
-
 	fp = fopen(dir_fname, "w");
 	if (fp == NULL) {
-		semaphore(release());
 		return -1;
 	}
 
 	fprintf(fp, "%s", file_content);
 
 	fclose(fp);
-
-	semaphore(release());
 
 	return 0;
 }
@@ -612,7 +572,7 @@ int Database::GetStart(std::string a_id, StartInfo &result) {
 	result.timeactive = parsed_content[4];
 	result.current_date = parsed_content[5] + " ";
 	result.current_date += parsed_content[6];
-	result.current_time = stoi(parsed_content[7]);
+	result.current_time = static_cast<uint32_t>(stol(parsed_content[7]));
 
 	fclose(fp);
 
@@ -647,7 +607,7 @@ int Database::GetEnd(const char *end_fname, EndInfo &end) {
 
 	end.end_date = parsed_content[0] + " ";
 	end.end_date += parsed_content[1];
-	end.end_time = stoi(parsed_content[2]);
+	end.end_time = static_cast<uint32_t>(stol(parsed_content[2]));
 
 	fclose(fp);
 	std::cout << "getendends" << std::endl;
@@ -687,7 +647,7 @@ int Database::GetBid(std::string bid_fname, BidInfo &result) {
 	result.value = parsed_content[1];
 	result.current_date = parsed_content[2] + " ";
 	result.current_date += parsed_content[3];
-	result.time_passed = stoi(parsed_content[4]);
+	result.time_passed = static_cast<uint32_t>(stol(parsed_content[4]));
 
 	fclose(fp);
 
@@ -971,7 +931,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
 			new_aid = entry.path();
 			new_aid.erase(new_aid.begin(), new_aid.end() - 3);
-			n_new_aid = stoi(new_aid);
+			n_new_aid = static_cast<uint32_t>(stoi(new_aid));
 
 			if (aid <= n_new_aid) {
 				aid = n_new_aid + 1;
@@ -998,7 +958,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 		return DB_OPEN_CREATE_FAIL;  // Failed to create hosted file
 	}
 
-	return aid;
+	return static_cast<int>(aid);
 }
 
 int Database::CloseAuction(std::string a_id, std::string user_id,
@@ -1074,9 +1034,10 @@ AuctionList Database::MyAuctions(std::string user_id) {
 					return result;
 				};
 				uint32_t start_time = start.current_time;
-				time_t current_time = time(&fulltime);
+				uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
 				uint32_t time_passed = current_time - start_time;
-				uint32_t timeactive = stoi(start.timeactive);
+				uint32_t timeactive =
+					static_cast<uint32_t>(stol(start.timeactive));
 
 				if (time_passed >= timeactive) {
 					Close(aid);
@@ -1125,9 +1086,10 @@ AuctionList Database::MyBids(std::string user_id) {
 					return result;
 				};
 				uint32_t start_time = start.current_time;
-				time_t current_time = time(&fulltime);
+				uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
 				uint32_t time_passed = current_time - start_time;
-				uint32_t timeactive = stoi(start.timeactive);
+				uint32_t timeactive =
+					static_cast<uint32_t>(stol(start.timeactive));
 
 				if (time_passed >= timeactive) {
 					Close(aid);
@@ -1175,9 +1137,10 @@ AuctionList Database::List() {
 					return result;
 				};
 				uint32_t start_time = start.current_time;
-				time_t current_time = time(&fulltime);
+				uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
 				uint32_t time_passed = current_time - start_time;
-				uint32_t timeactive = stoi(start.timeactive);
+				uint32_t timeactive =
+					static_cast<uint32_t>(stol(start.timeactive));
 
 				if (time_passed >= timeactive) {
 					Close(aid);
@@ -1313,9 +1276,9 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	result.start_datetime = start.current_date;
 	result.timeactive = start.timeactive;
 	uint32_t start_time = start.current_time;
-	time_t current_time = time(&fulltime);
+	uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
 	uint32_t time_passed = current_time - start_time;
-	uint32_t timeactive = stoi(start.timeactive);
+	uint32_t timeactive = static_cast<uint32_t>(stol(start.timeactive));
 
 	std::string end_dir_name = "ASDIR/AUCTIONS/" + a_id;
 	end_dir_name += "/END_";
@@ -1331,7 +1294,7 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	} else if (time_passed >= timeactive) {
 		Close(a_id);
 		result.active = false;
-		result.end_datetime = current_time;
+		result.end_datetime = std::to_string(current_time);
 		finished = time_passed - timeactive;
 		result.end_timeelapsed = finished;
 

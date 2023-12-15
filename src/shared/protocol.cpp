@@ -34,7 +34,7 @@ void ProtocolMessage::readMessageId(MessageAdapter &buffer,
                                     std::string protocol_code) {
 	char current_char;
 	std::string errcheck;
-	int i = 0;
+	size_t i = 0;
 	while (protocol_code[i] != '\0') {
 		current_char = readChar(buffer);
 		errcheck += current_char;
@@ -592,20 +592,21 @@ void ServerShowRecord::readMessage(MessageAdapter &buffer) {
 		readSpace(buffer);
 		start_date_time = readDate(buffer);
 		readSpace(buffer);
-		timeactive = stoi(readString(buffer, MAX_TIMEACTIVE_SIZE));
+		timeactive = static_cast<uint32_t>(
+			stol(readString(buffer, MAX_TIMEACTIVE_SIZE)));
 		if (readCharEqual(buffer, ' ')) {
 			while (readCharEqual(buffer, 'B')) {
 				Bid bid;
 				readSpace(buffer);
 				bid.bidder_UID = readUserId(buffer);
 				readSpace(buffer);
-				bid.bid_value =
-					stoi(readString(buffer, MAX_AUCTION_VALUE_SIZE));
+				bid.bid_value = static_cast<uint32_t>(
+					stol(readString(buffer, MAX_AUCTION_VALUE_SIZE)));
 				readSpace(buffer);
 				bid.bid_date_time = readDate(buffer);
 				readSpace(buffer);
-				bid.bid_sec_time =
-					stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
+				bid.bid_sec_time = static_cast<uint32_t>(
+					stol(readString(buffer, MAX_LENGTH_TIMEACTIVE)));
 				bids.push_back(bid);
 				skip = readCharEqual(buffer, ' ');
 				if (!skip) {
@@ -616,7 +617,8 @@ void ServerShowRecord::readMessage(MessageAdapter &buffer) {
 				readSpace(buffer);
 				end_date_time = readDate(buffer);
 				readSpace(buffer);
-				end_sec_time = stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
+				end_sec_time = static_cast<uint32_t>(
+					stol(readString(buffer, MAX_LENGTH_TIMEACTIVE)));
 				readDelimiter(buffer);
 			}
 		}
@@ -651,13 +653,14 @@ void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	start_value = readAuctionValue(buffer);
 	readSpace(buffer);
-	timeactive = stoi(readString(buffer, MAX_LENGTH_TIMEACTIVE));
+	timeactive =
+		static_cast<uint32_t>(stol(readString(buffer, MAX_LENGTH_TIMEACTIVE)));
 	readSpace(buffer);
 	assetf_name = readString(buffer, MAX_FILENAME_SIZE);
 	readSpace(buffer);
 	Fsize = (size_t) stol(readString(buffer, MAX_FILE_SIZE_LENGTH));
 	readSpace(buffer);
-	fdata = readFile(buffer, Fsize);
+	fdata = readFile(buffer, static_cast<uint32_t>(Fsize));
 	readDelimiter(buffer);
 }
 
@@ -809,9 +812,10 @@ void ServerShowAsset::readMessage(MessageAdapter &buffer) {
 		readSpace(buffer);
 		fname = readString(buffer, MAX_FILENAME_SIZE);
 		readSpace(buffer);
-		fsize = stol(readString(buffer, MAX_FILE_SIZE_LENGTH));
+		fsize =
+			static_cast<size_t>(stol(readString(buffer, MAX_FILE_SIZE_LENGTH)));
 		readSpace(buffer);
-		fdata = readFile(buffer, fsize);
+		fdata = readFile(buffer, static_cast<uint32_t>(fsize));
 		readDelimiter(buffer);
 	} else if (status_str == "NOK") {
 		status = NOK;
@@ -904,6 +908,7 @@ std::stringstream ServerError::buildMessage() {
 
 void ServerError::readMessage(MessageAdapter &buffer) {
 	// Not needed. Receiving a server error will be treated as exception.
+	(void) buffer;
 	return;
 }
 
@@ -925,8 +930,7 @@ void send_udp_message(ProtocolMessage &message, int socketfd,
 	}
 }
 
-void send_tcp_message(ProtocolMessage &message, int socket_fd,
-                      struct sockaddr *addr, socklen_t addrlen, bool verbose) {
+void send_tcp_message(ProtocolMessage &message, int socket_fd, bool verbose) {
 	std::string message_s = message.buildMessage().str();
 	const char *message_str = message_s.data();
 	size_t bytes_to_send = message_s.length();
@@ -937,7 +941,7 @@ void send_tcp_message(ProtocolMessage &message, int socket_fd,
 		if (sent < 0) {
 			throw MessageSendException();
 		}
-		bytes_sent += sent;
+		bytes_sent += static_cast<size_t>(sent);
 	}
 	if (verbose) {
 		std::cout << "[INFO] Outgoing Answer (first 100 characters):\n\t-> "

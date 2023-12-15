@@ -17,7 +17,7 @@ int verify_user_id(std::string user_id) {
 		return -1;
 	}
 
-	for (int i = 0; i < 6; i++) {
+	for (size_t i = 0; i < 6; i++) {
 		if (!isdigit(user_id[i])) {
 			return -1;
 		}
@@ -31,7 +31,7 @@ int verify_password(std::string password) {
 		return -1;
 	}
 
-	for (int i = 0; i < 8; i++) {
+	for (size_t i = 0; i < 8; i++) {
 		if (isalnum(password[i]) == false) {
 			return -1;
 		}
@@ -44,8 +44,7 @@ int verify_name(std::string name) {
 	if (name.size() > 10) {
 		return -1;
 	}
-
-	for (int i = 0; i < name.size(); i++) {
+	for (size_t i = 0; i < name.size(); i++) {
 		if (isalnum(name[i]) == false) {
 			return -1;
 		}
@@ -89,7 +88,7 @@ int verify_start_value(std::string start_value) {
 		return -1;
 	}
 
-	for (int i = 0; i < start_value.size(); i++) {
+	for (size_t i = 0; i < start_value.size(); i++) {
 		if (isdigit(start_value[i]) == false) {
 			return -1;
 		}
@@ -107,7 +106,7 @@ int verify_timeactive(std::string timeactive) {
 		return -1;
 	}
 
-	for (int i = 0; i < timeactive.size(); i++) {
+	for (size_t i = 0; i < timeactive.size(); i++) {
 		if (isdigit(timeactive[i]) == false) {
 			return -1;
 		}
@@ -121,7 +120,7 @@ int verify_auction_id(std::string a_id) {
 		return -1;
 	}
 
-	for (int i = 0; i < 3; i++) {
+	for (size_t i = 0; i < 3; i++) {
 		if (isdigit(a_id[i]) == false) {
 			return -1;
 		}
