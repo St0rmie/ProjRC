@@ -52,9 +52,9 @@ void CommandManager::waitCommand(Client &client) {
 
 	auto handler = this->handlers.find(commandName);
 	if (handler == this->handlers.end()) {
-		std::cout << "[ERROR] Unknown Command. Type \"help\" for the list of "
-					 "commands available"
-				  << std::endl;
+		printError(
+			"Unknown Command. Type \"help\" for the list of "
+			"commands available");
 		return;
 	}
 
@@ -72,15 +72,14 @@ void LoginCommand::handle(std::string args, Client &client) {
 	}
 
 	if (parsed_args.size() != 2) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
-	/*if (client.isLoggedIn() == true) {
-	    std::cout << "[ERROR] Already Logged In. Please logout first."
-	              << std::endl;
-	    return;
-	}*/
+	if (client.isLoggedIn() == true) {
+		printError("[Already Logged In. Please logout first.");
+		return;
+	}
 
 	// Defining the arguments extracted
 	std::string user_id = parsed_args[0];
@@ -88,11 +87,11 @@ void LoginCommand::handle(std::string args, Client &client) {
 
 	// Verifying parameters
 	if (verify_user_id(user_id) == -1) {
-		std::cout << "[ERROR] Incorrect user id." << std::endl;
+		printError("Incorrect user id.");
 		return;
 	}
 	if (verify_password(password) == -1) {
-		std::cout << "[ERROR] Incorrect password." << std::endl;
+		printError("Incorrect password.");
 		return;
 	}
 
@@ -124,7 +123,7 @@ void LoginCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerLoginUser::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -134,14 +133,14 @@ void LoginCommand::handle(std::string args, Client &client) {
 
 void LogoutCommand::handle(std::string args, Client &client) {
 	if (args.length() > 0) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
-	/*if (client.isLoggedIn() == false) {
-	    std::cout << "[ERROR] Not logged in. Please login first." <<
-	std::endl; return;
-	}*/
+	if (client.isLoggedIn() == false) {
+		printError("Not logged in. Please login first.");
+		return;
+	}
 
 	// Populate and send packet
 	ClientLogout message_out;
@@ -157,19 +156,19 @@ void LogoutCommand::handle(std::string args, Client &client) {
 	switch (message_in.status) {
 		case ServerLogout::status::OK:
 			client.logout();
-			std::cout << "[SUCCESS] Sucessfully logged out" << std::endl;
+			printSuccess("Sucessfully logged out");
 			break;
 
 		case ServerLogout::status::NOK:
-			std::cout << "[ERROR] Couldn't logout." << std::endl;
+			printError("Couldn't logout.");
 			break;
 
 		case ServerLogout::status::UNR:
-			std::cout << "[ERROR] Unregistered user." << std::endl;
+			printError("Unregistered user.");
 			break;
 
 		case ServerLogout::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -179,14 +178,14 @@ void LogoutCommand::handle(std::string args, Client &client) {
 
 void UnregisterCommand::handle(std::string args, Client &client) {
 	if (args.length() > 0) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
-	/*if (client.isLoggedIn() == false) {
-	    std::cout << "[ERROR] Not logged in. Please login first." <<
-	std::endl; return;
-	}*/
+	if (client.isLoggedIn() == false) {
+		printError("Not logged in. Please login first.");
+		return;
+	}
 
 	// Populate and send packet
 	ClientUnregister message_out;
@@ -202,20 +201,19 @@ void UnregisterCommand::handle(std::string args, Client &client) {
 	switch (message_in.status) {
 		case ServerUnregister::status::OK:
 			client.logout();
-			std::cout << "[SUCCESS] Sucessfully unregister." << std::endl;
+			printSuccess("Sucessfully unregister.");
 			break;
 
 		case ServerUnregister::status::NOK:
-			std::cout << "[ERROR] Not logged in, hence couldn't unregister."
-					  << std::endl;
+			printError("Not logged in, hence couldn't unregister.");
 			break;
 
 		case ServerUnregister::status::UNR:
-			std::cout << "[ERROR] Unregistered user." << std::endl;
+			printError("Unregistered user.");
 			break;
 
 		case ServerUnregister::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -225,12 +223,12 @@ void UnregisterCommand::handle(std::string args, Client &client) {
 
 void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
 	if (args.length() > 0) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
 	if (client.isLoggedIn() == false) {
-		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		printError("Not logged in. Please login first.");
 		return;
 	}
 
@@ -242,28 +240,29 @@ void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	}
+	std::string message_ok =
+		"Listing \nAuctions started by user " + client.getLoggedInUser();
+	message_ok += ":";
 
 	// Check status
 	switch (message_in.status) {
-		case ServerListStartedAuctions::status::OK:;
-			std::cout << "[SUCCESS] Listing \nAuctions started by user "
-					  << client.getLoggedInUser() << ":" << std::endl;
+		case ServerListStartedAuctions::status::OK:
+			printSuccess(message_ok);
 			for (std::string auc : message_in.auctions) {
 				std::cout << "\t" << auc << std::endl;
 			}
 			break;
 
 		case ServerListStartedAuctions::status::NOK:
-			std::cout << "[ERROR] User doesn't have ongoing auctions."
-					  << std::endl;
+			printError("User doesn't have ongoing auctions.");
 			break;
 
 		case ServerListStartedAuctions::status::NLG:
-			std::cout << "[ERROR] User not logged in." << std::endl;
+			printError("User not logged in.");
 			break;
 
 		case ServerListStartedAuctions::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -273,12 +272,12 @@ void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
 
 void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 	if (args.length() > 0) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
 	if (client.isLoggedIn() == false) {
-		std::cout << "[ERROR] Not logged in. Please login first." << std::endl;
+		printError("Not logged in. Please login first.");
 		return;
 	}
 
@@ -291,27 +290,29 @@ void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
+	std::string message_ok =
+		"Listing \nAuctions started by user " + client.getLoggedInUser();
+	message_ok += ":";
+
 	// Check status
 	switch (message_in.status) {
 		case ServerListBiddedAuctions::status::OK:;
-			std::cout << "[SUCCESS] Listing \nAuctions bidded by user "
-					  << client.getLoggedInUser() << ":" << std::endl;
+			printSuccess(message_ok);
 			for (std::string auc : message_in.auctions) {
 				std::cout << "\t" << auc << std::endl;
 			}
 			break;
 
 		case ServerListBiddedAuctions::status::NOK:
-			std::cout << "[ERROR] User didn't bid on any auctions."
-					  << std::endl;
+			printError("User didn't bid on any auctions.");
 			break;
 
 		case ServerListBiddedAuctions::status::NLG:
-			std::cout << "[ERROR] User not logged in." << std::endl;
+			printError("User not logged in.");
 			break;
 
 		case ServerListBiddedAuctions::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -321,7 +322,7 @@ void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 
 void ListAllAuctionsCommand::handle(std::string args, Client &client) {
 	if (args.length() > 0) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
@@ -336,21 +337,18 @@ void ListAllAuctionsCommand::handle(std::string args, Client &client) {
 	// Check status
 	switch (message_in.status) {
 		case ServerListAllAuctions::status::OK:;
-			std::cout
-				<< "[SUCCESS] Listing \nAuctions registered on the server:"
-				<< std::endl;
+			printSuccess("Listing \nAuctions registered on the server:");
 			for (std::string auc : message_in.auctions) {
 				std::cout << "\t" << auc << std::endl;
 			}
 			break;
 
 		case ServerListAllAuctions::status::NOK:
-			std::cout << "[ERROR] There aren't any auctions on the system yet."
-					  << std::endl;
+			printError("There aren't any auctions on the system yet.");
 			break;
 
 		case ServerListAllAuctions::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -369,14 +367,14 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 	}
 
 	if (parsed_args.size() != 1) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
 	std::string a_id = parsed_args[0];
 
 	if (verify_auction_id(a_id) == -1) {
-		std::cout << "[ERROR] Incorrect AID." << std::endl;
+		printError("Incorrect AID.");
 		return;
 	}
 
@@ -396,12 +394,11 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerShowRecord::status::NOK:
-			std::cout << "[ERROR] There aren't any auctions on the system yet."
-					  << std::endl;
+			printError("There aren't any auctions on the system yet.");
 			break;
 
 		case ServerShowRecord::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -420,7 +417,7 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	}
 
 	if (parsed_args.size() != 4) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
@@ -437,20 +434,20 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 
 	// Verifying parameters
 	if (verify_name(name) == -1) {
-		std::cout << "[ERROR] Incorrect auction name." << std::endl;
+		printError("Incorrect auction name.");
 		return;
 	}
 	if (verify_asset_fname(asset_path) == -1) {
-		std::cout << "[ERROR] Incorrect asset file path/name." << std::endl;
+		printError("Incorrect asset file path/name.");
 		return;
 	}
 
 	if (verify_start_value(start_value) == -1) {
-		std::cout << "[ERROR] Incorrect start value." << std::endl;
+		printError("Incorrect start value.");
 		return;
 	}
 	if (verify_timeactive(timeactive) == -1) {
-		std::cout << "[ERROR] Incorrect time active." << std::endl;
+		printError("Incorrect time active.");
 		return;
 	}
 
@@ -489,15 +486,15 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerOpenAuction::status::NOK:
-			std::cout << "[ERROR] Couldn't start auction." << std::endl;
+			printError("Couldn't start auction.");
 			break;
 
 		case ServerOpenAuction::status::NLG:
-			std::cout << "[ERROR] Not logged in." << std::endl;
+			printError("Not logged in.");
 			break;
 
 		case ServerOpenAuction::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -516,20 +513,19 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 	}
 
 	if (parsed_args.size() != 1) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
 	if (client.isLoggedIn() == false) {
-		std::cout << "[ERROR] User not Logged In. Please login first."
-				  << std::endl;
+		printError("User not Logged In. Please login first.");
 		return;
 	}
 
 	std::string a_id = parsed_args[0];
 
 	if (verify_auction_id(a_id) == -1) {
-		std::cout << "[ERROR] Incorrect AID." << std::endl;
+		printError("Incorrect AID.");
 		return;
 	}
 
@@ -552,29 +548,27 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerCloseAuction::status::NLG:
-			std::cout << "[ERROR] Not logged in." << std::endl;
+			printError("Not logged in.");
 			break;
 
 		case ServerCloseAuction::status::EAU:
-			std::cout << "[ERROR] Auction doesn't exist." << std::endl;
+			printError("Auction doesn't exist.");
 			break;
 
 		case ServerCloseAuction::status::EOW:
-			std::cout << "[ERROR] Auction doesn't belong to this user."
-					  << std::endl;
+			printError("Auction doesn't belong to this user.");
 			break;
 
 		case ServerCloseAuction::status::END:
-			std::cout << "[ERROR] Auction already ended" << std::endl;
+			printError("Auction already ended");
 			break;
 
 		case ServerCloseAuction::status::NOK:
-			std::cout << "[ERROR] UID doesn't exist or wrong Password."
-					  << std::endl;
+			printError("UID doesn't exist or wrong Password.");
 			break;
 
 		case ServerCloseAuction::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -593,14 +587,14 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 	}
 
 	if (parsed_args.size() != 1) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
 	std::string a_id = parsed_args[0];
 
 	if (verify_auction_id(a_id) == -1) {
-		std::cout << "[ERROR] Incorrect AID." << std::endl;
+		printError("Incorrect AID.");
 		return;
 	}
 
@@ -623,11 +617,11 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerShowAsset::status::NOK:
-			std::cout << "[ERROR] Auction doesn't exist." << std::endl;
+			printError("Auction doesn't exist.");
 			break;
 
 		case ServerShowAsset::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -646,13 +640,12 @@ void BidCommand::handle(std::string args, Client &client) {
 	}
 
 	if (parsed_args.size() != 2) {
-		std::cout << "[ERROR] Wrong number of arguments" << std::endl;
+		printError("Wrong number of arguments");
 		return;
 	}
 
 	if (client.isLoggedIn() == false) {
-		std::cout << "[ERROR] User not Logged In. Please login first."
-				  << std::endl;
+		printError("User not Logged In. Please login first.");
 		return;
 	}
 
@@ -660,12 +653,12 @@ void BidCommand::handle(std::string args, Client &client) {
 	uint32_t value = static_cast<uint32_t>(stol(parsed_args[1]));
 
 	if (verify_auction_id(a_id) == -1) {
-		std::cout << "[ERROR] Incorrect AID." << std::endl;
+		printError("Incorrect AID.");
 		return;
 	}
 
 	if (verify_value(value) == -1) {
-		std::cout << "[ERROR] Incorrect value." << std::endl;
+		printError("Incorrect value.");
 		return;
 	}
 
@@ -705,7 +698,7 @@ void BidCommand::handle(std::string args, Client &client) {
 			break;
 
 		case ServerBid::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
@@ -735,19 +728,19 @@ void ExitCommand::handle(std::string args, Client &client) {
 	switch (message_in.status) {
 		case ServerLogout::status::OK:
 			client.logout();
-			std::cout << "[SUCCESS] Sucessfully logged out" << std::endl;
+			printSuccess("Sucessfully logged out");
 			break;
 
 		case ServerLogout::status::NOK:
-			std::cout << "[ERROR] Couldn't logout." << std::endl;
+			printError("Couldn't logout.");
 			break;
 
 		case ServerLogout::status::UNR:
-			std::cout << "[ERROR] Unregistered user." << std::endl;
+			printError("Unregistered user.");
 			break;
 
 		case ServerLogout::status::ERR:
-			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			printError("Wrong format sent.");
 			break;
 
 		default:
