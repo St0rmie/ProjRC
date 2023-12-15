@@ -1,5 +1,9 @@
 #include "commands.hpp"
 
+#include <readline/history.h>
+#include <readline/readline.h>
+#include <unistd.h>
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -17,14 +21,19 @@ void CommandManager::registerCommand(std::shared_ptr<CommandHandler> handler) {
 }
 
 void CommandManager::waitCommand(Client &client) {
-	std::cout << "> ";
+	/*std::cout << "> ";
 
 	std::string line;
 	std::getline(std::cin, line);
 
 	if (std::cin.eof()) {
-		return;
-	}
+	    return;
+	}*/
+
+	char *input = readline("> ");
+	add_history(input);
+	std::string line(input);
+	free(input);
 
 	int splitIndex = line.find(' ');
 
@@ -446,7 +455,7 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	}
 
 	// Path to file
-	std::string pathname = "assets/" + asset_fname;
+	std::string pathname = CLIENT_ASSET_DEFAULT_PATH + asset_fname;
 
 	// Protocol setup
 	// Populate and send message
@@ -605,7 +614,8 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 	switch (message_in.status) {
 		case ServerShowAsset::status::OK:
 			printShowAsset(message_out, message_in);
-			saveToFile(message_in.fname, "assets/", message_in.fdata);
+			saveToFile(message_in.fname, CLIENT_ASSET_DEFAULT_PATH,
+			           message_in.fdata);
 			break;
 
 		case ServerShowAsset::status::NOK:
@@ -701,6 +711,44 @@ void BidCommand::handle(std::string args, Client &client) {
 
 void ExitCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
+
+	if (client.isLoggedIn() == false) {
+		printSuccess("Shutting down.");
+		return;
+	}
+
+	// Populate and send packet
+	ClientLogout message_out;
+	message_out.user_id = client.getLoggedInUser();
+	message_out.password = client.getPassword();
+
+	ServerLogout message_in;
+	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
+		return;
+	}
+
+	// Check status
+	switch (message_in.status) {
+		case ServerLogout::status::OK:
+			client.logout();
+			std::cout << "[SUCCESS] Sucessfully logged out" << std::endl;
+			break;
+
+		case ServerLogout::status::NOK:
+			std::cout << "[ERROR] Couldn't logout." << std::endl;
+			break;
+
+		case ServerLogout::status::UNR:
+			std::cout << "[ERROR] Unregistered user." << std::endl;
+			break;
+
+		case ServerLogout::status::ERR:
+			std::cout << "[ERROR] Wrong format sent." << std::endl;
+			break;
+
+		default:
+			throw InvalidMessageException();
+	}
 
 	// Protocol setup
 	printSuccess("Shutting down.");

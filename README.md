@@ -4,7 +4,10 @@ RC @ IST - Project 2023/2024
 
 ## TODO LIST
 
-- Server nao lida bem com bids em auctions que não existem.
+- Fix Warnings.
+- Bid ignora start values e calcula mal as bids anteriores?????? result 6!!!
+- Talvez usar select no wait for tcp message e passar accept para dentro da child
+- represent user id on terminal when logged in.
 
 ## Client
 
@@ -12,29 +15,21 @@ RC @ IST - Project 2023/2024
 - Rework Exceptions
 - Prevent Exceptions
 - Rework Prints (WIP)
-- Logout on exit
-- Terminal history
-- Cliente não assume pasta assets
 
 ## Server
 
-- Verbose mode
-- (fix) timeout udp
 - (pretty) improve Error prints
-- end on close not showing on show record
 - properly handle login over login?
+- semaphores database
 
-## Database
+## Tests
 
-- LOGIN -> SOFT TESTED
-- LOGOUT -> SOFT TESTED
-- UNREGISTER -> SOFT TESTED
-- LISTALL -> UNTESTED
-- LISTMB -> UNTESTED
-- LISTMA -> UNTESTED
-- SHOWRECORD -> NOT DONE
-
-- OPEN -> UNTESTED
-- CLOSE -> UNTESTED
-- BID -> NOT DONE
-- SHOWASSET -> NOT DONE
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+- 8
+- 9
