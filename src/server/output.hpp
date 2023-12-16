@@ -6,7 +6,7 @@
 #include "server.hpp"
 
 void printError(std::string message);
-void printInfo(std::string message);
+void printInfo(std::string message, int tab_level);
 
 std::string hidePassword(std::string password);
 
