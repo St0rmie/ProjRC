@@ -1,17 +1,19 @@
 #include "output.hpp"
 
 void printRecord(std::string aid, ServerShowRecord message) {
+	std::string active_status = message.end_sec_time <= 0 ? "active" : "closed";
 	std::cout << "[SUCCESS] Showing record for auction " << aid
-			  << "\n--------------------------------------------------"
+			  << ":\n=================================================="
 			  << "\n\tHost ID:\t\t" << message.host_UID
 			  << "\n\tAuction Name:\t\t" << message.auction_name
 			  << "\n\tAsset File Name:\t" << message.asset_fname
 			  << "\n\tStart Value:\t\t" << message.start_value
 			  << "\n\tStart Date:\t\t" << extractDate(message.start_date_time)
 			  << "\n\tStart Time:\t\t" << extractTime(message.start_date_time)
-			  << "\n\tTimeactive:\t\t" << message.timeactive << "\n";
+			  << "\n\tTimeactive:\t\t" << message.timeactive
+			  << "\n\tStatus:\t\t\t" << active_status << "\n";
 	if (message.bids.size() > 0) {
-		std::cout << "--------------------------------------------------\n"
+		std::cout << "==================================================\n"
 				  << "\t\tBIDS (" << message.bids.size() << ")" << std::endl;
 		std::cout << "--------------------------------------------------"
 				  << "\nBidderUID\tBid Value\tBid Date\tBid Time\tTime "
@@ -26,14 +28,14 @@ void printRecord(std::string aid, ServerShowRecord message) {
 				  << "\n";
 	}
 	if (message.end_sec_time > 0) {
-		std::cout << "--------------------------------------------------\n"
+		std::cout << "==================================================\n"
 				  << "END\tEnd Date\tEnd Time\tEnd Elapsed\n"
 				  << "--------------------------------------------------\n";
 		std::cout << "OVER\t" << extractDate(message.end_date_time) << "\t"
 				  << extractTime(message.end_date_time) << "\t"
 				  << message.end_sec_time << std::endl;
 	}
-	std::cout << "--------------------------------------------------\n"
+	std::cout << "==================================================\n"
 			  << "END RECORD\n";
 }
 
