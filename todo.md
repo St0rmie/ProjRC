@@ -4,14 +4,14 @@ RC @ IST - Project 2023/2024
 
 ## TODO LIST
 
-- Talvez usar select no wait for tcp message e passar accept para dentro da child???
+- Testar repetição do fork
+- Testar server sem verbose e fix a tabs.
 - Fazer readme
 - Comments
 - Entregar
 
 ## Client
 
-- Move main to client
 - Rework Exceptions
 - Prevent Exceptions
 

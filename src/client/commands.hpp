@@ -1,12 +1,12 @@
 #ifndef __COMMANDS__
 #define __COMMANDS__
 
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <unordered_map>
 #include <vector>
-#include <fstream>
-#include <iostream>
 
 #include "client.hpp"
 
@@ -156,5 +156,7 @@ class ExitCommand : public CommandHandler {
 	ExitCommand()
 		: CommandHandler("exit", std::nullopt, "Exit the application.") {}
 };
+
+void registerCommands(CommandManager &manager);
 
 #endif

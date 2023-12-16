@@ -753,3 +753,18 @@ void ExitCommand::handle(std::string args, Client &client) {
 	client.~Client();
 	exit(EXIT_SUCCESS);
 }
+
+void registerCommands(CommandManager &manager) {
+	manager.registerCommand(std::make_shared<LoginCommand>());
+	manager.registerCommand(std::make_shared<OpenAuctionCommand>());
+	manager.registerCommand(std::make_shared<CloseAuctionCommand>());
+	manager.registerCommand(std::make_shared<ListStartedAuctionsCommand>());
+	manager.registerCommand(std::make_shared<ListBiddedAuctionsCommand>());
+	manager.registerCommand(std::make_shared<ListAllAuctionsCommand>());
+	manager.registerCommand(std::make_shared<ShowAssetCommand>());
+	manager.registerCommand(std::make_shared<BidCommand>());
+	manager.registerCommand(std::make_shared<ShowRecordCommand>());
+	manager.registerCommand(std::make_shared<LogoutCommand>());
+	manager.registerCommand(std::make_shared<UnregisterCommand>());
+	manager.registerCommand(std::make_shared<ExitCommand>());
+}
