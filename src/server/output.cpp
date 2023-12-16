@@ -12,7 +12,7 @@
 // -----------------------------------
 
 void printError(std::string message) {
-	std::cerr << "[ERROR] " << message << std::endl;
+	std::cout << "[ERROR] " << message << std::endl;
 }
 
 void printInfo(std::string message) {

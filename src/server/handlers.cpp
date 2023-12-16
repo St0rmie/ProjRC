@@ -151,8 +151,8 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 		}
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerListAllAuctions::status::ERR;
-	} catch (...) {
-		printError("Failed to handle 'LIST' request.");
+	} catch (std::exception &e) {
+		printError("Failed to handle 'LIST' request." + std::string(e.what()));
 		return;
 	}
 
@@ -189,8 +189,9 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 		}
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerListBiddedAuctions::status::ERR;
-	} catch (...) {
-		printError("Failed to handle 'LIST MY BIDS' request.");
+	} catch (std::exception &e) {
+		printError("Failed to handle 'LIST MY BIDS' request." +
+		           std::string(e.what()));
 		return;
 	}
 
@@ -227,8 +228,9 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 		}
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerListStartedAuctions::status::ERR;
-	} catch (...) {
-		printError("Failed to handle 'LIST MY AUCTIONS' request.");
+	} catch (std::exception &e) {
+		printError("Failed to handle 'LIST MY AUCTIONS' request." +
+		           std::string(e.what()));
 		return;
 	}
 
@@ -252,7 +254,6 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 			convert_auction_id_to_str(message_in.auction_id);
 		AuctionRecord record = server._database.ShowRecord(auction_id);
 		message_out.status = ServerShowRecord::status::OK;
-		std::cout << record.host_id << std::endl;
 		message_out.host_UID = static_cast<uint32_t>(stoi(record.host_id));
 		message_out.auction_name = record.auction_name;
 		message_out.asset_fname = record.asset_fname;
@@ -283,8 +284,8 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 	} catch (AuctionNotFound &e) {
 		message_out.status = ServerShowRecord::status::NOK;
 	} catch (std::exception &e) {
-		printError("Failed to handle 'SHOW RECORD' request.");
-		std::cout << e.what() << std::endl;
+		printError("Failed to handle 'SHOW RECORD' request." +
+		           std::string(e.what()));
 		return;
 	}
 
@@ -324,8 +325,9 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerOpenAuction::status::ERR;
-	} catch (...) {
-		printError("Failed to handle 'OPEN AUCTION' request.");
+	} catch (std::exception &e) {
+		printError("Failed to handle 'OPEN AUCTION' request." +
+		           std::string(e.what()));
 		return;
 	}
 
@@ -367,8 +369,9 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 		message_out.status = ServerCloseAuction::status::END;
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerCloseAuction::status::ERR;
-	} catch (...) {
-		printError("Failed to handle 'CLOSE AUCTION' request.");
+	} catch (std::exception &e) {
+		printError("Failed to handle 'CLOSE AUCTION' request." +
+		           std::string(e.what()));
 		return;
 	}
 
@@ -399,8 +402,9 @@ void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
 		message_out.status = ServerShowAsset::status::NOK;
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerShowAsset::status::ERR;
-	} catch (...) {
-		printError("Failed to handle 'SHOW ASSET' request.");
+	} catch (std::exception &e) {
+		printError("Failed to handle 'SHOW ASSET' request." +
+		           std::string(e.what()));
 		return;
 	}
 
@@ -444,8 +448,7 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerBid::status::ERR;
 	} catch (std::exception &e) {
-		printError("Failed to handle 'BID' request.");
-		std::cout << e.what() << std::endl;
+		printError("Failed to handle 'BID' request." + std::string(e.what()));
 		return;
 	}
 

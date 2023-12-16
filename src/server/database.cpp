@@ -614,11 +614,9 @@ int Database::GetEnd(const char *end_fname, EndInfo &end) {
 	char content[200];
 	fp = fopen(end_fname, "r");
 	if (fp == NULL) {
-		std::cout << "shitty fname" << std::endl;
 		return -1;
 	}
 	if (fgets(content, 200, fp) == NULL) {
-		std::cout << "dafuq" << std::endl;
 		return -1;
 	}
 	std::stringstream ss(content);
@@ -627,11 +625,9 @@ int Database::GetEnd(const char *end_fname, EndInfo &end) {
 
 	while (ss >> cont) {
 		parsed_content.push_back(cont);
-		std::cout << "shit" << std::endl;
 	}
 
 	if (parsed_content.size() != 3) {
-		std::cout << "this borking" << std::endl;
 		return -1;
 	}
 
@@ -640,7 +636,6 @@ int Database::GetEnd(const char *end_fname, EndInfo &end) {
 	end.end_time = static_cast<uint32_t>(stol(parsed_content[2]));
 
 	fclose(fp);
-	std::cout << "getendends" << std::endl;
 	return 0;
 }
 
@@ -1217,6 +1212,7 @@ AuctionList Database::List() {
 			if (CheckEndExists(dir_name.c_str()) == -1) {
 				if (GetStart(aid, start) == -1) {
 					semaphore_post();
+					std::cout << aid << std::endl;
 					throw AuctionNotFound();
 					return result;
 				};
@@ -1313,9 +1309,9 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 	if (fs::is_empty(bid_dir_name)) {
 		GetStart(a_id, start);
 
+		std::cout << "stol1\t" << start.start_value << std::endl;
 		long old_value = stol(start.start_value);
-
-		std::cout << old_value << " vs " << value << std::endl;
+		std::cout << "after stol1" << std::endl;
 
 		if (old_value >= value) {
 			semaphore_post();
@@ -1328,8 +1324,6 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 
 			GetBid(bid_fname, bid);
 			long old_value = stol(bid.value);
-
-			std::cout << old_value << " vs " << value << std::endl;
 
 			if (old_value >= value) {
 				semaphore_post();
@@ -1359,7 +1353,6 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	StartInfo start;
 	EndInfo end;
 	uint32_t n = 0;
-	uint32_t finished;
 	AuctionRecord result;
 	BidList list;
 
