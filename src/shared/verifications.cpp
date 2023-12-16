@@ -41,11 +41,11 @@ int verify_password(std::string password) {
 }
 
 int verify_name(std::string name) {
-	if (name.size() > 10) {
+	if (name.size() > MAX_FILENAME_SIZE) {
 		return -1;
 	}
 	for (size_t i = 0; i < name.size(); i++) {
-		if (isalnum(name[i]) == false) {
+		if (isprint(name[i]) == false) {
 			return -1;
 		}
 	}
