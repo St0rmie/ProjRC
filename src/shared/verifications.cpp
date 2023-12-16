@@ -8,6 +8,12 @@
 
 #include "config.hpp"
 
+/**
+ * @brief  Checks if the given user id fits the required parameters.
+ * @param  user_id: The user id.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_user_id(std::string user_id) {
 	if (user_id.size() != 6) {
 		return -1;
@@ -26,6 +32,12 @@ int verify_user_id(std::string user_id) {
 	return 0;
 }
 
+/**
+ * @brief  Checks if the given password fits the required parameters.
+ * @param  password: The password.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_password(std::string password) {
 	if (password.size() != 8) {
 		return -1;
@@ -40,6 +52,12 @@ int verify_password(std::string password) {
 	return 0;
 }
 
+/**
+ * @brief  Checks if the given name fits the required parameters.
+ * @param  name: The name.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_name(std::string name) {
 	if (name.size() > MAX_FILENAME_SIZE) {
 		return -1;
@@ -53,6 +71,12 @@ int verify_name(std::string name) {
 	return 0;
 }
 
+/**
+ * @brief  Checks if the given file name isn't forbidden.
+ * @param  fname: The file name.
+ * @retval -1 if it's forbidden.
+ * @retval 0 if it isn't forbidden.
+ */
 int check_fname_not_forbidden(std::string fname) {
 	std::vector<std::string> forbidden = {"..", "/", "."};
 	if (std::find(forbidden.begin(), forbidden.end(), fname) ==
@@ -62,6 +86,12 @@ int check_fname_not_forbidden(std::string fname) {
 	return -1;
 }
 
+/**
+ * @brief  Checks if the given asset path fits the required parameters.
+ * @param  asset_path: The asset path.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_asset_fname(std::string asset_path) {
 	std::ifstream file;
 	std::string assetf_name =
@@ -83,6 +113,12 @@ int verify_asset_fname(std::string asset_path) {
 	return -1;
 }
 
+/**
+ * @brief  Checks if the given start value fits the required parameters.
+ * @param  start_value: The start value.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_start_value(std::string start_value) {
 	if (start_value.size() > 6) {
 		return -1;
@@ -97,6 +133,12 @@ int verify_start_value(std::string start_value) {
 	return 0;
 }
 
+/**
+ * @brief  Checks if the given time active fits the required parameters.
+ * @param  timeactive: The time active.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_timeactive(std::string timeactive) {
 	if (timeactive.size() > 5) {
 		return -1;
@@ -115,6 +157,12 @@ int verify_timeactive(std::string timeactive) {
 	return 0;
 }
 
+/**
+ * @brief  Checks if the given auction id fits the required parameters.
+ * @param  a_id: The auction id.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_auction_id(std::string a_id) {
 	if (a_id.size() != 3) {
 		return -1;
@@ -129,6 +177,12 @@ int verify_auction_id(std::string a_id) {
 	return 0;
 }
 
+/**
+ * @brief  Checks if the given value fits the required parameters.
+ * @param  value: The value.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_value(uint32_t value) {
 	if (value <= 0) {
 		return -1;
@@ -137,6 +191,12 @@ int verify_value(uint32_t value) {
 	return 0;
 }
 
+/**
+ * @brief  Checks if the port number fits the required parameters.
+ * @param  &port: The port.
+ * @retval -1 if it doesn't fit the parameters.
+ * @retval 0 if it fits the parameters.
+ */
 int verify_port_number(std::string &port) {
 	for (char c : port) {
 		if (!std::isdigit(static_cast<unsigned char>(c))) {
