@@ -13,57 +13,83 @@
 #include "shared/protocol.hpp"
 #include "shared/verifications.hpp"
 
+/**
+ * @brief  Registers a command handler onto the command manager.
+ * @param  handler: a shared pointer to the command handler to be registered
+ * @retval None
+ */
 void CommandManager::registerCommand(std::shared_ptr<CommandHandler> handler) {
 	this->handlers.insert({handler->_name, handler});
+	// If the command has an alias make a new registry for the handler under the
+	// alias
 	if (handler->_alias) {
 		this->handlers.insert({*handler->_alias, handler});
 	}
 }
 
+/**
+ * @brief  Waits for a command to be inputted by the user onto the terminal and
+ * calls the respective handler.
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void CommandManager::waitCommand(Client &client) {
 	std::string line_base;
-	if (client.isLoggedIn()) {
+	if (client.isLoggedIn()) {  // Show user id if logged in
 		line_base += "[";
 		line_base += std::to_string(client.getLoggedInUser());
 		line_base += "] > ";
-	} else {
+	} else {  // Show default prompt
 		line_base += "> ";
 	}
 
+	// Waits for user input
 	char *input = readline(line_base.c_str());
+
+	// Adds the input to the history
 	add_history(input);
 	std::string line(input);
 	free(input);
 
+	// Splits the line between command name and arguments
 	size_t splitIndex = line.find(' ');
-
 	std::string commandName;
 	if (splitIndex == std::string::npos) {
+		// No arguments
 		commandName = line;
 		line = "";
 	} else {
+		// Has arguments
 		commandName = line.substr(0, splitIndex);
 		line.erase(0, splitIndex + 1);
 	}
 
+	// Checks if the command is valid
 	if (commandName.length() == 0) {
 		return;
 	}
 
+	// Finds the proper handler for the command
 	auto handler = this->handlers.find(commandName);
 	if (handler == this->handlers.end()) {
 		printError(
 			"Unknown Command. Type \"help\" for the list of "
-			"commands available");
+			"commands available.");
 		return;
 	}
 
+	// Calls the handler of the command
 	handler->second->handle(line, client);
 }
 
+/**
+ * @brief  Prints the help message with the list of commands available.
+ * @retval None
+ */
 void CommandManager::printHelp() {
 	std::cout << "[HELP] Available commands:" << std::endl << std::left;
 
+	// Iterates through the handlers and prints the help message for each
 	for (auto it = this->handlers.begin(); it != this->handlers.end(); ++it) {
 		auto handler = it->second;
 		std::string ss;
@@ -85,23 +111,32 @@ void CommandManager::printHelp() {
 	}
 }
 
+/**
+ * @brief Handles the login command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void LoginCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
 	std::string arg;
 
+	// Extract arguments to a vector
 	while (ss >> arg) {
 		parsed_args.push_back(arg);
 	}
 
+	// Check if the number of arguments is correct
 	if (parsed_args.size() != 2) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Check if the user is already logged in
 	if (client.isLoggedIn() == true) {
-		printError("[Already Logged In. Please logout first.");
+		printError("Already Logged In. Please logout first.");
 		return;
 	}
 
@@ -119,31 +154,32 @@ void LoginCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	// Populate and send packet
+	// Fill and send message
 	ClientLoginUser message_out;
 	message_out.user_id = convert_user_id(user_id);
 	message_out.password = convert_password(password);
 
+	// Message to receive
 	ServerLoginUser message_in;
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	}
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerLoginUser::status::OK:
 			client.login(convert_user_id(user_id), convert_password(password));
-			std::cout << "[Login] Sucessfully logged in as "
-					  << client.getLoggedInUser() << std::endl;
+			printSuccess("Sucessfully logged in as " +
+			             client.getLoggedInUser());
 			break;
 
 		case ServerLoginUser::status::NOK:
-			std::cout << "[Login] Couldn't login." << std::endl;
+			printError("Couldn't login.");
 			break;
 
 		case ServerLoginUser::status::REG:
 			client.login(convert_user_id(user_id), convert_password(password));
-			std::cout << "[Login] Registered user." << std::endl;
+			printSuccess("Registered user " + client.getLoggedInUser());
 			break;
 
 		case ServerLoginUser::status::ERR:
@@ -155,28 +191,37 @@ void LoginCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the logout command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void LogoutCommand::handle(std::string args, Client &client) {
+	// Verify number of arguments
 	if (args.length() > 0) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Verify if the user is logged in
 	if (client.isLoggedIn() == false) {
 		printError("Not logged in. Please login first.");
 		return;
 	}
 
-	// Populate and send packet
+	// Fill and send message
 	ClientLogout message_out;
 	message_out.user_id = client.getLoggedInUser();
 	message_out.password = client.getPassword();
 
+	// Message to receive
 	ServerLogout message_in;
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	}
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerLogout::status::OK:
 			client.logout();
@@ -200,28 +245,37 @@ void LogoutCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the unregister command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void UnregisterCommand::handle(std::string args, Client &client) {
+	// Verify number of arguments
 	if (args.length() > 0) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Verify if the user is logged in
 	if (client.isLoggedIn() == false) {
 		printError("Not logged in. Please login first.");
 		return;
 	}
 
-	// Populate and send packet
+	// Fill and send message
 	ClientUnregister message_out;
 	message_out.user_id = client.getLoggedInUser();
 	message_out.password = client.getPassword();
 
+	// Message to receive
 	ServerUnregister message_in;
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	}
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerUnregister::status::OK:
 			client.logout();
@@ -245,21 +299,30 @@ void UnregisterCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the list started auctions command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
+	// Verify number of arguments
 	if (args.length() > 0) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Verify if the user is logged in
 	if (client.isLoggedIn() == false) {
 		printError("Not logged in. Please login first.");
 		return;
 	}
 
-	// Populate and send packet
+	// Fill and send message
 	ClientListStartedAuctions message_out;
 	message_out.user_id = client.getLoggedInUser();
 
+	// Message to receive
 	ServerListStartedAuctions message_in;
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
@@ -294,6 +357,12 @@ void ListStartedAuctionsCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the list mybids command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 	if (args.length() > 0) {
 		printError("Wrong number of arguments");
@@ -309,16 +378,17 @@ void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 	ClientListBiddedAuctions message_out;
 	message_out.user_id = client.getLoggedInUser();
 
+	// Message to receive
 	ServerListBiddedAuctions message_in;
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	}
 
 	std::string message_ok =
-		"Listing \nAuctions started by user " + client.getLoggedInUser();
+		"Listing \nAuctions bidded by user " + client.getLoggedInUser();
 	message_ok += ":";
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerListBiddedAuctions::status::OK:;
 			printSuccess(message_ok);
@@ -344,24 +414,32 @@ void ListBiddedAuctionsCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the list all auctions command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void ListAllAuctionsCommand::handle(std::string args, Client &client) {
+	// Verify the number of arguments
 	if (args.length() > 0) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
-	// Populate and send packet
+	// Fill and send message
 	ClientListAllAuctions message_out;
 
+	// Message to receive
 	ServerListAllAuctions message_in;
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	}
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerListAllAuctions::status::OK:;
-			printSuccess("Listing \nAuctions registered on the server:");
+			printSuccess("Listing \nAll auctions registered on the server:");
 			for (std::string auc : message_in.auctions) {
 				std::cout << "\t" << auc << std::endl;
 			}
@@ -380,38 +458,49 @@ void ListAllAuctionsCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the list started auctions command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void ShowRecordCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
 	std::string arg;
 
+	// Extract arguments to a vector
 	while (ss >> arg) {
 		parsed_args.push_back(arg);
 	}
 
+	// Check if the number of arguments is correct
 	if (parsed_args.size() != 1) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Defining the arguments extracted
 	std::string a_id = parsed_args[0];
 
+	// Verify the arguments
 	if (verify_auction_id(a_id) == -1) {
 		printError("Incorrect AID.");
 		return;
 	}
 
-	// Populate and send packet
+	// Fill and send message
 	ClientShowRecord message_out;
 	message_out.auction_id = convert_auction_id(a_id);
 
+	// Message to receive
 	ServerShowRecord message_in;
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	}
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerShowRecord::status::OK:;
 			printRecord(a_id, message_in);
@@ -430,21 +519,30 @@ void ShowRecordCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the open auction command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void OpenAuctionCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
 	std::string arg;
 
+	// Extract arguments to a vector
 	while (ss >> arg) {
 		parsed_args.push_back(arg);
 	}
 
+	// Check if the number of arguments is correct
 	if (parsed_args.size() != 4) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Check if the user is logged in
 	if (client.isLoggedIn() == false) {
 		printError("User not logged in.");
 		return;
@@ -457,10 +555,11 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	std::string timeactive = parsed_args[3];
 
 	// Verifying parameters
-	/*if (verify_name(name) == -1) {
-	    printError("Incorrect auction name.");
-	    return;
-	}*/
+	if (verify_name(name) == -1) {
+		printError("Incorrect auction name.");
+		return;
+	}
+
 	if (verify_asset_fname(asset_path) == -1) {
 		printError("Incorrect asset file path/name.");
 		return;
@@ -470,6 +569,7 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 		printError("Incorrect start value.");
 		return;
 	}
+
 	if (verify_timeactive(timeactive) == -1) {
 		printError("Incorrect time active.");
 		return;
@@ -479,8 +579,7 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	std::string assetf_name =
 		asset_path.substr(asset_path.find_last_of("/\\") + 1);
 
-	// Protocol setup
-	// Populate and send message
+	// Fill and send message
 	ClientOpenAuction message_out;
 	message_out.user_id = client.getLoggedInUser();
 	message_out.password = client.getPassword();
@@ -496,14 +595,16 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 		throw FileException();
 		return;
 	}
+
 	message_out.fdata = readFromFile(asset_path);
 
+	// Message to receive
 	ServerOpenAuction message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	};
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerOpenAuction::status::OK:
 			printOpenAuction(message_in);
@@ -526,46 +627,57 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the close auction command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void CloseAuctionCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
 	std::string arg;
 
+	// Extract arguments to a vector
 	while (ss >> arg) {
 		parsed_args.push_back(arg);
 	}
 
+	// Check if the number of arguments is correct
 	if (parsed_args.size() != 1) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Check if the user is logged in
 	if (client.isLoggedIn() == false) {
 		printError("User not Logged In. Please login first.");
 		return;
 	}
 
+	// Defining the arguments extracted
 	std::string a_id = parsed_args[0];
 
+	// Verifying parameters
 	if (verify_auction_id(a_id) == -1) {
 		printError("Incorrect AID.");
 		return;
 	}
 
-	// Protocol setup
-	// Populate and send message
+	// Fill and send message
 	ClientCloseAuction message_out;
 	message_out.user_id = client.getLoggedInUser();
 	message_out.password = client.getPassword();
 	message_out.auction_id = static_cast<uint32_t>(stoi(a_id));
 
+	// Message to receive
 	ServerCloseAuction message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	};
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerCloseAuction::status::OK:
 			printCloseAuction(message_out);
@@ -600,39 +712,49 @@ void CloseAuctionCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the show asset command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void ShowAssetCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
 	std::string arg;
 
+	// Extract arguments to a vector
 	while (ss >> arg) {
 		parsed_args.push_back(arg);
 	}
 
+	// Check if the number of arguments is correct
 	if (parsed_args.size() != 1) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Defining the arguments extracted
 	std::string a_id = parsed_args[0];
 
+	// Verifying parameters
 	if (verify_auction_id(a_id) == -1) {
 		printError("Incorrect AID.");
 		return;
 	}
 
-	// Protocol setup
-	// Populate and send message
+	// Fill and send message
 	ClientShowAsset message_out;
 	message_out.auction_id = static_cast<uint32_t>(stoi(a_id));
 
+	// Message to receive
 	ServerShowAsset message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	};
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerShowAsset::status::OK:
 			printShowAsset(message_out, message_in);
@@ -653,29 +775,40 @@ void ShowAssetCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the bid command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void BidCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
 	std::string arg;
 
+	// Extract arguments to a vector
 	while (ss >> arg) {
 		parsed_args.push_back(arg);
 	}
 
+	// Check if the number of arguments is correct
 	if (parsed_args.size() != 2) {
 		printError("Wrong number of arguments");
 		return;
 	}
 
+	// Check if the user is logged in
 	if (client.isLoggedIn() == false) {
 		printError("User not Logged In. Please login first.");
 		return;
 	}
 
+	// Defining the arguments extracted
 	std::string a_id = parsed_args[0];
 	uint32_t value = static_cast<uint32_t>(stol(parsed_args[1]));
 
+	// Verifying parameters
 	if (verify_auction_id(a_id) == -1) {
 		printError("Incorrect AID.");
 		return;
@@ -686,20 +819,20 @@ void BidCommand::handle(std::string args, Client &client) {
 		return;
 	}
 
-	// Protocol setup
-	// Populate and send message
+	// Fill and send message
 	ClientBid message_out;
 	message_out.user_id = client.getLoggedInUser();
 	message_out.password = client.getPassword();
 	message_out.auction_id = static_cast<uint32_t>(stoi(a_id));
 	message_out.value = value;
 
+	// Message to receive
 	ServerBid message_in;
 	if (client.sendTcpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	};
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerBid::status::NOK:
 			printError("Auction isn't active or does not exist.");
@@ -730,26 +863,35 @@ void BidCommand::handle(std::string args, Client &client) {
 	}
 }
 
+/**
+ * @brief Handles the exit command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void ExitCommand::handle(std::string args, Client &client) {
 	(void) args;  // unused - no args
 
+	// Verify if the client is logged in
 	if (client.isLoggedIn() == false) {
+		// Logout and exit
 		printSuccess("Shutting down.");
 		client.~Client();
 		exit(EXIT_SUCCESS);
 	}
 
-	// Populate and send packet
+	// Fill and send message
 	ClientLogout message_out;
 	message_out.user_id = client.getLoggedInUser();
 	message_out.password = client.getPassword();
 
+	// Message to receive
 	ServerLogout message_in;
 	if (client.sendUdpMessageAndAwaitReply(message_out, message_in) == -1) {
 		return;
 	}
 
-	// Check status
+	// Check status of the received message
 	switch (message_in.status) {
 		case ServerLogout::status::OK:
 			client.logout();
@@ -772,19 +914,31 @@ void ExitCommand::handle(std::string args, Client &client) {
 			throw InvalidMessageException();
 	}
 
-	// Protocol setup
+	// Exit
 	printSuccess("Shutting down.");
 	client.~Client();
 	exit(EXIT_SUCCESS);
 }
 
+/**
+ * @brief Handles the help command.
+ * @param  args: arguments following the command
+ * @param  &client: reference to the client instance
+ * @retval None
+ */
 void HelpCommand::handle(std::string args, Client &client) {
 	(void) args;    // unused - no args
 	(void) client;  // unused client
 
+	// Call the command manager to print the help message
 	_manager.printHelp();
 }
 
+/**
+ * @brief Register a set of commands on the command manager
+ * @param  &manager: reference to the command manager instance
+ * @retval None
+ */
 void registerCommands(CommandManager &manager) {
 	manager.registerCommand(std::make_shared<LoginCommand>());
 	manager.registerCommand(std::make_shared<OpenAuctionCommand>());

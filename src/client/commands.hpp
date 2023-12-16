@@ -1,6 +1,12 @@
 #ifndef __COMMANDS__
 #define __COMMANDS__
 
+/**
+ * @file commands.hpp
+ * @brief Contains the declaration of client command-related classes and
+ * functions.
+ */
+
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -10,9 +16,13 @@
 
 #include "client.hpp"
 
+// Maximum size of a command input
 #define MAX_COMMAND_SIZE 1024
 
-/* Command COMMANDS */
+// -----------------------------------
+// | Command name and aliases		 |
+// -----------------------------------
+
 #define COMMAND_LOGIN                  "login"
 #define COMMAND_CREATE_AUC             "open"
 #define COMMAND_CLOSE_AUC              "close"
@@ -31,7 +41,9 @@
 #define COMMAND_UNREGISTER             "unregister"
 #define COMMAND_EXIT                   "exit"
 
-/* Classes */
+// ---------------------------------------
+// | Command Manager and Handler classes |
+// ---------------------------------------
 
 class CommandHandler {
    protected:
@@ -60,6 +72,13 @@ class CommandManager {
 	void printHelp();
 };
 
+// -----------------------------------
+// | Commands classes				 |
+// -----------------------------------
+
+/**
+ * @brief    Command to log in as a user.
+ */
 class LoginCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -69,6 +88,9 @@ class LoginCommand : public CommandHandler {
 	                     "Log In as user UID.") {}
 };
 
+/**
+ * @brief    Command to open a auction.
+ */
 class OpenAuctionCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -79,6 +101,9 @@ class OpenAuctionCommand : public CommandHandler {
 	                     "Open a new auction for the logged in user.") {}
 };
 
+/**
+ * @brief    Command to close a auction.
+ */
 class CloseAuctionCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -88,6 +113,9 @@ class CloseAuctionCommand : public CommandHandler {
 	                     "Close ongoing auction.") {}
 };
 
+/**
+ * @brief    Command to list auctions started by a user.
+ */
 class ListStartedAuctionsCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -97,6 +125,9 @@ class ListStartedAuctionsCommand : public CommandHandler {
 	                     "List auctions started by the logged in User") {}
 };
 
+/**
+ * @brief    Command to list auctions bidded by a user.
+ */
 class ListBiddedAuctionsCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -106,6 +137,9 @@ class ListBiddedAuctionsCommand : public CommandHandler {
 	                     "List auctions in which the logged in User bidded.") {}
 };
 
+/**
+ * @brief    Command to list all auctions on the auction server.
+ */
 class ListAllAuctionsCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -114,6 +148,9 @@ class ListAllAuctionsCommand : public CommandHandler {
 		: CommandHandler("list", "l", "list", "List all auctions.") {}
 };
 
+/**
+ * @brief    Command to show asset of an auction.
+ */
 class ShowAssetCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -123,6 +160,9 @@ class ShowAssetCommand : public CommandHandler {
 	                     "Retrieve asset file of an auction.") {}
 };
 
+/**
+ * @brief    Command to , as a user, bid on an auction.
+ */
 class BidCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -132,6 +172,9 @@ class BidCommand : public CommandHandler {
 	                     "Place a bid on an auction.") {}
 };
 
+/**
+ * @brief    Command to show record of an auction.
+ */
 class ShowRecordCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -142,6 +185,9 @@ class ShowRecordCommand : public CommandHandler {
 	                     "...) of an auction.") {}
 };
 
+/**
+ * @brief    Command to logout from a user.
+ */
 class LogoutCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -151,6 +197,9 @@ class LogoutCommand : public CommandHandler {
 	                     "Log Out of a User.") {}
 };
 
+/**
+ * @brief    Command to unregister the logged in user.
+ */
 class UnregisterCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -160,6 +209,9 @@ class UnregisterCommand : public CommandHandler {
 	                     "Unregister and logout of the logged in User.") {}
 };
 
+/**
+ * @brief    Command to exit of the client application.
+ */
 class ExitCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
@@ -169,6 +221,9 @@ class ExitCommand : public CommandHandler {
 	                     "Exit the application.") {}
 };
 
+/**
+ * @brief    Command to print all the registered commands information.
+ */
 class HelpCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 	CommandManager &_manager;
@@ -180,6 +235,10 @@ class HelpCommand : public CommandHandler {
 	                     "(name,alias,usage,description)."),
 		  _manager(manager) {}
 };
+
+// -----------------------------------
+// | Registering the commands		 |
+// -----------------------------------
 
 void registerCommands(CommandManager &manager);
 
