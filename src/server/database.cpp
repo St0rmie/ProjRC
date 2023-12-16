@@ -451,7 +451,10 @@ int Database::CreateEndFile(std::string a_id) {
 	FILE *fp;
 	StartInfo start;
 	time_t fulltime;
+	struct tm *finish_time;
 	std::string current_date = GetCurrentDate();
+	std::string content;
+	char date_str[40];
 	uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
 	if (GetStart(a_id, start) == -1) {
 		throw AuctionNotFound();
@@ -464,8 +467,23 @@ int Database::CreateEndFile(std::string a_id) {
 	dir_name += a_id;
 	dir_name += ".txt";
 
-	std::string content = current_date + " ";
-	content += std::to_string(time_passed);
+	uint32_t supposed_end = static_cast<uint32_t>(stol(start.timeactive));
+
+	if (time_passed > supposed_end) {
+		time_t total_time = static_cast<time_t>(start_time + supposed_end);
+		finish_time = gmtime(&total_time);
+		sprintf(date_str, "%4u-%02u-%02u %02u:%02u:%02u",
+		        finish_time->tm_year + 1900, finish_time->tm_mon + 1,
+		        finish_time->tm_mday, finish_time->tm_hour, finish_time->tm_min,
+		        finish_time->tm_sec);
+
+		content = date_str;
+		content += " ";
+		content += std::to_string(supposed_end);
+	} else {
+		content = current_date + " ";
+		content += std::to_string(time_passed);
+	}
 
 	const char *file_content = content.c_str();
 
@@ -1359,7 +1377,6 @@ AuctionRecord Database::ShowRecord(std::string a_id) {
 	StartInfo start;
 	EndInfo end;
 	uint32_t n = 0;
-	uint32_t finished;
 	AuctionRecord result;
 	BidList list;
 
