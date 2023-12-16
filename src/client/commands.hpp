@@ -36,12 +36,16 @@
 class CommandHandler {
    protected:
 	CommandHandler(const char *name, std::optional<const char *> alias,
-	               const char *description)
-		: _name{name}, _alias{alias}, _description{description} {}
+	               const char *usage, const char *description)
+		: _name{name},
+		  _alias{alias},
+		  _usage{usage},
+		  _description{description} {}
 
    public:
 	const char *_name;
 	const std::optional<const char *> _alias;
+	const char *_usage;
 	const char *_description;
 	virtual void handle(std::string name, Client &client) = 0;
 };
@@ -53,6 +57,7 @@ class CommandManager {
    public:
 	void registerCommand(std::shared_ptr<CommandHandler> handler);
 	void waitCommand(Client &client);
+	void printHelp();
 };
 
 class LoginCommand : public CommandHandler {
@@ -60,7 +65,8 @@ class LoginCommand : public CommandHandler {
 
    public:
 	LoginCommand()
-		: CommandHandler("login", std::nullopt, "Log In for User.") {}
+		: CommandHandler("login", std::nullopt, "login <UID> <password>",
+	                     "Log In as user UID.") {}
 };
 
 class OpenAuctionCommand : public CommandHandler {
@@ -68,8 +74,9 @@ class OpenAuctionCommand : public CommandHandler {
 
    public:
 	OpenAuctionCommand()
-		: CommandHandler("open", std::nullopt, "Open a new auction for User.") {
-	}
+		: CommandHandler("open", std::nullopt,
+	                     "open <name> <asset_fname> <start_value> <timeactive>",
+	                     "Open a new auction for the logged in user.") {}
 };
 
 class CloseAuctionCommand : public CommandHandler {
@@ -77,8 +84,8 @@ class CloseAuctionCommand : public CommandHandler {
 
    public:
 	CloseAuctionCommand()
-		: CommandHandler("close", std::nullopt,
-	                     "Close ongoing auction for User.") {}
+		: CommandHandler("close", std::nullopt, "close <AID>",
+	                     "Close ongoing auction.") {}
 };
 
 class ListStartedAuctionsCommand : public CommandHandler {
@@ -86,9 +93,8 @@ class ListStartedAuctionsCommand : public CommandHandler {
 
    public:
 	ListStartedAuctionsCommand()
-		: CommandHandler("myauctions", "ma",
-	                     "List auctions started by this User or where they "
-	                     "placed a bid.") {}
+		: CommandHandler("myauctions", "ma", "myauctions",
+	                     "List auctions started by the logged in User") {}
 };
 
 class ListBiddedAuctionsCommand : public CommandHandler {
@@ -96,8 +102,8 @@ class ListBiddedAuctionsCommand : public CommandHandler {
 
    public:
 	ListBiddedAuctionsCommand()
-		: CommandHandler("mybids", "mb",
-	                     "List auctions for which this User made a bid.") {}
+		: CommandHandler("mybids", "mb", "mybids",
+	                     "List auctions in which the logged in User bidded.") {}
 };
 
 class ListAllAuctionsCommand : public CommandHandler {
@@ -105,7 +111,7 @@ class ListAllAuctionsCommand : public CommandHandler {
 
    public:
 	ListAllAuctionsCommand()
-		: CommandHandler("list", "l", "List all active auction.") {}
+		: CommandHandler("list", "l", "list", "List all auctions.") {}
 };
 
 class ShowAssetCommand : public CommandHandler {
@@ -113,15 +119,17 @@ class ShowAssetCommand : public CommandHandler {
 
    public:
 	ShowAssetCommand()
-		: CommandHandler("show_asset", "sa",
-	                     "Show asset on sale in the auction.") {}
+		: CommandHandler("show_asset", "sa", "show_asset <AID>",
+	                     "Retrieve asset file of an auction.") {}
 };
 
 class BidCommand : public CommandHandler {
 	virtual void handle(std::string name, Client &client);
 
    public:
-	BidCommand() : CommandHandler("bid", "b", "Place a bid for auction.") {}
+	BidCommand()
+		: CommandHandler("bid", "b", "bid <AID> <value>",
+	                     "Place a bid on an auction.") {}
 };
 
 class ShowRecordCommand : public CommandHandler {
@@ -129,7 +137,9 @@ class ShowRecordCommand : public CommandHandler {
 
    public:
 	ShowRecordCommand()
-		: CommandHandler("show_record", "sr", "Show record of auction.") {}
+		: CommandHandler("show_record", "sr", "show_record <AID>",
+	                     "Show entire record (start info. , bids, end info. "
+	                     "...) of an auction.") {}
 };
 
 class LogoutCommand : public CommandHandler {
@@ -137,7 +147,8 @@ class LogoutCommand : public CommandHandler {
 
    public:
 	LogoutCommand()
-		: CommandHandler("logout", std::nullopt, "Log Out for User.") {}
+		: CommandHandler("logout", std::nullopt, "logout",
+	                     "Log Out of a User.") {}
 };
 
 class UnregisterCommand : public CommandHandler {
@@ -145,8 +156,8 @@ class UnregisterCommand : public CommandHandler {
 
    public:
 	UnregisterCommand()
-		: CommandHandler("unregister", std::nullopt,
-	                     "Unregister the logged in User.") {}
+		: CommandHandler("unregister", std::nullopt, "unregister",
+	                     "Unregister and logout of the logged in User.") {}
 };
 
 class ExitCommand : public CommandHandler {
@@ -154,7 +165,20 @@ class ExitCommand : public CommandHandler {
 
    public:
 	ExitCommand()
-		: CommandHandler("exit", std::nullopt, "Exit the application.") {}
+		: CommandHandler("exit", std::nullopt, "exit",
+	                     "Exit the application.") {}
+};
+
+class HelpCommand : public CommandHandler {
+	virtual void handle(std::string name, Client &client);
+	CommandManager &_manager;
+
+   public:
+	HelpCommand(CommandManager &manager)
+		: CommandHandler("help", std::nullopt, "help",
+	                     "Show information about all registered commands "
+	                     "(name,alias,usage,description)."),
+		  _manager(manager) {}
 };
 
 void registerCommands(CommandManager &manager);

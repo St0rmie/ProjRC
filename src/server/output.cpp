@@ -15,8 +15,12 @@ void printError(std::string message) {
 	std::cout << "[ERROR] " << message << std::endl;
 }
 
-void printInfo(std::string message) {
-	std::cout << "[INFO] " << message << std::endl;
+void printInfo(std::string message, int tab_level) {
+	std::string prefix;
+	for (int i = 0; i < tab_level; i++) {
+		prefix += "\t";
+	}
+	std::cout << prefix << "[INFO] " << message << std::endl;
 }
 
 void printRequest(std::string message) {
@@ -50,7 +54,7 @@ void printAddressIncomingRequest(Address &addr_from) {
 	message += ":";
 	message += std::to_string(ntohs(addr_from.addr.sin_port));
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 0);
 }
 
 void printInLoginRequest(ClientLoginUser request) {
@@ -59,7 +63,7 @@ void printInLoginRequest(ClientLoginUser request) {
 	message += "\n\t<- Password: ";
 	message += hidePassword(request.password);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInLogoutRequest(ClientLogout request) {
@@ -68,7 +72,7 @@ void printInLogoutRequest(ClientLogout request) {
 	message += "\n\t<- Password: ";
 	message += hidePassword(request.password);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInUnregisterRequest(ClientUnregister request) {
@@ -77,7 +81,7 @@ void printInUnregisterRequest(ClientUnregister request) {
 	message += "\n\t<- Password: ";
 	message += hidePassword(request.password);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInListAllRequest(ClientListAllAuctions request) {
@@ -85,7 +89,7 @@ void printInListAllRequest(ClientListAllAuctions request) {
 	std::string message =
 		"\tIncoming 'LIST ALL AUCTIONS':\n\t<- (no arguments) ";
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInListBiddedRequest(ClientListBiddedAuctions request) {
@@ -93,7 +97,7 @@ void printInListBiddedRequest(ClientListBiddedAuctions request) {
 		"\tIncoming 'LIST USER'S BIDDED AUCTIONS':\n\t<- User ID: ";
 	message += convert_user_id_to_str(request.user_id);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInListStartedRequest(ClientListStartedAuctions request) {
@@ -101,14 +105,14 @@ void printInListStartedRequest(ClientListStartedAuctions request) {
 		"\tIncoming 'LIST USER'S STARTED AUCTIONS':\n\t<- User ID: ";
 	message += convert_user_id_to_str(request.user_id);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInShowRecordRequest(ClientShowRecord request) {
 	std::string message = "\tIncoming 'SHOW RECORD':\n\t<- Auction ID: ";
 	message += convert_auction_id_to_str(request.auction_id);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInOpenAuctionRequest(ClientOpenAuction request) {
@@ -137,14 +141,14 @@ void printInCloseAuctionRequest(ClientCloseAuction request) {
 	message += "\n\t<- Auction ID: ";
 	message += convert_auction_id_to_str(request.auction_id);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInShowAssetRequest(ClientShowAsset request) {
 	std::string message = "\tIncoming 'SHOW ASSET':\n\t<- Auction ID: ";
 	message += convert_auction_id_to_str(request.auction_id);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }
 
 void printInBidRequest(ClientBid request) {
@@ -157,5 +161,5 @@ void printInBidRequest(ClientBid request) {
 	message += "\n\t<- Value: ";
 	message += std::to_string(request.value);
 	message += "\n";
-	printInfo(message);
+	printInfo(message, 1);
 }

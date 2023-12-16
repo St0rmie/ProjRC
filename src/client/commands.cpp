@@ -61,6 +61,30 @@ void CommandManager::waitCommand(Client &client) {
 	handler->second->handle(line, client);
 }
 
+void CommandManager::printHelp() {
+	std::cout << "[HELP] Available commands:" << std::endl << std::left;
+
+	for (auto it = this->handlers.begin(); it != this->handlers.end(); ++it) {
+		auto handler = it->second;
+		std::string ss;
+		ss += "\n\tName: ";
+		ss += handler->_name;
+		ss += "\n";
+		if (handler->_alias) {
+			ss += "\tAlias: ";
+			ss += handler->_alias.value();
+			ss += "\n";
+		}
+		ss += "\tUsage: ";
+		ss += handler->_usage;
+		ss += "\n";
+		ss += "\tDescription: ";
+		ss += handler->_description;
+		ss += "\n";
+		std::cout << ss;
+	}
+}
+
 void LoginCommand::handle(std::string args, Client &client) {
 	// Parsing the arguments
 	std::stringstream ss(args);
@@ -754,6 +778,13 @@ void ExitCommand::handle(std::string args, Client &client) {
 	exit(EXIT_SUCCESS);
 }
 
+void HelpCommand::handle(std::string args, Client &client) {
+	(void) args;    // unused - no args
+	(void) client;  // unused client
+
+	_manager.printHelp();
+}
+
 void registerCommands(CommandManager &manager) {
 	manager.registerCommand(std::make_shared<LoginCommand>());
 	manager.registerCommand(std::make_shared<OpenAuctionCommand>());
@@ -767,4 +798,5 @@ void registerCommands(CommandManager &manager) {
 	manager.registerCommand(std::make_shared<LogoutCommand>());
 	manager.registerCommand(std::make_shared<UnregisterCommand>());
 	manager.registerCommand(std::make_shared<ExitCommand>());
+	manager.registerCommand(std::make_shared<HelpCommand>(manager));
 }
