@@ -58,6 +58,6 @@
 
 #define TCP_MAX_QUEUE_SIZE 8
 
-#define CLIENT_ASSET_DEFAULT_PATH "assets/"
+#define CLIENT_ASSET_DEFAULT_PATH ""
 
 #endif

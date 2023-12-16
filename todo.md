@@ -4,8 +4,8 @@ RC @ IST - Project 2023/2024
 
 ## TODO LIST
 
-- Testar repetição do fork
-- Testar server sem verbose e fix a tabs.
+- Setup signals properly
+- Final tests
 - Fazer readme
 - Comments
 - Entregar

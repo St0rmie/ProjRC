@@ -167,6 +167,7 @@ void RequestManager::callHandlerRequest(MessageAdapter &message, Server &server,
 
 void processUDP(Server &server, RequestManager &manager) {
 	int ex_trial = 0;
+	std::cout << "[UDP] Started UDP server." << std::endl;
 	while (true) {
 		try {
 			wait_for_udp_message(server, manager);
@@ -293,6 +294,7 @@ void processTCP(Server &server, RequestManager &manager) {
 		perror("Error while executing listen");
 		return;
 	}
+	std::cout << "[TCP] Started TCP server." << std::endl;
 
 	uint32_t ex_trial = 0;
 	while (true) {
@@ -300,10 +302,11 @@ void processTCP(Server &server, RequestManager &manager) {
 			wait_for_tcp_message(server, manager);
 			ex_trial = 0;
 		} catch (std::exception &e) {
-			std::cerr << "Encountered unrecoverable error while running the "
-						 "application. Retrying..."
-					  << std::endl
-					  << e.what() << std::endl;
+			std::cerr
+				<< "[TCP] Encountered unrecoverable error while running the "
+				   "server. Retrying..."
+				<< std::endl
+				<< e.what() << std::endl;
 			ex_trial++;
 		}
 		if (ex_trial >= EXCEPTION_RETRY_MAX) {

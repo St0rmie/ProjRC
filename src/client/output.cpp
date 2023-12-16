@@ -1,5 +1,14 @@
 #include "output.hpp"
 
+// -----------------------------------
+// | Command print functions 		 |
+// -----------------------------------
+
+/**
+ * @brief Prints the record information.
+ * @param aid The auction ID.
+ * @param message The server's show record message.
+ */
 void printRecord(std::string aid, ServerShowRecord message) {
 	std::string active_status = message.end_sec_time <= 0 ? "active" : "closed";
 	std::cout << "[SUCCESS] Showing record for auction " << aid
@@ -39,16 +48,29 @@ void printRecord(std::string aid, ServerShowRecord message) {
 			  << "END RECORD\n";
 }
 
+/**
+ * @brief Prints the open auction information.
+ * @param message The server's open auction message.
+ */
 void printOpenAuction(ServerOpenAuction message) {
 	std::cout << "[SUCCESS] Auction " << message.auction_id << " opened."
 			  << std::endl;
 }
 
+/**
+ * @brief Prints the close auction information.
+ * @param message The client's close auction message.
+ */
 void printCloseAuction(ClientCloseAuction message) {
 	std::cout << "[SUCCESS] Auction " << message.auction_id << " closed."
 			  << std::endl;
 }
 
+/**
+ * @brief Prints the asset information.
+ * @param message_c The client's show asset message.
+ * @param message_s The server's show asset message.
+ */
 void printShowAsset(ClientShowAsset message_c, ServerShowAsset message_s) {
 	std::cout << "[SUCCESS] Retrieved " << message_c.auction_id
 			  << " auction's asset.\n\tFile Name: " << message_s.fname
@@ -57,15 +79,33 @@ void printShowAsset(ClientShowAsset message_c, ServerShowAsset message_s) {
 			  << " MB" << std::endl;
 }
 
+/**
+ * @brief Prints the bid information.
+ * @param message The client's bid message.
+ */
 void printBid(ClientBid message) {
 	std::cout << "[SUCCESS] Bidded " << message.value << " on auction "
 			  << message.auction_id << "." << std::endl;
 }
 
+// -----------------------------------
+// | Basic Functions    	 		 |
+// -----------------------------------
+
+/**
+ * @brief Prints an error message to the console. Prefix "[ERROR]" is added.
+ * @param  str: the error message to be printed.
+ * @retval None
+ */
 void printError(std::string str) {
 	std::cout << "[ERROR] " << str << std::endl;
 }
 
+/**
+ * @brief Prints a success message to the console. Prefix "[SUCCESS]" is added.
+ * @param  str: the success message to be printed.
+ * @retval None
+ */
 void printSuccess(std::string success_description) {
 	std::cout << "[SUCCESS] " << success_description << std::endl;
 }
