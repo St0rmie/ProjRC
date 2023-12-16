@@ -1021,6 +1021,8 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 	}
 
 	std::string c_aid = convert_auction_id_to_str(aid);
+	std::string a_dir_name = dir_name + c_aid;
+	const char *a_dir_fname = a_dir_name.c_str();
 
 	if (CreateAuctionDir(c_aid) == -1) {
 		semaphore_post();
@@ -1029,16 +1031,19 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 
 	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
 	                    timeactive) == -1) {
+		unlink(a_dir_fname);
 		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
 
 	if (CreateAssetFile(c_aid, asset_fname, data) == -1) {
+		unlink(a_dir_fname);
 		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
 
 	if (RegisterHost(user_id, c_aid) == -1) {
+		unlink(a_dir_fname);
 		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create hosted file
 	}
