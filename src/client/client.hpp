@@ -1,5 +1,11 @@
+
 #ifndef __CLIENT__
 #define __CLIENT__
+
+/**
+ * @file client.hpp
+ * @brief Header file for a client instance.
+ */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -15,24 +21,44 @@
 
 #define LOGGED_OUT 0
 
-// Thrown when there is an error when trying to create a socket
+// -----------------------------------
+// | Exceptions				 		 |
+// -----------------------------------
+
+/**
+ * @brief Thrown when the client fails to create a socket.
+ */
 class SocketException : public std::runtime_error {
    public:
 	SocketException()
 		: std::runtime_error("[Error] Failed to create socket.") {}
 };
 
-// Thrown when the hostname couldn't be resolved
+/**
+ * @brief Thrown when the client fails to resolve the server's hostname.
+ */
 class ResolveHostnameException : public std::runtime_error {
    public:
 	ResolveHostnameException()
 		: std::runtime_error("[Error] Failed to resolve hostname.") {}
 };
 
+// -----------------------------------
+// | Exceptions				 		 |
+// -----------------------------------
+
+/**
+ * @brief  Class that represents a client instance. Contains all the information
+ about open sockets, the logged in user, address of the server, and
+ configuration from initial parameters. It is responsible for calling the
+ protocol to send and receive messages.
+ */
 class Client {
+	// User information
 	uint32_t _user_id = LOGGED_OUT;
 	std::string _password = "";
 
+	// Server information and open fds (sockets)
 	std::string _hostname = DEFAULT_HOSTNAME;
 	std::string _port = DEFAULT_PORT;
 
@@ -41,6 +67,7 @@ class Client {
 	struct addrinfo* _server_udp_addr = NULL;
 	struct addrinfo* _server_tcp_addr = NULL;
 
+	// Internal methods
 	void resolveServerAddress(std::string& hostname, std::string& port);
 	void sendUdpMessage(ProtocolMessage& message);
 	void waitForUdpMessage(ProtocolMessage& message);
@@ -63,8 +90,5 @@ class Client {
 	int sendTcpMessageAndAwaitReply(ProtocolMessage& out_message,
 	                                ProtocolMessage& in_message);
 };
-
-void printError(std::string error_description);
-void printSuccess(std::string success_description);
 
 #endif

@@ -26,7 +26,7 @@ class ERRCodeMessageException : public std::runtime_error {
 	ERRCodeMessageException() : std::runtime_error("Error code") {}
 };
 
-// Thrown when the MessageID is correct, but the schema is wrong
+// Thrown when the MessageID is correct, but the format is wrong
 class InvalidMessageException : public std::runtime_error {
    public:
 	InvalidMessageException() : std::runtime_error("Invalid Message") {}
@@ -39,20 +39,20 @@ class MessageBuildingException : public std::runtime_error {
 		: std::runtime_error("Message Building error.") {}
 };
 
-// Thrown when the Message couldn't be sent
+// Thrown when the message couldn't be sent
 class MessageSendException : public std::runtime_error {
    public:
 	MessageSendException() : std::runtime_error("Message couldn't be sent.") {}
 };
 
-// Thrown when the Message couldn't be sent
+// Thrown when the message couldn't be sent
 class MessageReceiveException : public std::runtime_error {
    public:
 	MessageReceiveException()
 		: std::runtime_error("Message couldn't be received.") {}
 };
 
-// Thrown when reading/writing packet exceeds the timeout time.
+// Thrown when reading/writing message exceeds the timeout time.
 class ConnectionTimeoutException : public std::runtime_error {
    public:
 	ConnectionTimeoutException()
