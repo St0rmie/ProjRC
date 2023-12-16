@@ -986,6 +986,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
                    std::string asset_fname, std::string start_value,
                    std::string timeactive, size_t fsize, std::string data) {
 	(void) fsize;
+	semaphore_wait();
 	if (CheckUserLoggedIn(user_id) != 0) {
 		semaphore_post();
 		throw UserNotLoggedIn();
@@ -1026,19 +1027,19 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 
 	if (CreateStartFile(c_aid, user_id, name, asset_fname, start_value,
 	                    timeactive) == -1) {
-		unlink(a_dir_fname);
+		rmdir(a_dir_fname);
 		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create start file
 	}
 
 	if (CreateAssetFile(c_aid, asset_fname, data) == -1) {
-		unlink(a_dir_fname);
+		rmdir(a_dir_fname);
 		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create asset file
 	}
 
 	if (RegisterHost(user_id, c_aid) == -1) {
-		unlink(a_dir_fname);
+		rmdir(a_dir_fname);
 		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;  // Failed to create hosted file
 	}
@@ -1085,9 +1086,26 @@ int Database::CloseAuction(std::string a_id, std::string user_id,
 	if (CheckEndExists(dir_name.c_str()) == 0) {
 		semaphore_post();
 		throw AuctionAlreadyClosed();
-		return DB_CLOSE_NOK;
+		return DB_CLOSE_ENDED_ALREADY;
 	}
 
+	StartInfo start;
+	if (GetStart(a_id, start) == -1) {
+		semaphore_post();
+		throw AuctionNotFound();
+		return DB_CLOSE_NOK;
+	};
+
+	time_t fulltime;
+	uint32_t start_time = start.current_time;
+	uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
+	uint32_t time_passed = current_time - start_time;
+	uint32_t timeactive = static_cast<uint32_t>(stol(start.timeactive));
+	if (time_passed >= timeactive) {
+		Close(a_id);
+		throw AuctionAlreadyClosed();
+		return DB_CLOSE_ENDED_ALREADY;
+	}
 	int res = Close(a_id);
 
 	semaphore_post();
@@ -1219,8 +1237,8 @@ AuctionList Database::List() {
 
 	if (fs::is_empty(Dir_name)) {
 		semaphore_post();
-		return result;  // Returns empty list which means no auctions were ever
-		                // made
+		return result;  // Returns empty list which means no auctions were
+		                // ever made
 	} else {
 		for (const auto &entry : fs::directory_iterator(Dir_name)) {
 			std::string aid = entry.path();
@@ -1324,17 +1342,30 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 		return DB_BID_NOK;
 	}
 
+	if (GetStart(a_id, start) == -1) {
+		semaphore_post();
+		throw AuctionNotFound();
+		return DB_BID_NOK;
+	};
+
+	time_t fulltime;
+	uint32_t start_time = start.current_time;
+	uint32_t current_time = static_cast<uint32_t>(time(&fulltime));
+	uint32_t time_passed = current_time - start_time;
+	uint32_t timeactive = static_cast<uint32_t>(stol(start.timeactive));
+	if (time_passed >= timeactive) {
+		Close(a_id);
+		throw AuctionAlreadyClosed();
+		return DB_BID_NOK;
+	}
+
 	std::string bid_dir_name = "ASDIR/AUCTIONS/" + a_id;
 	bid_dir_name += "/BIDS/";
 
 	std::string bid_fname;
 
 	if (fs::is_empty(bid_dir_name)) {
-		GetStart(a_id, start);
-
-		std::cout << "stol1\t" << start.start_value << std::endl;
 		long old_value = stol(start.start_value);
-		std::cout << "after stol1" << std::endl;
 
 		if (old_value >= value) {
 			semaphore_post();

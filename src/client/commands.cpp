@@ -433,10 +433,10 @@ void OpenAuctionCommand::handle(std::string args, Client &client) {
 	std::string timeactive = parsed_args[3];
 
 	// Verifying parameters
-	if (verify_name(name) == -1) {
-		printError("Incorrect auction name.");
-		return;
-	}
+	/*if (verify_name(name) == -1) {
+	    printError("Incorrect auction name.");
+	    return;
+	}*/
 	if (verify_asset_fname(asset_path) == -1) {
 		printError("Incorrect asset file path/name.");
 		return;
@@ -711,7 +711,8 @@ void ExitCommand::handle(std::string args, Client &client) {
 
 	if (client.isLoggedIn() == false) {
 		printSuccess("Shutting down.");
-		return;
+		client.~Client();
+		exit(EXIT_SUCCESS);
 	}
 
 	// Populate and send packet
