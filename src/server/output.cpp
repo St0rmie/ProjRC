@@ -11,14 +11,29 @@
 // | BASIC PRINTS					 |
 // -----------------------------------
 
+/**
+ * @brief  Prints an error message.
+ * @param  message: The type of message
+ * @retval None
+ */
 void printError(std::string message) {
 	std::cout << "[ERROR] " << message << std::endl;
 }
 
+/**
+ * @brief  Prints an info message.
+ * @param  message: The type of message
+ * @retval None
+ */
 void printInfo(std::string message) {
 	std::cout << "[INFO] " << message << std::endl;
 }
 
+/**
+ * @brief  Prints an request message.
+ * @param  message: The type of message
+ * @retval None
+ */
 void printRequest(std::string message) {
 	std::cout << "[REQUEST] " << message << std::endl;
 }
@@ -27,6 +42,11 @@ void printRequest(std::string message) {
 // | Utilities						 |
 // -----------------------------------
 
+/**
+ * @brief  Censors the password.
+ * @param  password: The password to censor.
+ * @retval The censored password.
+ */
 std::string hidePassword(std::string password) {
 	std::string hidden_password = "";
 
@@ -42,6 +62,11 @@ std::string hidePassword(std::string password) {
 // | VERBOSE MODE (-v)				 |
 // -----------------------------------
 
+/**
+ * @brief  Prints an incoming request from a given address and port.
+ * @param  &addr_from: The address given.
+ * @retval None
+ */
 void printAddressIncomingRequest(Address &addr_from) {
 	char addr_str[INET_ADDRSTRLEN + 1] = {0};
 	inet_ntop(AF_INET, &addr_from.addr.sin_addr, addr_str, INET_ADDRSTRLEN);
@@ -53,6 +78,11 @@ void printAddressIncomingRequest(Address &addr_from) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the login request with the given user id and password.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInLoginRequest(ClientLoginUser request) {
 	std::string message = "\tIncoming 'LOGIN':\n\t<- User ID: ";
 	message += convert_user_id_to_str(request.user_id);
@@ -62,6 +92,11 @@ void printInLoginRequest(ClientLoginUser request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the logout request with the given user id and password.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInLogoutRequest(ClientLogout request) {
 	std::string message = "\tIncoming 'LOGOUT':\n\t<- User ID: ";
 	message += convert_user_id_to_str(request.user_id);
@@ -71,6 +106,11 @@ void printInLogoutRequest(ClientLogout request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the unregister request with the given user id and password.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInUnregisterRequest(ClientUnregister request) {
 	std::string message = "\tIncoming 'UNREGISTER':\n\t<- User ID: ";
 	message += convert_user_id_to_str(request.user_id);
@@ -80,6 +120,11 @@ void printInUnregisterRequest(ClientUnregister request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the list all auctions request.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInListAllRequest(ClientListAllAuctions request) {
 	(void) request;
 	std::string message =
@@ -88,6 +133,11 @@ void printInListAllRequest(ClientListAllAuctions request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the list bidded auctions request with the given user id.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInListBiddedRequest(ClientListBiddedAuctions request) {
 	std::string message =
 		"\tIncoming 'LIST USER'S BIDDED AUCTIONS':\n\t<- User ID: ";
@@ -96,6 +146,11 @@ void printInListBiddedRequest(ClientListBiddedAuctions request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the list started auctions request with the given user id.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInListStartedRequest(ClientListStartedAuctions request) {
 	std::string message =
 		"\tIncoming 'LIST USER'S STARTED AUCTIONS':\n\t<- User ID: ";
@@ -104,6 +159,11 @@ void printInListStartedRequest(ClientListStartedAuctions request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the show record request with the given auction id.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInShowRecordRequest(ClientShowRecord request) {
 	std::string message = "\tIncoming 'SHOW RECORD':\n\t<- Auction ID: ";
 	message += convert_auction_id_to_str(request.auction_id);
@@ -111,6 +171,13 @@ void printInShowRecordRequest(ClientShowRecord request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the open auction request with the given user id, password,
+ * * auction name, starting value, time active, name and size of the asset file
+ * and the length of its data.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInOpenAuctionRequest(ClientOpenAuction request) {
 	std::cout << "[INFO]\tIncoming 'OPEN AUCTION':\n\t<- User ID: "
 			  << convert_user_id_to_str(request.user_id)
@@ -129,6 +196,12 @@ void printInOpenAuctionRequest(ClientOpenAuction request) {
 			  << std::endl;
 }
 
+/**
+ * @brief  Prints the close auction request with the given user id, password and
+ * auction id.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInCloseAuctionRequest(ClientCloseAuction request) {
 	std::string message = "\tIncoming 'CLOSE AUCTION':\n\t<- User ID: ";
 	message += convert_user_id_to_str(request.user_id);
@@ -140,6 +213,11 @@ void printInCloseAuctionRequest(ClientCloseAuction request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the show asset request with the given auction id.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInShowAssetRequest(ClientShowAsset request) {
 	std::string message = "\tIncoming 'SHOW ASSET':\n\t<- Auction ID: ";
 	message += convert_auction_id_to_str(request.auction_id);
@@ -147,6 +225,12 @@ void printInShowAssetRequest(ClientShowAsset request) {
 	printInfo(message);
 }
 
+/**
+ * @brief  Prints the bid request with the given user id, password, auction id
+ * and bid value.
+ * @param  request: Struct containing the info.
+ * @retval None
+ */
 void printInBidRequest(ClientBid request) {
 	std::string message = "\tIncoming 'BID':\n\t<- User ID: ";
 	message += convert_user_id_to_str(request.user_id);
