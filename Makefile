@@ -87,6 +87,9 @@ clean:
 clean-database:
 	rm -rf ASDIR
 
+clean-test:
+	rm -rf *.html
+
 package:
 	cp README.md readme.txt
 	zip project.zip src $(SOURCES) $(HEADERS) Makefile .clang-format readme.txt tester
