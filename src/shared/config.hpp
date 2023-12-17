@@ -20,9 +20,8 @@
 #define PROTOCOL_SIZE          3
 
 // Default udp timeout and max tries
-#define SERVER_UDP_TIMEOUT 300
-#define UDP_TIMEOUT        5
-#define UDP_MAX_TRIES      5
+#define UDP_TIMEOUT   5
+#define UDP_MAX_TRIES 5
 
 // Default tcp timeout
 #define TCP_READ_TIMEOUT_SECONDS   15
