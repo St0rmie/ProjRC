@@ -1397,6 +1397,7 @@ int Database::CloseAuction(std::string a_id, std::string user_id,
 	uint32_t timeactive = static_cast<uint32_t>(stol(start.timeactive));
 	if (time_passed >= timeactive) {
 		Close(a_id);
+		semaphore_post();
 		throw AuctionAlreadyClosed();
 		return DB_CLOSE_ENDED_ALREADY;
 	}
