@@ -13,13 +13,41 @@
 #include "handlers.hpp"
 #include "output.hpp"
 
+// -------------------------------------
+// | Signals and termination handling. |
+// -------------------------------------
+
+// Global variable to check if SIGINT was received.
 bool sig_int = false;
 
+/**
+ * @brief  Sig Handler function for SIGINT. Sets the global variable sig_int to
+ * true.
+ * @param  sig:
+ * @retval None
+ */
 void sig_int_handler(int sig) {
 	(void) sig;
 	sig_int = true;
 }
 
+/**
+ * @brief  Terminates the server and prints a message to stdout.
+ * @param  server: Server instance to be terminated.
+ * @param  process: Process to be terminated. Can be UDP_MESSAGE or TCP_MESSAGE.
+ * @retval None
+ */
+void terminate(Server &server, int process) {
+	server.~Server();
+	std::string process_name = process == UDP_MESSAGE ? "UDP" : "TCP";
+	std::cout << "[SIGINT] Shutting Down " << process_name << "." << std::endl;
+	exit(EXIT_SUCCESS);
+}
+
+/**
+ * @brief  Sets up the signal handlers for SIGINT, SIGPIPE and SIGCHLD.
+ * @retval None
+ */
 void Server::setupSignalHandlers() {
 	// ignore SIGPIPE and SIGCHLD
 	signal(SIGPIPE, SIG_IGN);
@@ -36,13 +64,17 @@ void Server::setupSignalHandlers() {
 	}
 }
 
-void terminate(Server &server, int process) {
-	server.~Server();
-	std::string process_name = process == UDP_MESSAGE ? "UDP" : "TCP";
-	std::cout << "[SIGINT] Shutting Down " << process_name << "." << std::endl;
-	exit(EXIT_SUCCESS);
-}
+// -------------------------------------
+// | Server.						   |
+// -------------------------------------
 
+/**
+ * @brief  Configures the server based on the parameters passed in the command
+ * line.
+ * @param  argc: Number of arguments passed in the command line.
+ * @param  argv: Arguments passed in the command line.
+ * @retval None
+ */
 void Server::configServer(int argc, char *argv[]) {
 	int opt;
 
@@ -67,6 +99,11 @@ void Server::configServer(int argc, char *argv[]) {
 	setupSignalHandlers();
 }
 
+/**
+ * @brief  Constructor that configures the server and creates the sockets.
+ * @param  argc: Number of arguments passed in the command line.
+ * @param  argv: Arguments passed in the command line.
+ */
 Server::Server(int argc, char *argv[]) {
 	configServer(argc, argv);
 	// Create a UDP socket
@@ -78,6 +115,8 @@ Server::Server(int argc, char *argv[]) {
 
 	// Setup sockets
 	setup_sockets();
+
+	// Resolve server address
 	resolveServerAddress(_port);
 }
 
@@ -100,22 +139,26 @@ Server::~Server() {
 	}
 }
 
+/**
+ * @brief  Setup the sockets on the server (UDP and TCP).
+ * @retval None
+ */
 void Server::setup_sockets() {
 	// Create a UDP socket
 	if ((_udp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-		throw UnrecoverableException("Failed to create a UDP socket");
+		throw UnrecoverableException("[ERROR] Failed to create a UDP socket");
 	}
 	// Force reuse of the socket.
 	const int enable_udp = 1;
 	if (setsockopt(_udp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable_udp,
 	               sizeof(int)) < 0) {
 		throw UnrecoverableException(
-			"Failed to set UDP reuse address socket option");
+			"[ERROR] Failed to set UDP reuse address socket option");
 	}
 
 	// Create a TCP socket
 	if ((_tcp_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		throw UnrecoverableException("Failed to create a TCP socket");
+		throw UnrecoverableException("[ERROR] Failed to create a TCP socket");
 	}
 	const int enable_tcp = 1;
 
@@ -123,10 +166,16 @@ void Server::setup_sockets() {
 	if (setsockopt(_tcp_socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable_tcp,
 	               sizeof(int)) < 0) {
 		throw UnrecoverableException(
-			"Failed to set TCP reuse address socket option");
+			"[ERROR] Failed to set TCP reuse address socket option");
 	}
 }
 
+/**
+ * @brief  Resolves the server address based on the port passed in the command
+ * line or default.
+ * @param  port: Port
+ * @retval None
+ */
 void Server::resolveServerAddress(std::string &port) {
 	struct addrinfo hints;
 	int addr_res;
@@ -139,13 +188,13 @@ void Server::resolveServerAddress(std::string &port) {
 	if ((addr_res = getaddrinfo(NULL, port_str, &hints, &_server_udp_addr)) !=
 	    0) {
 		throw UnrecoverableException(
-			std::string("Failed to get address for UDP connection: ") +
+			std::string("[ERROR] Failed to get address for UDP connection: ") +
 			gai_strerror(addr_res));
 	}
 	// bind socket
 	if (bind(_udp_socket_fd, _server_udp_addr->ai_addr,
 	         _server_udp_addr->ai_addrlen) < 0) {
-		throw UnrecoverableException("Failed to bind UDP address.");
+		throw UnrecoverableException("[ERROR] Failed to bind UDP address.");
 	}
 
 	// Get TCP address
@@ -156,18 +205,28 @@ void Server::resolveServerAddress(std::string &port) {
 	if ((addr_res =
 	         getaddrinfo(NULL, port.c_str(), &hints, &_server_tcp_addr)) != 0) {
 		throw UnrecoverableException(
-			std::string("Failed to get address for TCP connection: ") +
+			std::string("[ERROR] Failed to get address for TCP connection: ") +
 			gai_strerror(addr_res));
 	}
 
 	if (bind(_tcp_socket_fd, _server_tcp_addr->ai_addr,
 	         _server_tcp_addr->ai_addrlen) < 0) {
-		throw UnrecoverableException("Failed to bind TCP address");
+		throw UnrecoverableException("[ERROR] Failed to bind TCP address");
 	}
 
 	std::cout << "Listening for connections on port " << port << std::endl;
 }
 
+// -------------------------------------
+// | Request Handler and Manager	   |
+// -------------------------------------
+
+/**
+ * @brief  Registers a request handler in the request manager.
+ * @param  handler: Request handler to be registered.
+ * @param  type: Type of the request handler. Can be UDP_MESSAGE or TCP_MESSAGE.
+ * @retval None
+ */
 void RequestManager::registerRequest(std::shared_ptr<RequestHandler> handler,
                                      int type) {
 	if (type == UDP_MESSAGE) {
@@ -177,6 +236,11 @@ void RequestManager::registerRequest(std::shared_ptr<RequestHandler> handler,
 	}
 }
 
+/**
+ * @brief  Registers all the request handlers in the request manager for each
+ * command possible.
+ * @retval None
+ */
 void RequestManager::registerRequestHandlers() {
 	registerRequest(std::make_shared<LoginRequest>(), UDP_MESSAGE);
 	registerRequest(std::make_shared<LogoutRequest>(), UDP_MESSAGE);
@@ -194,6 +258,14 @@ void RequestManager::registerRequestHandlers() {
 	registerRequest(std::make_shared<WrongRequestTCP>(), TCP_MESSAGE);
 }
 
+/**
+ * @brief  Calls the request handler for the message passed as parameter.
+ * @param  message: Message to be handled.
+ * @param  server: Server instance.
+ * @param  address: Address of the client.
+ * @param  type: Type of the message. Can be UDP_MESSAGE or TCP_MESSAGE.
+ * @retval None
+ */
 void RequestManager::callHandlerRequest(MessageAdapter &message, Server &server,
                                         Address &address, int type) {
 	std::string rec_proto_code = message.getn(PROTOCOL_SIZE);
@@ -212,6 +284,16 @@ void RequestManager::callHandlerRequest(MessageAdapter &message, Server &server,
 	}
 }
 
+// -------------------------------------
+// | Processing UDP and TCP			   |
+// -------------------------------------
+
+/**
+ * @brief  Processes the UDP messages received by the server (Parent Process).
+ * @param  server: Server instance.
+ * @param  manager: Request manager instance.
+ * @retval None
+ */
 void processUDP(Server &server, RequestManager &manager) {
 	int ex_trial = 0;
 	std::cout << "[UDP] Started UDP server." << std::endl;
@@ -220,107 +302,49 @@ void processUDP(Server &server, RequestManager &manager) {
 			wait_for_udp_message(server, manager);
 			ex_trial = 0;
 		} catch (UnknownHandlerException &e) {
-			std::cerr << "Unknown handler for message." << std::endl;
+			std::cerr << "[UDP] Unknown handler for message." << std::endl;
 		} catch (MessageBuildingException &e) {
-			std::cerr << "Message couldn't be built to be sent." << std::endl;
-		} catch (std::exception &e) {
-			std::cerr << "EXCEPTION: " << e.what() << std::endl;
-		} catch (...) {
-			std::cerr << "Encountered unrecoverable error while running the "
-						 "application. Retrying..."
+			std::cerr << "[UDP] Message couldn't be built to be sent."
 					  << std::endl;
+		} catch (std::exception &e) {
+			std::cerr << "[UDP] Exception: " << e.what() << std::endl;
+		} catch (...) {
+			std::cerr
+				<< "[UDP] Encountered unrecoverable error while running the "
+				   "application. Retrying..."
+				<< std::endl;
 			ex_trial++;
 		}
 		if (ex_trial >= EXCEPTION_RETRY_MAX) {
-			std::cerr << "Max trials reached, shutting down..." << std::endl;
+			std::cerr << "[UDP] Max trials reached, shutting down..."
+					  << std::endl;
 			break;
 		}
 	}
 }
 
-void wait_for_udp_message(Server &server, RequestManager &manager) {
-	Address addr_from;
-	std::stringstream stream;
-	char buffer[UDP_SOCKET_BUFFER_LEN];
-
-	addr_from.size = sizeof(addr_from.addr);
-	ssize_t n = recvfrom(server._udp_socket_fd, buffer, SOCKET_BUFFER_LEN, 0,
-	                     (struct sockaddr *) &addr_from.addr, &addr_from.size);
-	if (n == -1) {
-		if (sig_int) {
-			terminate(server, UDP_MESSAGE);
-		}
-		throw UnrecoverableException(
-			"Failed to receive UDP message (recvfrom)");
-	}
-	stream.write(buffer, n);
-	addr_from.socket = server._udp_socket_fd;
-
-	StreamMessage message(stream);
-	manager.callHandlerRequest(message, server, addr_from, UDP_MESSAGE);
-
-	return;
-}
-
-void wait_for_tcp_message(Server &server, RequestManager &manager) {
-	Address addr_from;
-
-	addr_from.size = sizeof(addr_from.addr);
-	int connection_fd =
-		accept(server._tcp_socket_fd, (struct sockaddr *) &addr_from.addr,
-	           &addr_from.size);
-	if (connection_fd < 0) {
-		if (sig_int) {
-			terminate(server, TCP_MESSAGE);
-		}
-		if (errno == EAGAIN) {  // timeout, just go around and keep listening
-			return;
-		}
-		throw UnrecoverableException("[ERROR] Failed to accept a connection");
-	}
-
-	struct timeval read_timeout;
-	read_timeout.tv_sec = TCP_READ_TIMEOUT_SECONDS;
-	read_timeout.tv_usec = 0;
-	if (setsockopt(connection_fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout,
-	               sizeof(read_timeout)) < 0) {
-		throw UnrecoverableException(
-			"Failed to set TCP read timeout socket option");
-	}
-
-	try {
-		pid_t pid = fork();
-		if (pid < 0) {
-			throw UnrecoverableException(
-				"[ERROR] Failed to fork process. Couldn't delegate TCP "
-				"connection to worker process.");
-		} else if (pid == 0) {
-			// Child process
-			processTCPChild(server, manager, addr_from, connection_fd);
-		} else {
-			// Parent process
-			close(connection_fd);
-		}
-	} catch (std::exception &e) {
-		close(connection_fd);
-		throw UnrecoverableException(
-			std::string("Failed to delegate connection to worker: ") +
-			e.what() + "\nClosing connection.");
-	}
-}
-
+/**
+ * @brief  Processes the TCP messages received by the server (Child Process).
+ * @param  server: Server instance.
+ * @param  manager: Request manager instance.
+ * @param  addr_from: Address of the client.
+ * @param  connection_fd: File descriptor of the connection.
+ * @retval None
+ */
 void processTCPChild(Server &server, RequestManager &manager, Address addr_from,
                      int connection_fd) {
 	try {
+		// Close parent listening socket
 		close(server._tcp_socket_fd);
 
+		// Set timeout for read and write in the socket
 		struct timeval read_timeout;
 		read_timeout.tv_sec = TCP_READ_TIMEOUT_SECONDS;
 		read_timeout.tv_usec = 0;
 		if (setsockopt(connection_fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout,
 		               sizeof(read_timeout)) < 0) {
 			throw UnrecoverableException(
-				"[ERROR] Failed to set TCP read timeout socket option");
+				"[TCP] Failed to set TCP read timeout socket option");
 		}
 		struct timeval write_timeout;
 		write_timeout.tv_sec = TCP_WRITE_TIMEOUT_SECONDS;
@@ -328,13 +352,18 @@ void processTCPChild(Server &server, RequestManager &manager, Address addr_from,
 		if (setsockopt(connection_fd, SOL_SOCKET, SO_SNDTIMEO, &write_timeout,
 		               sizeof(write_timeout)) < 0) {
 			throw UnrecoverableException(
-				"[ERROR] Failed to set TCP write timeout socket option");
+				"[TCP] Failed to set TCP write timeout socket option");
 		}
 
+		// Set up adapter
 		addr_from.socket = connection_fd;
 		TcpMessage message(connection_fd);
+
+		// Call handler
 		manager.callHandlerRequest(message, server, addr_from, TCP_MESSAGE);
 		close(connection_fd);
+
+		// Exit child process
 		exit(EXIT_SUCCESS);
 	} catch (std::exception &e) {
 		printError("Handling tcp request. Child process exiting.");
@@ -342,6 +371,12 @@ void processTCPChild(Server &server, RequestManager &manager, Address addr_from,
 	}
 }
 
+/**
+ * @brief  Processes the TCP messages received by the server (Parent Process).
+ * @param  server: Server instance.
+ * @param  manager: Request manager instance.
+ * @retval None
+ */
 void processTCP(Server &server, RequestManager &manager) {
 	if (listen(server._tcp_socket_fd, TCP_MAX_QUEUE_SIZE) < 0) {
 		perror("Error while executing listen");
@@ -370,6 +405,102 @@ void processTCP(Server &server, RequestManager &manager) {
 	}
 }
 
+// -------------------------------------
+// | Wait for TCP and UDP messages.	   |
+// -------------------------------------
+
+/**
+ * @brief  Waits for a UDP message to be received by the server.
+ * @param  server: Server instance.
+ * @param  manager: Request manager instance.
+ * @retval None
+ */
+void wait_for_udp_message(Server &server, RequestManager &manager) {
+	Address addr_from;
+	std::stringstream stream;
+	char buffer[UDP_SOCKET_BUFFER_LEN];
+
+	addr_from.size = sizeof(addr_from.addr);
+	ssize_t n = recvfrom(server._udp_socket_fd, buffer, SOCKET_BUFFER_LEN, 0,
+	                     (struct sockaddr *) &addr_from.addr, &addr_from.size);
+	if (n == -1) {
+		if (sig_int) {
+			terminate(server, UDP_MESSAGE);
+		}
+		throw UnrecoverableException(
+			"Failed to receive UDP message (recvfrom)");
+	}
+	stream.write(buffer, n);
+
+	// Set up adapter
+	addr_from.socket = server._udp_socket_fd;
+	StreamMessage message(stream);
+
+	// Call handler
+	manager.callHandlerRequest(message, server, addr_from, UDP_MESSAGE);
+	return;
+}
+
+/**
+ * @brief  Waits for a TCP message to be received by the server.
+ * @param  server: Server instance.
+ * @param  manager: Request manager instance.
+ * @retval None
+ */
+void wait_for_tcp_message(Server &server, RequestManager &manager) {
+	Address addr_from;
+
+	addr_from.size = sizeof(addr_from.addr);
+	int connection_fd =
+		accept(server._tcp_socket_fd, (struct sockaddr *) &addr_from.addr,
+	           &addr_from.size);
+	if (connection_fd < 0) {
+		if (sig_int) {
+			terminate(server, TCP_MESSAGE);
+		}
+		if (errno == EAGAIN) {  // timeout, just go around and keep listening
+			return;
+		}
+		throw UnrecoverableException("[ERROR] Failed to accept a connection");
+	}
+
+	// Received message
+	// Set timeout for read and write in the accepted socket
+	struct timeval read_timeout;
+	read_timeout.tv_sec = TCP_READ_TIMEOUT_SECONDS;
+	read_timeout.tv_usec = 0;
+	if (setsockopt(connection_fd, SOL_SOCKET, SO_RCVTIMEO, &read_timeout,
+	               sizeof(read_timeout)) < 0) {
+		throw UnrecoverableException(
+			"Failed to set TCP read timeout socket option");
+	}
+
+	try {
+		// Delegate connection to child process
+		pid_t pid = fork();
+		if (pid < 0) {
+			throw UnrecoverableException(
+				"[ERROR] Failed to fork process. Couldn't delegate TCP "
+				"connection to worker process.");
+		} else if (pid == 0) {
+			// Child process
+			processTCPChild(server, manager, addr_from, connection_fd);
+		} else {
+			// Parent process
+			close(connection_fd);
+		}
+	} catch (std::exception &e) {
+		close(connection_fd);
+		throw UnrecoverableException(
+			std::string("Failed to delegate connection to child: ") + e.what() +
+			"\nClosing connection.");
+	}
+}
+
+// -------------------------------------
+// | Main							   |
+// -------------------------------------
+
 int main(int argc, char *argv[]) {
 	Server server(argc, argv);
 	RequestManager requestManager;
@@ -379,7 +510,7 @@ int main(int argc, char *argv[]) {
 	if (c_pid == 0) {
 		processUDP(server, requestManager);
 	} else if (c_pid == -1) {
-		std::cerr << "Failed to fork process." << std::endl;
+		std::cerr << "[ERROR] Failed to fork process." << std::endl;
 		exit(EXIT_FAILURE);
 	} else {
 		processTCP(server, requestManager);

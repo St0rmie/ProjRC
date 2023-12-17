@@ -11,10 +11,25 @@
 
 #define EXCEPTION_RETRY_MAX 5
 
+// -----------------------------------
+// | Exceptions				 		 |
+// -----------------------------------
+
 class UnrecoverableException : public std::runtime_error {
    public:
 	UnrecoverableException(std::string message) : std::runtime_error(message) {}
 };
+
+// -------------------------------------
+// | Signals and termination handling. |
+// -------------------------------------
+
+void sig_int_handler(int sig);
+void terminate(Server& server, int process);
+
+// -------------------------------------
+// | Server and Adress.				   |
+// -------------------------------------
 
 class Address {
    public:
@@ -52,6 +67,10 @@ class Server {
 	void sendTcpMessage();
 };
 
+// -------------------------------------
+// | Request Handler and Manager.	   |
+// -------------------------------------
+
 class RequestHandler {
    protected:
 	RequestHandler(const char* protocol_code) : _protocol_code{protocol_code} {}
@@ -76,10 +95,20 @@ class RequestManager {
 	                        Address& address, int type);
 };
 
+// -------------------------------------
+// | Processing UDP and TCP			   |
+// -------------------------------------
+
 void processUDP(Server& server, RequestManager& manager);
 void processTCPChild(Server& server, RequestManager& manager, Address addr_from,
                      int connection_fd);
 void processTCP(Server& server, RequestManager& manager);
+
+// -------------------------------------
+// | Wait for TCP and UDP messages.	   |
+// -------------------------------------
+
 void wait_for_udp_message(Server& server, RequestManager& manager);
+void wait_for_tcp_message(Server& server, RequestManager& manager);
 
 #endif
