@@ -1,9 +1,21 @@
 #include "protocol.hpp"
 
+/**
+ * @file protocol.cpp
+ * @brief This file contains the implementation of the Protocol used in the
+ * communication between the Auction Server and the user Client.
+ */
+
 // -----------------------------------
 // | Reading functions				 |
 // -----------------------------------
 
+/**
+ * @brief  Reads a character from the buffer.
+ * @param  &buffer: adapter
+ * @throws InvalidMessageException
+ * @retval char
+ */
 char ProtocolMessage::readChar(MessageAdapter &buffer) {
 	char c;
 	c = buffer.get();
@@ -13,6 +25,13 @@ char ProtocolMessage::readChar(MessageAdapter &buffer) {
 	return c;
 }
 
+/**
+ * @brief  Reads a character from the buffer and compares it to a given char,
+ * expecting them to be equal.
+ * @param  &buffer: adapter
+ * @throws InvalidMessageException
+ * @retval char
+ */
 void ProtocolMessage::readChar(MessageAdapter &buffer, char c) {
 	char read = readChar(buffer);
 	if (read != c) {
@@ -20,6 +39,12 @@ void ProtocolMessage::readChar(MessageAdapter &buffer, char c) {
 	}
 }
 
+/**
+ * @brief  Reads a character from the buffer and compares it to a given char
+ * evaluating if they are equal.
+ * @param  &buffer: adapter
+ * @retval true if equal, false otherwise
+ */
 bool ProtocolMessage::readCharEqual(MessageAdapter &buffer, char c) {
 	char read = readChar(buffer);
 	if (read != c) {
@@ -30,6 +55,14 @@ bool ProtocolMessage::readCharEqual(MessageAdapter &buffer, char c) {
 	}
 }
 
+/**
+ * @brief  Reads a messageID from the buffer and compares it to a given protocol
+ * code expecting them to be equal.
+ * @param  &buffer: adapter
+ * @throws UnexpectedMessageException
+ * @throws ERRCodeMessageException
+ * @retval None
+ */
 void ProtocolMessage::readMessageId(MessageAdapter &buffer,
                                     std::string protocol_code) {
 	char current_char;
@@ -48,22 +81,31 @@ void ProtocolMessage::readMessageId(MessageAdapter &buffer,
 	}
 }
 
+/**
+ * @brief  Reads a space from the buffer.
+ * @param  &buffer: adapter
+ * @retval None
+ */
 void ProtocolMessage::readSpace(MessageAdapter &buffer) {
 	readChar(buffer, ' ');
 }
 
+/**
+ * @brief  Reads a delimiter ('\n') from the buffer.
+ * @param  &buffer: adapter
+ * @retval None
+ */
 void ProtocolMessage::readDelimiter(MessageAdapter &buffer) {
 	readChar(buffer, '\n');
 }
 
-char ProtocolMessage::readAlphabeticalChar(MessageAdapter &buffer) {
-	char c = readChar(buffer);
-	if (!isalpha((unsigned char) c)) {
-		throw InvalidMessageException();
-	}
-	return (char) tolower((unsigned char) c);
-}
-
+/**
+ * @brief  Reads a string of a maximum size from the buffer. The function will
+ * stop reading when it finds a space or a delimiter, even if it is below the
+ * max length.
+ * @param  &buffer: adapter
+ * @retval string read
+ */
 std::string ProtocolMessage::readString(MessageAdapter &buffer,
                                         uint32_t max_len) {
 	std::string str;
@@ -73,6 +115,7 @@ std::string ProtocolMessage::readString(MessageAdapter &buffer,
 			throw InvalidMessageException();
 		}
 		if (c == ' ' || c == '\n') {
+			// Stops reading
 			buffer.unget();
 			break;
 		}
@@ -82,47 +125,52 @@ std::string ProtocolMessage::readString(MessageAdapter &buffer,
 	return str;
 }
 
-std::string ProtocolMessage::readAlphabeticalString(MessageAdapter &buffer,
-                                                    uint32_t max_len) {
-	std::string str = readString(buffer, max_len);
-	for (uint32_t i = 0; i < str.length(); ++i) {
-		if (!isalpha((unsigned char) str[i])) {
-			throw InvalidMessageException();
-		}
-
-		str[i] = (char) tolower((unsigned char) str[i]);
-	}
-	return str;
-}
-
-uint32_t ProtocolMessage::readInt(MessageAdapter &buffer) {
-	int64_t i = buffer.get();
-	if (!buffer.good() || i < 0 || i > INT32_MAX) {
-		throw InvalidMessageException();
-	}
-	return (uint32_t) i;
-}
-
+/**
+ * @brief  Reads a userid from the buffer.
+ * @param  &buffer: adapter
+ * @retval (uint32_t) user_id
+ */
 uint32_t ProtocolMessage::readUserId(MessageAdapter &buffer) {
 	std::string id_str = readString(buffer, USER_ID_SIZE);
 	return convert_user_id(id_str);
 }
 
+/**
+ * @brief  Reads a auction id from the buffer.
+ * @param  &buffer: adapter
+ * @retval (uint32_t) auction id
+ */
 uint32_t ProtocolMessage::readAuctionId(MessageAdapter &buffer) {
 	std::string id_str = readString(buffer, AUCTION_ID_SIZE);
 	return convert_auction_id(id_str);
 }
 
+/**
+ * @brief  Reads a auction value from the buffer.
+ * @param  &buffer: adapter
+ * @retval (uint32_t) auction value
+ */
 uint32_t ProtocolMessage::readAuctionValue(MessageAdapter &buffer) {
 	std::string value_str = readString(buffer, MAX_AUCTION_VALUE_SIZE);
 	return convert_auction_value(value_str);
 }
 
+/**
+ * @brief  Reads a password from the buffer.
+ * @param  &buffer: adapter
+ * @retval (string) password
+ */
 std::string ProtocolMessage::readPassword(MessageAdapter &buffer) {
 	std::string password_str = readString(buffer, PASSWORD_SIZE);
 	return convert_password(password_str);
 }
 
+/**
+ * @brief  Reads a pair of auction id and state in a string format from the
+ * buffer.
+ * @param  &buffer: adapter
+ * @retval (sting) 'auction_id state'
+ */
 std::string ProtocolMessage::readAuctionAndState(MessageAdapter &buffer) {
 	if (checkIfOver(buffer) == true) {
 		return "";
@@ -140,6 +188,12 @@ std::string ProtocolMessage::readAuctionAndState(MessageAdapter &buffer) {
 	return "AID: " + auction_str + " --- STATUS: " + state_str;
 }
 
+/**
+ * @brief  Tries to read a delimiter from the buffer to see if the message has
+ * ended.
+ * @param  &buffer: adapter
+ * * @retval true if the delimiter was found, false otherwise
+ */
 bool ProtocolMessage::checkIfOver(MessageAdapter &buffer) {
 	char c = '\n';
 	if (readChar(buffer) == c) {
@@ -151,6 +205,11 @@ bool ProtocolMessage::checkIfOver(MessageAdapter &buffer) {
 	}
 }
 
+/**
+ * @brief  Reads a date in format Datetime from the buffer.
+ * @param  &buffer: adapter
+ * @retval (Datetime) date and time
+ */
 Datetime ProtocolMessage::readDate(MessageAdapter &buffer) {
 	Datetime date;
 	date.year = readString(buffer, 4);
@@ -167,6 +226,11 @@ Datetime ProtocolMessage::readDate(MessageAdapter &buffer) {
 	return date;
 }
 
+/**
+ * @brief  Reads file data of specified size from the buffer.
+ * @param  &buffer: adapter
+ * @retval (string) file data
+ */
 std::string ProtocolMessage::readFile(MessageAdapter &buffer,
                                       uint32_t max_len) {
 	if (max_len > MAX_FILE_SIZE) {
@@ -192,14 +256,22 @@ std::string ProtocolMessage::readFile(MessageAdapter &buffer,
 
 // ---------- LOGIN
 
+/**
+ * @brief  Serializes a message of a Login request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientLoginUser::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " " << user_id << " " << password << std::endl;
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Login request made by the client.
+ * @retval None
+ */
 void ClientLoginUser::readMessage(MessageAdapter &buffer) {
-	// Serverbound packets don't read their ID
+	// Server already read the message ID
 	readSpace(buffer);
 	user_id = readUserId(buffer);
 	readSpace(buffer);
@@ -207,6 +279,10 @@ void ClientLoginUser::readMessage(MessageAdapter &buffer) {
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a Login answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerLoginUser::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -225,6 +301,10 @@ std::stringstream ServerLoginUser::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Login answer made by the server.
+ * @retval None
+ */
 void ServerLoginUser::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerLoginUser::protocol_code);
 	readSpace(buffer);
@@ -245,14 +325,22 @@ void ServerLoginUser::readMessage(MessageAdapter &buffer) {
 
 // ---------- LOGOUT
 
+/**
+ * @brief  Serializes a message of a Logout request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientLogout::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " " << user_id << " " << password << std::endl;
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Logout request made by the client.
+ * @retval None
+ */
 void ClientLogout::readMessage(MessageAdapter &buffer) {
-	// Serverbound packets don't read their ID
+	// Serverbound messages don't read their ID
 	readSpace(buffer);
 	user_id = readUserId(buffer);
 	readSpace(buffer);
@@ -260,6 +348,10 @@ void ClientLogout::readMessage(MessageAdapter &buffer) {
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a Logout answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerLogout::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -278,6 +370,10 @@ std::stringstream ServerLogout::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Logout answer made by the server.
+ * @retval None
+ */
 void ServerLogout::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerLogout::protocol_code);
 	readSpace(buffer);
@@ -298,12 +394,20 @@ void ServerLogout::readMessage(MessageAdapter &buffer) {
 
 // ---------- UNREGISTER
 
+/**
+ * @brief  Serializes a message of a Unregister request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientUnregister::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " " << user_id << " " << password << std::endl;
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Unregister request made by the client.
+ * @retval None
+ */
 void ClientUnregister::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readSpace(buffer);
@@ -313,6 +417,10 @@ void ClientUnregister::readMessage(MessageAdapter &buffer) {
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a Unregister answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerUnregister::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -331,6 +439,10 @@ std::stringstream ServerUnregister::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Unregister answer made by the server.
+ * @retval None
+ */
 void ServerUnregister::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerUnregister::protocol_code);
 	readSpace(buffer);
@@ -351,12 +463,21 @@ void ServerUnregister::readMessage(MessageAdapter &buffer) {
 
 // ---------- LIST MYAUCTIONS
 
+/**
+ * @brief  Serializes a message of a List My Auctions request made by the
+ * client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientListStartedAuctions::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " " << user_id << std::endl;
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a List My Auctions request made by the client.
+ * @retval None
+ */
 void ClientListStartedAuctions::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readSpace(buffer);
@@ -364,6 +485,11 @@ void ClientListStartedAuctions::readMessage(MessageAdapter &buffer) {
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a List My Auctions answer made by the
+ * server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerListStartedAuctions::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -385,6 +511,10 @@ std::stringstream ServerListStartedAuctions::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a List My Auctions answer made by the server.
+ * @retval None
+ */
 void ServerListStartedAuctions::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerListStartedAuctions::protocol_code);
 	readSpace(buffer);
@@ -412,12 +542,20 @@ void ServerListStartedAuctions::readMessage(MessageAdapter &buffer) {
 
 // ---------- LIST MYBIDDEDAUCTIONS
 
+/**
+ * @brief  Serializes a message of a List My Bids request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientListBiddedAuctions::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " " << user_id << std::endl;
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a List My Bids request made by the client.
+ * @retval None
+ */
 void ClientListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readSpace(buffer);
@@ -425,6 +563,10 @@ void ClientListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a List My Bids answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerListBiddedAuctions::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -446,6 +588,10 @@ std::stringstream ServerListBiddedAuctions::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a List My Bids answer made by the server.
+ * @retval None
+ */
 void ServerListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerListBiddedAuctions::protocol_code);
 	readSpace(buffer);
@@ -473,17 +619,31 @@ void ServerListBiddedAuctions::readMessage(MessageAdapter &buffer) {
 
 // ---------- LIST ALL AUCTIONS
 
+/**
+ * @brief  Serializes a message of a List All Auctions request made by the
+ * client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientListAllAuctions::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << std::endl;
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a List My Auctions request made by the client.
+ * @retval None
+ */
 void ClientListAllAuctions::readMessage(MessageAdapter &buffer) {
 	// Serverbound packets don't read their ID
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a List All Auctions answer made by the
+ * server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerListAllAuctions::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -503,6 +663,10 @@ std::stringstream ServerListAllAuctions::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a List All Auctions answer made by the server.
+ * @retval None
+ */
 void ServerListAllAuctions::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerListAllAuctions::protocol_code);
 	readSpace(buffer);
@@ -528,6 +692,10 @@ void ServerListAllAuctions::readMessage(MessageAdapter &buffer) {
 
 // ---------- SHOW RECORD
 
+/**
+ * @brief  Serializes a message of a Show Record request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientShowRecord::buildMessage() {
 	std::stringstream buffer;
 	char aid[4];
@@ -536,12 +704,20 @@ std::stringstream ClientShowRecord::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Show Record request made by the client.
+ * @retval None
+ */
 void ClientShowRecord::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	auction_id = readAuctionId(buffer);
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a Show Record answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerShowRecord::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -574,6 +750,10 @@ std::stringstream ServerShowRecord::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Show Record answer made by the server.
+ * @retval None
+ */
 void ServerShowRecord::readMessage(MessageAdapter &buffer) {
 	bool skip;
 	readMessageId(buffer, ServerShowRecord::protocol_code);
@@ -635,6 +815,10 @@ void ServerShowRecord::readMessage(MessageAdapter &buffer) {
 
 // ---------- OPEN AUCTION
 
+/**
+ * @brief  Serializes a message of a Open Auction request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientOpenAuction::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " " << user_id << " " << password << " " << name
@@ -643,6 +827,10 @@ std::stringstream ClientOpenAuction::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Open Auction request made by the client.
+ * @retval None
+ */
 void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	user_id = readUserId(buffer);
@@ -664,6 +852,10 @@ void ClientOpenAuction::readMessage(MessageAdapter &buffer) {
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a Open Auction answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerOpenAuction::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -682,6 +874,10 @@ std::stringstream ServerOpenAuction::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Open Auction answer made by the server.
+ * @retval None
+ */
 void ServerOpenAuction::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerOpenAuction::protocol_code);
 	readSpace(buffer);
@@ -704,6 +900,10 @@ void ServerOpenAuction::readMessage(MessageAdapter &buffer) {
 
 // ---------- CLOSE AUCTION
 
+/**
+ * @brief  Serializes a message of a Close Auction request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientCloseAuction::buildMessage() {
 	std::stringstream buffer;
 	char aid[4];
@@ -713,6 +913,10 @@ std::stringstream ClientCloseAuction::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Close Auction request made by the client.
+ * @retval None
+ */
 void ClientCloseAuction::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	user_id = readUserId(buffer);
@@ -723,6 +927,10 @@ void ClientCloseAuction::readMessage(MessageAdapter &buffer) {
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a Close Auction answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerCloseAuction::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -747,6 +955,10 @@ std::stringstream ServerCloseAuction::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Close Auction answer made by the server.
+ * @retval None
+ */
 void ServerCloseAuction::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerCloseAuction::protocol_code);
 	readSpace(buffer);
@@ -773,6 +985,10 @@ void ServerCloseAuction::readMessage(MessageAdapter &buffer) {
 
 // ---------- SHOW ASSET
 
+/**
+ * @brief  Serializes a message of a Show Asset request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientShowAsset::buildMessage() {
 	std::stringstream buffer;
 	char aid[4];
@@ -781,12 +997,20 @@ std::stringstream ClientShowAsset::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Show Asset request made by the client.
+ * @retval None
+ */
 void ClientShowAsset::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	auction_id = readAuctionId(buffer);
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a Show Asset answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerShowAsset::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -803,6 +1027,10 @@ std::stringstream ServerShowAsset::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Show Asset answer made by the server.
+ * @retval None
+ */
 void ServerShowAsset::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerShowAsset::protocol_code);
 	readSpace(buffer);
@@ -830,6 +1058,10 @@ void ServerShowAsset::readMessage(MessageAdapter &buffer) {
 
 // ---------- BID
 
+/**
+ * @brief  Serializes a message of a Bid request made by the client.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ClientBid::buildMessage() {
 	std::stringstream buffer;
 	char aid[4];
@@ -839,6 +1071,10 @@ std::stringstream ClientBid::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Bid request made by the client.
+ * @retval None
+ */
 void ClientBid::readMessage(MessageAdapter &buffer) {
 	readSpace(buffer);
 	user_id = readUserId(buffer);
@@ -851,6 +1087,10 @@ void ClientBid::readMessage(MessageAdapter &buffer) {
 	readDelimiter(buffer);
 }
 
+/**
+ * @brief  Serializes a message of a Bid answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerBid::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << " ";
@@ -873,6 +1113,10 @@ std::stringstream ServerBid::buildMessage() {
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a Bid answer made by the server.
+ * @retval None
+ */
 void ServerBid::readMessage(MessageAdapter &buffer) {
 	readMessageId(buffer, ServerBid::protocol_code);
 	readSpace(buffer);
@@ -900,12 +1144,22 @@ void ServerBid::readMessage(MessageAdapter &buffer) {
 	}
 }
 
+// ---------- ERROR MESSAGE
+
+/**
+ * @brief  Serializes a message of a err code answer made by the server.
+ * @retval (stringstream) Serialized message
+ */
 std::stringstream ServerError::buildMessage() {
 	std::stringstream buffer;
 	buffer << protocol_code << std::endl;
 	return buffer;
 }
 
+/**
+ * @brief  Reads a message of a err code answer made by the server.
+ * @retval None
+ */
 void ServerError::readMessage(MessageAdapter &buffer) {
 	// Not needed. Receiving a server error will be treated as exception.
 	(void) buffer;
@@ -916,6 +1170,15 @@ void ServerError::readMessage(MessageAdapter &buffer) {
 // | Send and receive messages		 |
 // -----------------------------------
 
+/**
+ * @brief Sends a message through a UDP socket.
+ * @param  &message: message to send
+ * @param  socketfd: udp socket file descriptor
+ * @param  *addr: address to send the message to
+ * @param  addrlen: size of the address
+ * @param  verbose: if true, prints the message to stdout (used on server only)
+ * @retval None
+ */
 void send_udp_message(ProtocolMessage &message, int socketfd,
                       struct sockaddr *addr, socklen_t addrlen, bool verbose) {
 	const std::stringstream buffer = message.buildMessage();
@@ -931,6 +1194,13 @@ void send_udp_message(ProtocolMessage &message, int socketfd,
 	}
 }
 
+/**
+ * @brief  Sends a message through a TCP socket.
+ * @param  &message: message to be sent
+ * @param  socket_fd: TCP socket file descriptor
+ * @param  verbose: if true, prints the message to stdout (used on server only)
+ * @retval None
+ */
 void send_tcp_message(ProtocolMessage &message, int socket_fd, bool verbose) {
 	std::string message_s = message.buildMessage().str();
 	const char *message_str = message_s.data();
@@ -951,6 +1221,12 @@ void send_tcp_message(ProtocolMessage &message, int socket_fd, bool verbose) {
 	}
 }
 
+/**
+ * @brief  Waits for a UDP message to arrive and reads it.
+ * @param  &message: read message
+ * @param  socketfd: UDP socket file descriptor
+ * @retval None
+ */
 void await_udp_message(ProtocolMessage &message, int socketfd) {
 	fd_set file_descriptors;
 	FD_ZERO(&file_descriptors);
@@ -982,6 +1258,12 @@ void await_udp_message(ProtocolMessage &message, int socketfd) {
 	message.readMessage(strm_message);
 }
 
+/**
+ * @brief  Waits for a TCP message to arrive and reads it.
+ * @param  &message: read message
+ * @param  socketfd: TCP socket file descriptor
+ * @retval None
+ */
 void await_tcp_message(ProtocolMessage &message, int socketfd) {
 	TcpMessage tcp_message(socketfd);
 	message.readMessage(tcp_message);
