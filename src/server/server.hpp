@@ -47,6 +47,7 @@ class Server {
 	Database _database;
 	bool _verbose = false;
 	Server(int argc, char* argv[]);
+	~Server();
 	void sendUdpMessage(ProtocolMessage& out_message, Address& addr_from);
 	void sendTcpMessage();
 };

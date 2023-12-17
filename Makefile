@@ -39,7 +39,7 @@ else
 	CXXFLAGS += -O3
 endif
 
-# Run `make DEBUG=true` to run with debug symbols
+# Run `make DEBUG=yes` to run with debug symbols
 ifeq ($(strip $(DEBUG)), yes)
 	CXXFLAGS += -g
 endif

@@ -133,12 +133,10 @@ void LoginCommand::handle(std::string args, Client &client) {
 	std::stringstream ss(args);
 	std::vector<std::string> parsed_args;
 	std::string arg;
-
 	// Extract arguments to a vector
 	while (ss >> arg) {
 		parsed_args.push_back(arg);
 	}
-
 	// Check if the number of arguments is correct
 	if (parsed_args.size() != 2) {
 		printError("Wrong number of arguments");
@@ -181,7 +179,7 @@ void LoginCommand::handle(std::string args, Client &client) {
 		case ServerLoginUser::status::OK:
 			client.login(convert_user_id(user_id), convert_password(password));
 			printSuccess("Sucessfully logged in as " +
-			             client.getLoggedInUser());
+			             std::to_string(client.getLoggedInUser()));
 			break;
 
 		case ServerLoginUser::status::NOK:
@@ -190,7 +188,8 @@ void LoginCommand::handle(std::string args, Client &client) {
 
 		case ServerLoginUser::status::REG:
 			client.login(convert_user_id(user_id), convert_password(password));
-			printSuccess("Registered user " + client.getLoggedInUser());
+			printSuccess("Registered user " +
+			             std::to_string(client.getLoggedInUser()));
 			break;
 
 		case ServerLoginUser::status::ERR:

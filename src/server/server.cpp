@@ -1,3 +1,7 @@
+/**
+ * @file server.cpp
+ * @brief Implementation of the Server class and related functions.
+ */
 #include "server.hpp"
 
 #include <arpa/inet.h>
@@ -9,10 +13,34 @@
 #include "handlers.hpp"
 #include "output.hpp"
 
+bool sig_int = false;
+
+void sig_int_handler(int sig) {
+	(void) sig;
+	sig_int = true;
+}
+
 void Server::setupSignalHandlers() {
-	// ignore SIGPIPE
+	// ignore SIGPIPE and SIGCHLD
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGCHLD, SIG_IGN);
+
+	// handle SIGINT
+	struct sigaction sa;
+	sa.sa_handler = sig_int_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+
+	if (sigaction(SIGINT, &sa, NULL) == -1) {
+		throw UnrecoverableException("Setting SIGINT signal handler.");
+	}
+}
+
+void terminate(Server &server, int process) {
+	server.~Server();
+	std::string process_name = process == UDP_MESSAGE ? "UDP" : "TCP";
+	std::cout << "[SIGINT] Shutting Down " << process_name << "." << std::endl;
+	exit(EXIT_SUCCESS);
 }
 
 void Server::configServer(int argc, char *argv[]) {
@@ -51,6 +79,25 @@ Server::Server(int argc, char *argv[]) {
 	// Setup sockets
 	setup_sockets();
 	resolveServerAddress(_port);
+}
+
+/**
+ * @brief  Destructor that closes the sockets and frees the memory allocated for
+ * sockets and adresses.
+ */
+Server::~Server() {
+	if (this->_udp_socket_fd != -1) {
+		close(this->_udp_socket_fd);
+	}
+	if (this->_tcp_socket_fd != -1) {
+		close(this->_tcp_socket_fd);
+	}
+	if (this->_server_udp_addr != NULL) {
+		freeaddrinfo(this->_server_udp_addr);
+	}
+	if (this->_server_tcp_addr != NULL) {
+		freeaddrinfo(this->_server_tcp_addr);
+	}
 }
 
 void Server::setup_sockets() {
@@ -200,6 +247,9 @@ void wait_for_udp_message(Server &server, RequestManager &manager) {
 	ssize_t n = recvfrom(server._udp_socket_fd, buffer, SOCKET_BUFFER_LEN, 0,
 	                     (struct sockaddr *) &addr_from.addr, &addr_from.size);
 	if (n == -1) {
+		if (sig_int) {
+			terminate(server, UDP_MESSAGE);
+		}
 		throw UnrecoverableException(
 			"Failed to receive UDP message (recvfrom)");
 	}
@@ -220,6 +270,9 @@ void wait_for_tcp_message(Server &server, RequestManager &manager) {
 		accept(server._tcp_socket_fd, (struct sockaddr *) &addr_from.addr,
 	           &addr_from.size);
 	if (connection_fd < 0) {
+		if (sig_int) {
+			terminate(server, TCP_MESSAGE);
+		}
 		if (errno == EAGAIN) {  // timeout, just go around and keep listening
 			return;
 		}
@@ -330,7 +383,7 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	} else {
 		processTCP(server, requestManager);
-		std::cout << "[QUIT] Shutting Down." << std::endl;
+		std::cout << "[QUIT] Shutting Down. 11" << std::endl;
 	}
 	return EXIT_SUCCESS;
 }
