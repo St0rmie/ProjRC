@@ -35,7 +35,7 @@ The list of commands can be shown by executing the command `help` by typing it i
 
 The client will mantain a session state (if a user is logged in or not) while it is running but, if the client goes down by typing the command `help`, it automatically issues a `logout` command to the server and that session is wiped locally.
 
-The client features terminal history and tab completion which are implemented by using de "readline" and "history" libraries.
+The client features terminal history and tab completion which are implemented by using the "readline" and "history" libraries.
 
 The assets don't have a particular folder to be stored while executing the `show_asset` command. However, that can be changed in the `config.hpp` file in the `shared` folder by changing the variable `CLIENT_ASSET_DEFAULT_PATH` to the folder path.
 
