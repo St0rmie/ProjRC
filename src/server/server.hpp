@@ -21,13 +21,6 @@ class UnrecoverableException : public std::runtime_error {
 };
 
 // -------------------------------------
-// | Signals and termination handling. |
-// -------------------------------------
-
-void sig_int_handler(int sig);
-void terminate(Server& server, int process);
-
-// -------------------------------------
 // | Server and Adress.				   |
 // -------------------------------------
 
@@ -110,5 +103,12 @@ void processTCP(Server& server, RequestManager& manager);
 
 void wait_for_udp_message(Server& server, RequestManager& manager);
 void wait_for_tcp_message(Server& server, RequestManager& manager);
+
+// -------------------------------------
+// | Signals and termination handling. |
+// -------------------------------------
+
+void sig_int_handler(int sig);
+void terminate(Server& server, int process);
 
 #endif
