@@ -1188,7 +1188,7 @@ void send_udp_message(ProtocolMessage &message, int socketfd,
 		throw MessageSendException();
 	}
 	if (verbose) {
-		std::string extra = buffer.str().length() > 100 ? "..." : "";
+		std::string extra = buffer.str().length() > 100 ? "...\n" : "";
 		std::cout << "\t[INFO] Outgoing Answer (first 100 characters):\n\t-> "
 				  << buffer.str().substr(0, 100) << extra << std::endl;
 	}
@@ -1215,7 +1215,7 @@ void send_tcp_message(ProtocolMessage &message, int socket_fd, bool verbose) {
 		bytes_sent += static_cast<size_t>(sent);
 	}
 	if (verbose) {
-		std::string extra = message_s.length() > 100 ? "..." : "";
+		std::string extra = message_s.length() > 100 ? "...\n" : "";
 		std::cout << "\t[INFO] Outgoing Answer (first 100 characters):\n\t-> "
 				  << message_s.substr(0, 100) << extra << std::endl;
 	}

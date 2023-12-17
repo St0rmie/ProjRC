@@ -184,6 +184,15 @@ int Client::sendUdpMessageAndAwaitReply(ProtocolMessage &out_message,
 		} catch (ERRCodeMessageException &e) {
 			printError("ERR code message received.");
 			return -1;
+		} catch (MessageReceiveException &e) {
+			printError("Couldn't receive message.");
+			return -1;
+		} catch (MessageSendException &e) {
+			printError("Couldn't send message.");
+			return -1;
+		} catch (...) {
+			printError("Unexpected error.");
+			return -1;
 		}
 	}
 	return -1;
@@ -238,7 +247,15 @@ int Client::sendTcpMessageAndAwaitReply(ProtocolMessage &out_message,
 		printError("ERR code message received.");
 		closeTcpSocket();
 		return -1;
+	} catch (MessageReceiveException &e) {
+		printError("Couldn't receive message");
+		closeTcpSocket();
+		return -1;
+	} catch (MessageSendException &e) {
+		printError("Couldn't send message.");
+		return -1;
 	} catch (...) {
+		printError("Unexpected error.");
 		closeTcpSocket();
 		return -1;
 	}
