@@ -4,11 +4,10 @@
 #include "shared/protocol.hpp"
 
 /**
- * @brief  Responsible for implementing the login request and handling the
- * outputs of the database's function.
- * @param  &message: The message sent containing the login parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the login request and consult the database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
  * @retval None
@@ -25,6 +24,8 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 		}
 
 		std::string user_id = std::to_string(message_in.user_id);
+
+		// Access database
 		int res = server._database.LoginUser(user_id, message_in.password);
 		switch (res) {
 			case DB_LOGIN_NOK:
@@ -55,11 +56,10 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the logout request and handling the
- * outputs of the database's function.
- * @param  &message: The message sent containing the logout parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the logout request and consult the database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
  * @retval None
@@ -76,6 +76,8 @@ void LogoutRequest::handle(MessageAdapter &message, Server &server,
 		}
 
 		std::string user_id = std::to_string(message_in.user_id);
+
+		// Access database
 		int res = server._database.Logout(user_id, message_in.password);
 		switch (res) {
 			case DB_LOGOUT_UNREGISTERED:
@@ -106,11 +108,11 @@ void LogoutRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the unregister request and handling the
- * outputs of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the unregister request and consult the
+ * database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
  * @retval None
@@ -127,6 +129,8 @@ void UnregisterRequest::handle(MessageAdapter &message, Server &server,
 		}
 
 		std::string user_id = std::to_string(message_in.user_id);
+
+		// Access database
 		int res = server._database.Unregister(user_id, message_in.password);
 		switch (res) {
 			case DB_UNREGISTER_UNKNOWN:
@@ -157,11 +161,11 @@ void UnregisterRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the list all auctions request and
- * handling the outputs of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the List All request and consult the
+ * database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
  * @retval None
@@ -177,6 +181,7 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 			printInListAllRequest(message_in);
 		}
 
+		// Access database
 		AuctionList a_list = server._database.List();
 
 		if (a_list.size() == 0) {
@@ -202,11 +207,11 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the list bidded auctions request and
- * handling the outputs of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the List My Bids request and consult the
+ * database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
  * @retval None
@@ -223,6 +228,7 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 		}
 
 		std::string user_id = std::to_string(message_in.user_id);
+		// Access database
 		AuctionList a_list = server._database.MyBids(user_id);
 
 		if (server._database.CheckUserLoggedIn(user_id) != 0) {
@@ -251,11 +257,11 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the list started auctions request and
- * handling the outputs of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the List My Auctions request and consult the
+ * database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
  * @retval None
@@ -272,6 +278,7 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 		}
 
 		std::string user_id = std::to_string(message_in.user_id);
+		// Access database
 		AuctionList a_list = server._database.MyAuctions(user_id);
 
 		if (server._database.CheckUserLoggedIn(user_id) != 0) {
@@ -300,11 +307,11 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the show record request and handling the
- * outputs of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the Show Record request and consult the
+ * database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
  * @throws AuctionNotFound if the request is attempted on a non-existant
@@ -324,6 +331,8 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
+
+		// Access database
 		AuctionRecord record = server._database.ShowRecord(auction_id);
 		message_out.status = ServerShowRecord::status::OK;
 		message_out.host_UID = static_cast<uint32_t>(stoi(record.host_id));
@@ -367,11 +376,11 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the open auction request and handling
- * the outputs of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the Open Auction request and consult the
+ * database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
  * @retval None
@@ -391,6 +400,8 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 		std::string user_id = convert_user_id_to_str(message_in.user_id);
 		std::string start_value = std::to_string(message_in.start_value);
 		std::string timeactive = std::to_string(message_in.timeactive);
+
+		// Access database
 		int aid = server._database.Open(
 			user_id, message_in.name, message_in.password,
 			message_in.assetf_name, start_value, timeactive, message_in.Fsize,
@@ -417,11 +428,11 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the close auction request and handling
- * the outputs of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the Close Auction request and consult the
+ * database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws UserDoesNotExist if a non-existant user attempts to perform the
  * request.
  * @throws IncorrectPassword if the password does not match up with the user's
@@ -451,6 +462,8 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 		std::string user_id = convert_user_id_to_str(message_in.user_id);
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
+
+		// Access database
 		int res = server._database.CloseAuction(auction_id, user_id,
 		                                        message_in.password);
 		if (res != DB_CLOSE_NOK) {
@@ -481,11 +494,11 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the show asset request and handling the
- * outputs of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the Show Asset request and consult the
+ * database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws AssetDoesNotExist if attempting to obtain an non-existant auction.
  * @throws InvalidMessageException if the message is wrongly formatted or
  * conatins invalid contents.
@@ -504,6 +517,8 @@ void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
 		}
 
 		std::string aid_str = convert_auction_id_to_str(message_in.auction_id);
+
+		// Access database
 		AssetInfo ast_info = server._database.ShowAsset(aid_str);
 
 		message_out.status = ServerShowAsset::status::OK;
@@ -525,11 +540,10 @@ void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Responsible for implementing the bid request and handling the outputs
- * of the database's function.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling the Bid request and consult the database.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @throws AuctionAlreadyClosed if attempting to close an already closed
  * auction.
  * @throws UserNotLoggedIn if a logged out user attempts to perform the request.
@@ -557,6 +571,8 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 		std::string auction_id =
 			convert_auction_id_to_str(message_in.auction_id);
 		std::string bid_value = std::to_string(message_in.value);
+
+		// Access database
 		int res = server._database.Bid(user_id, message_in.password, auction_id,
 		                               bid_value);
 		if (res == DB_BID_NOK) {
@@ -587,9 +603,9 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 
 /**
  * @brief  Respponsible for handling a wrong UDP request.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @retval None
  */
 void WrongRequestUDP::handle(MessageAdapter &message, Server &server,
@@ -604,10 +620,10 @@ void WrongRequestUDP::handle(MessageAdapter &message, Server &server,
 }
 
 /**
- * @brief  Respponsible for handling a wrong TCP request.
- * @param  &message: The message sent containing the parameters.
- * @param  &server: The server sending it.
- * @param  &address: The address from where it comes.
+ * @brief  Responsible for handling a wrong TCP request.
+ * @param  &message: The adapter containing the raw received message.
+ * @param  &server: Instance of the server.
+ * @param  &address: The address to where the message should go.
  * @retval None
  */
 void WrongRequestTCP::handle(MessageAdapter &message, Server &server,
