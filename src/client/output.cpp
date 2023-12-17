@@ -1,3 +1,8 @@
+/**
+ * @file output.cpp
+ * @brief Implementation of functions for printing output messages.
+ */
+
 #include "output.hpp"
 
 // -----------------------------------

@@ -1,3 +1,13 @@
+/**
+ * @file client.cpp
+ * @brief Implementation of the client class and main function.
+ *
+ * This file contains the implementation of the client class, which is
+ * responsible for establishing a connection with the server, sending and
+ * receiving messages, and managing the user's login status. It also includes
+ * the main function of the user application.
+ */
+
 #include "client.hpp"
 
 #include "commands.hpp"

@@ -12,8 +12,7 @@ RC @ IST - Project 2023/2024
 
 ## Client
 
-- Rework Exceptions
-- Prevent Exceptions
+- Check if exceptions are being prevented.
 
 ## Server
 
