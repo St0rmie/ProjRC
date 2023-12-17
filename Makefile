@@ -92,5 +92,5 @@ clean-test:
 
 package:
 	cp README.md readme.txt
-	zip project.zip src $(SOURCES) $(HEADERS) Makefile .clang-format readme.txt tester
+	zip project.zip src $(SOURCES) $(HEADERS) Makefile .clang-format readme.txt
 	rm readme.txt
