@@ -1,10 +1,16 @@
 #ifndef __SRV_OUTPUT__
 #define __SRV_OUTPUT__
 
+/**
+ * @file output.hpp
+ * @brief Header file for a output instance.
+ */
+
 #include <string>
 
 #include "server.hpp"
 
+// All the functions resposinble for printing.
 void printError(std::string message);
 void printInfo(std::string message, int tab_level);
 

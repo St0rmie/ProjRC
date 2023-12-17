@@ -1,6 +1,12 @@
 #ifndef __DATABASE__
 #define __DATABASE__
 
+/**
+ * @file database.hpp
+ * @brief This file contains the declaration of functions related to managing
+ * the database.
+ */
+
 #include <dirent.h>
 #include <errno.h>
 #include <semaphore.h>
@@ -46,16 +52,25 @@
 #define DB_BID_REFUSE -1
 #define DB_BID_ACCEPT 0
 
+/**
+ * @brief Thrown when there's a failure in the semaphore.
+ */
 class SemException : public std::runtime_error {
    public:
 	SemException() : std::runtime_error("[ERROR] Error in semaphore.") {}
 };
 
+/**
+ * @brief Thrown when the auction isn't found.
+ */
 class AuctionNotFound : public std::runtime_error {
    public:
 	AuctionNotFound() : std::runtime_error("[ERROR] Couldn't find auction.") {}
 };
 
+/**
+ * @brief Thrown when the user isn't logged in for an action that needs it.
+ */
 class UserNotLoggedIn : public std::runtime_error {
    public:
 	UserNotLoggedIn()
@@ -63,44 +78,71 @@ class UserNotLoggedIn : public std::runtime_error {
 			  "[ERROR] User can't perform this action unlogged.") {}
 };
 
+/**
+ * @brief Thrown when the user doesn't exist for an action that need them.
+ */
 class UserDoesNotExist : public std::runtime_error {
    public:
 	UserDoesNotExist() : std::runtime_error("[ERROR] User does not exist.") {}
 };
 
+/**
+ * @brief Thrown when the password is incorrect.
+ */
 class IncorrectPassword : public std::runtime_error {
    public:
 	IncorrectPassword() : std::runtime_error("[ERROR] Incorrect password.") {}
 };
 
+/**
+ * @brief Thrown when the user attempts to perform an action that can't be done
+ * on an auction that isn't theirs.
+ */
 class AuctionNotOwnedByUser : public std::runtime_error {
    public:
 	AuctionNotOwnedByUser()
 		: std::runtime_error("[ERROR] User doesn't own the auction.") {}
 };
 
+/**
+ * @brief Thrown when the auction is already closed for an action that needs an
+ * open one.
+ */
 class AuctionAlreadyClosed : public std::runtime_error {
    public:
 	AuctionAlreadyClosed()
 		: std::runtime_error("[ERROR] Auction is already closed.") {}
 };
 
+/**
+ * @brief Thrown when the asset doesn't exist for an action that needs it.
+ */
 class AssetDoesNotExist : public std::runtime_error {
    public:
 	AssetDoesNotExist() : std::runtime_error("[ERROR] Asset does not exist.") {}
 };
 
+/**
+ * @brief Thrown when a bid is attempted on an auction that already has a larger
+ * one.
+ */
 class LargerBidAlreadyExists : public std::runtime_error {
    public:
 	LargerBidAlreadyExists()
 		: std::runtime_error("[ERROR] Larger bid already exists.") {}
 };
 
+/**
+ * @brief Thrown when a user attempts to bid on an auction they created.
+ */
 class BidOnSelf : public std::runtime_error {
    public:
 	BidOnSelf() : std::runtime_error("[ERROR] User can't bid on self.") {}
 };
 
+/**
+ * @brief A struct containing the information of the start file.
+ */
 typedef struct {
 	std::string user_id;
 	std::string name;
@@ -111,11 +153,17 @@ typedef struct {
 	uint32_t current_time;
 } StartInfo;
 
+/**
+ * @brief A struct containing the information of the end file.
+ */
 typedef struct {
 	std::string end_date;
 	uint32_t end_time;
 } EndInfo;
 
+/**
+ * @brief A struct containing the information of the bid.
+ */
 typedef struct {
 	std::string user_id;
 	std::string value;
@@ -123,12 +171,18 @@ typedef struct {
 	uint32_t time_passed;
 } BidInfo;
 
+/**
+ * @brief A struct containing the information of the asset.
+ */
 typedef struct {
 	std::string asset_fname;
 	size_t fsize;
 	std::string fdata;
 } AssetInfo;
 
+/**
+ * @brief A struct containing the auction's id and whether it's still active.
+ */
 typedef struct {
 	std::string a_id;
 	bool active = false;
@@ -137,6 +191,10 @@ typedef struct {
 typedef std::vector<AuctionListing> AuctionList;
 typedef std::vector<BidInfo> BidList;
 
+/**
+ * @brief A struct containing the information of the auction, including the bids
+ * places and when it ended.
+ */
 typedef struct {
 	std::string host_id;
 	std::string auction_name;
@@ -153,16 +211,21 @@ typedef struct {
 bool CompareByAid(const AuctionListing &a, const AuctionListing &b);
 bool CompareByValue(const BidInfo &a, const BidInfo &b);
 
+/**
+ * @brief  Class that represents a database instance. Contains all the functions
+ * necessary to create new files and interact with the existing ones in order to
+ * simulate the users and auctions.
+ */
 class Database {
    protected:
 	sem_t *_sem;
 	int _lock_id;
 
+	// Internal functions
 	int semaphore_init(int port_n);
 	void semaphore_wait();
 	void semaphore_post();
 	int semaphore_destroy();
-
 	int CheckUserExisted(const char *user_id_dirname);
 	int CheckUserRegistered(std::string user_id);
 	int CreateUserDir(std::string user_id);

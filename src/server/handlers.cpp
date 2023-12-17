@@ -3,6 +3,16 @@
 #include "output.hpp"
 #include "shared/protocol.hpp"
 
+/**
+ * @brief  Responsible for implementing the login request and handling the
+ * outputs of the database's function.
+ * @param  &message: The message sent containing the login parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void LoginRequest::handle(MessageAdapter &message, Server &server,
                           Address &address) {
 	ClientLoginUser message_in;
@@ -44,6 +54,16 @@ void LoginRequest::handle(MessageAdapter &message, Server &server,
 	                 server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the logout request and handling the
+ * outputs of the database's function.
+ * @param  &message: The message sent containing the logout parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void LogoutRequest::handle(MessageAdapter &message, Server &server,
                            Address &address) {
 	ClientLogout message_in;
@@ -85,6 +105,16 @@ void LogoutRequest::handle(MessageAdapter &message, Server &server,
 	                 server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the unregister request and handling the
+ * outputs of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void UnregisterRequest::handle(MessageAdapter &message, Server &server,
                                Address &address) {
 	ClientUnregister message_in;
@@ -126,6 +156,16 @@ void UnregisterRequest::handle(MessageAdapter &message, Server &server,
 	                 server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the list all auctions request and
+ * handling the outputs of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
                                     Address &address) {
 	ClientListAllAuctions message_in;
@@ -161,6 +201,16 @@ void ListAllAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	                 server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the list bidded auctions request and
+ * handling the outputs of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
                                        Address &address) {
 	ClientListBiddedAuctions message_in;
@@ -200,6 +250,16 @@ void ListBiddedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	                 server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the list started auctions request and
+ * handling the outputs of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
                                         Address &address) {
 	ClientListStartedAuctions message_in;
@@ -239,6 +299,18 @@ void ListStartedAuctionsRequest::handle(MessageAdapter &message, Server &server,
 	                 server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the show record request and handling the
+ * outputs of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @throws AuctionNotFound if the request is attempted on a non-existant
+ * auction.
+ * @retval None
+ */
 void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
                                Address &address) {
 	ClientShowRecord message_in;
@@ -294,6 +366,16 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 	                 server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the open auction request and handling
+ * the outputs of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
                                 Address &address) {
 	ClientOpenAuction message_in;
@@ -334,6 +416,26 @@ void OpenAuctionRequest::handle(MessageAdapter &message, Server &server,
 	send_tcp_message(message_out, address.socket, server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the close auction request and handling
+ * the outputs of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws UserDoesNotExist if a non-existant user attempts to perform the
+ * request.
+ * @throws IncorrectPassword if the password does not match up with the user's
+ * supposed one.
+ * @throws UserNotLoggedIn if a logged out user attempts to perform the request.
+ * @throws AuctionNotFound if attempting to close a non-existant auction.
+ * @throws AuctionNotOwnedByUser if a user attempts to close an auction that's
+ * not theirs.
+ * @throws AuctionAlreadyClosed if attempting to close an already closed
+ * auction.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
                                  Address &address) {
 	ClientCloseAuction message_in;
@@ -378,6 +480,17 @@ void CloseAuctionRequest::handle(MessageAdapter &message, Server &server,
 	send_tcp_message(message_out, address.socket, server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the show asset request and handling the
+ * outputs of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws AssetDoesNotExist if attempting to obtain an non-existant auction.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ * @retval None
+ */
 void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
                               Address &address) {
 	ClientShowAsset message_in;
@@ -411,6 +524,23 @@ void ShowAssetRequest::handle(MessageAdapter &message, Server &server,
 	send_tcp_message(message_out, address.socket, server._verbose);
 }
 
+/**
+ * @brief  Responsible for implementing the bid request and handling the outputs
+ * of the database's function.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @throws AuctionAlreadyClosed if attempting to close an already closed
+ * auction.
+ * @throws UserNotLoggedIn if a logged out user attempts to perform the request.
+ * @throws AuctionNotFound if attempting to close a non-existant auction.
+ * @throws LargerBidAlreadyExists if attempting to place a bid that's too small.
+ * @throws BidOnSelf if attempting to bid on an auction the user created.
+ * @throws InvalidMessageException if the message is wrongly formatted or
+ * conatins invalid contents.
+ *
+ * @retval None
+ */
 void BidRequest::handle(MessageAdapter &message, Server &server,
                         Address &address) {
 	ClientBid message_in;
@@ -455,6 +585,13 @@ void BidRequest::handle(MessageAdapter &message, Server &server,
 	send_tcp_message(message_out, address.socket, server._verbose);
 }
 
+/**
+ * @brief  Respponsible for handling a wrong UDP request.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @retval None
+ */
 void WrongRequestUDP::handle(MessageAdapter &message, Server &server,
                              Address &address) {
 	(void) message;
@@ -466,6 +603,13 @@ void WrongRequestUDP::handle(MessageAdapter &message, Server &server,
 	                 server._verbose);
 }
 
+/**
+ * @brief  Respponsible for handling a wrong TCP request.
+ * @param  &message: The message sent containing the parameters.
+ * @param  &server: The server sending it.
+ * @param  &address: The address from where it comes.
+ * @retval None
+ */
 void WrongRequestTCP::handle(MessageAdapter &message, Server &server,
                              Address &address) {
 	(void) message;
