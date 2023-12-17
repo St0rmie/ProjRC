@@ -1293,6 +1293,11 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 		}
 	}
 
+	if (verify_auction_id(std::to_string(aid)) == -1) {
+		semaphore_post();
+		return DB_OPEN_CREATE_FAIL;
+	}
+
 	std::string c_aid = convert_auction_id_to_str(aid);
 	std::string a_dir_name = dir_name + c_aid;
 	const char *a_dir_fname = a_dir_name.c_str();

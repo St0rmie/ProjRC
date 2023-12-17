@@ -182,6 +182,7 @@ class TcpMessage : public MessageAdapter {
 	int _fd;
 	std::vector<char> _buffer;
 	char _last;
+	bool _read = false;
 
    public:
 	TcpMessage(int fd) : _fd(fd){};
@@ -189,8 +190,16 @@ class TcpMessage : public MessageAdapter {
 		char buf[SOCKET_BUFFER_LEN];
 		ssize_t n = read(_fd, &buf, SOCKET_BUFFER_LEN);
 
-		if (n <= 0) {
+		if (n > 0 && !_read) {
+			_read = true;
+		}
+
+		if (n <= 0 && _read) {
 			throw InvalidMessageException();
+		}
+
+		if (n <= 0 && !_read) {
+			throw MessageReceiveException();
 		}
 
 		// The vector is filled in reverse order so that the pop_back() method
