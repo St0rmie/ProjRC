@@ -97,6 +97,10 @@ int verify_asset_fname(std::string asset_path) {
 	std::string assetf_name =
 		asset_path.substr(asset_path.find_last_of("/\\") + 1);
 
+	if (assetf_name.size() > MAX_FILENAME_SIZE) {
+		return -1;
+	}
+
 	if (check_fname_not_forbidden(assetf_name) == -1) {
 		return -1;
 	}

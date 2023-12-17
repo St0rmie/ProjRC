@@ -39,3 +39,6 @@ ASDIR
 
 # Test results
 *.html
+
+# Package
+*.zip
