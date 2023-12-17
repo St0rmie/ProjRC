@@ -608,6 +608,10 @@ int Database::CreateEndFile(std::string a_id) {
 	uint32_t supposed_end = static_cast<uint32_t>(stol(start.timeactive));
 
 	if (time_passed > supposed_end) {
+		// If more time has passed than the suposed duration of an auction,
+		// when creating the end file the date of the supposed end will be
+		// calculated.
+
 		time_t total_time = static_cast<time_t>(start_time + supposed_end);
 		finish_time = gmtime(&total_time);
 		sprintf(date_str, "%4u-%02u-%02u %02u:%02u:%02u",
@@ -1277,6 +1281,8 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 		aid = 1;
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
+			// Goes through the entire auctions directory in order to calculate
+			// the newest auction id.
 			new_aid = entry.path();
 			new_aid.erase(new_aid.begin(), new_aid.end() - 3);
 			n_new_aid = static_cast<uint32_t>(stoi(new_aid));
@@ -1422,6 +1428,9 @@ AuctionList Database::MyAuctions(std::string user_id) {
 		return result;  // Returns empty list which means user hosts no auctions
 	} else {
 		for (const auto &entry : fs::directory_iterator(dir_name)) {
+			// Goes through the Hosted directory in order obtain all the
+			// auctions the user hosted, closing those necessary.
+
 			std::string aid = entry.path();
 			aid.erase(aid.end() - 4, aid.end());
 			aid.erase(aid.begin(), aid.end() - 3);
@@ -1485,6 +1494,9 @@ AuctionList Database::MyBids(std::string user_id) {
 		return result;  // Returns empty list which means user made no bids
 	} else {
 		for (const auto &entry : fs::directory_iterator(bidded_dir_name)) {
+			// Goes through the Bidded directory in order obtain all the
+			// auctions the user bid on, closing those necessary.
+
 			std::string aid = entry.path();
 			aid.erase(aid.end() - 4, aid.end());
 			aid.erase(aid.begin(), aid.end() - 3);
@@ -1545,6 +1557,9 @@ AuctionList Database::List() {
 		                // ever made
 	} else {
 		for (const auto &entry : fs::directory_iterator(Dir_name)) {
+			// Goes through the Auctions directory in order obtain all the
+			// auctions, closing those necessary.
+
 			std::string aid = entry.path();
 			aid.erase(aid.begin(), aid.end() - 3);
 
@@ -1692,6 +1707,9 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 	std::string bid_fname;
 
 	if (fs::is_empty(bid_dir_name)) {
+		// If the value isn't greater than the starting value of the asset it's
+		// not a correct bid.
+
 		long old_value = stol(start.start_value);
 
 		if (old_value >= value) {
@@ -1701,6 +1719,9 @@ int Database::Bid(std::string user_id, std::string password, std::string a_id,
 		}
 	} else {
 		for (const auto &entry : fs::directory_iterator(bid_dir_name)) {
+			// If the value isn't greater than an existing bid it's not a
+			// correct bid.
+
 			bid_fname = entry.path();
 
 			GetBid(bid_fname, bid);
