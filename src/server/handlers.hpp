@@ -1,19 +1,28 @@
 #ifndef __SERVER_HANDLERS__
 #define __ SERVER_HANDLERS__
 
+/**
+ * @file client.hpp
+ * @brief This file contains the declaration of functions related to interfacing
+ * between the server and the database.
+ */
+
 #include <string>
 
 #include "database.hpp"
 #include "server.hpp"
 #include "shared/protocol.hpp"
 
-// Thrown when an viable handler is not found
+/**
+ * @brief Thrown when an viable handler is not found.
+ */
 class UnknownHandlerException : public std::runtime_error {
    public:
 	UnknownHandlerException()
 		: std::runtime_error("[Error] An unrecoverable exception occured.") {}
 };
 
+// Classes responsible for communicating the requests with the database.
 class LoginRequest : public RequestHandler {
 	virtual void handle(MessageAdapter &message, Server &client,
 	                    Address &address);
