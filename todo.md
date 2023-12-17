@@ -14,7 +14,7 @@ RC @ IST - Project 2023/2024
 
 ## Server
 
-- (pretty) improve Error prints
+- (done)
 
 ## Tests
 
