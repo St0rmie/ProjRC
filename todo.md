@@ -4,15 +4,13 @@ RC @ IST - Project 2023/2024
 
 ## TODO LIST
 
-- Setup signals properly
 - Final tests
 - Fazer readme
-- Comments
 - Entregar
 
 ## Client
 
-- Check if exceptions are being prevented.
+- (done)
 
 ## Server
 
