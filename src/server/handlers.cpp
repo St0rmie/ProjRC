@@ -358,7 +358,6 @@ void ShowRecordRequest::handle(MessageAdapter &message, Server &server,
 				convert_str_to_date(record.end_datetime);
 			message_out.end_sec_time = record.end_timeelapsed;
 		}
-		std::cout << message_out.buildMessage().str() << std::endl;
 
 	} catch (InvalidMessageException &e) {
 		message_out.status = ServerShowRecord::status::ERR;

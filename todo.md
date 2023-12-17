@@ -4,7 +4,6 @@ RC @ IST - Project 2023/2024
 
 ## TODO LIST
 
-- Final tests
 - Entregar
 
 ## Client
