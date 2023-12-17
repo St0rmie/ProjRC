@@ -2,6 +2,11 @@
 
 RC @ IST - Project 2023/2024
 
+Authors:
+
+- Pedro Frigolet    // LEIC-A // 102419
+- Duarte Sousa      // LEIC-A // 102597
+
 ## Compiling
 
 The project can be compiled by running `make` in this directory.
