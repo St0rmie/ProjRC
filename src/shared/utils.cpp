@@ -5,12 +5,23 @@
 // -----------------------------------
 // | Extract date and time			 |
 // -----------------------------------
+
+/**
+ * @brief  Recieves a struct containing the date and extracts it.
+ * @param  datetime: The struct containing the date and time.
+ * @retval A string containing the formated date
+ */
 std::string extractDate(Datetime datetime) {
 	std::stringstream out;
 	out << datetime.year << "-" << datetime.month << "-" << datetime.day;
 	return out.str();
 };
 
+/**
+ * @brief  Recieves a struct containing the time and extracts it.
+ * @param  datetime: The struct containing the date and time.
+ * @retval A string containing the formated time
+ */
 std::string extractTime(Datetime datetime) {
 	std::stringstream out;
 	out << datetime.hours << ":" << datetime.minutes << ":" << datetime.seconds;
@@ -21,6 +32,12 @@ std::string extractTime(Datetime datetime) {
 // | Convert types					 |
 // -----------------------------------
 
+/**
+ * @brief  Converts a user id in the form of a string into a uint32_t.
+ * @param  string: The user id to convert.
+ * @throws InvalidMessageException if the user id isn't valid.
+ * @retval The user id as a uint32_t.
+ */
 uint32_t convert_user_id(std::string string) {
 	if (verify_user_id(string) == -1) {
 		throw InvalidMessageException();
@@ -28,6 +45,11 @@ uint32_t convert_user_id(std::string string) {
 	return (static_cast<uint32_t>(std::stol(string)));
 }
 
+/**
+ * @brief  Converts a user id in the form of a uint32_t into a string.
+ * @param  uid: The user id to convert.
+ * @retval The user id as a string.
+ */
 std::string convert_user_id_to_str(uint32_t uid) {
 	char uid_c[7];
 	sprintf(uid_c, "%06d", uid);
@@ -35,6 +57,12 @@ std::string convert_user_id_to_str(uint32_t uid) {
 	return result;
 }
 
+/**
+ * @brief  Converts an auction id in the form of a string into a uint32_t.
+ * @param  string: The auction id to convert.
+ * @throws InvalidMessageException if the auction id isn't valid.
+ * @retval The auction id as a uint32_t.
+ */
 uint32_t convert_auction_id(std::string string) {
 	if (verify_auction_id(string) == -1) {
 		throw InvalidMessageException();
@@ -42,6 +70,11 @@ uint32_t convert_auction_id(std::string string) {
 	return (static_cast<uint32_t>(std::stoi(string)));
 }
 
+/**
+ * @brief  Converts an auction id in the form of a uint32_t into a string.
+ * @param  aid: The auction id to convert.
+ * @retval The auction id as a string.
+ */
 std::string convert_auction_id_to_str(uint32_t aid) {
 	char aid_c[4];
 	sprintf(aid_c, "%03d", aid);
@@ -49,6 +82,12 @@ std::string convert_auction_id_to_str(uint32_t aid) {
 	return result;
 }
 
+/**
+ * @brief  Converts a value in the form of a string into a uint32_t.
+ * @param  string: The value to convert.
+ * @throws InvalidMessageException if the value isn't valid.
+ * @retval The value as a uint32_t.
+ */
 uint32_t convert_auction_value(std::string string) {
 	uint32_t value = static_cast<uint32_t>(std::stol(string));
 	if (verify_value(value) == -1) {
@@ -57,6 +96,12 @@ uint32_t convert_auction_value(std::string string) {
 	return value;
 }
 
+/**
+ * @brief  Verifies the password.
+ * @param  string: The password to verify.
+ * @throws InvalidMessageException if the ppassword isn't valid.
+ * @retval The verified password.
+ */
 std::string convert_password(std::string string) {
 	if (verify_password(string) == -1) {
 		throw InvalidMessageException();
@@ -64,6 +109,11 @@ std::string convert_password(std::string string) {
 	return string;
 }
 
+/**
+ * @brief  Converts a date in the form of a Datetime into a string.
+ * @param  date: The date to convert.
+ * @retval The date as a string.
+ */
 std::string convert_date_to_str(Datetime date) {
 	std::string date_str;
 	date_str += date.year + "-" + date.month;
@@ -74,6 +124,11 @@ std::string convert_date_to_str(Datetime date) {
 	return date_str;
 }
 
+/**
+ * @brief  Converts a date in the form of a string into a Datetime.
+ * @param  str: The date to convert.
+ * @retval The date as a Datetime.
+ */
 Datetime convert_str_to_date(std::string str) {
 	Datetime result;
 	int year, month, day, hours, minutes, seconds;
@@ -99,29 +154,15 @@ Datetime convert_str_to_date(std::string str) {
 // | Reading and writing on files	 |
 // -----------------------------------
 
-void sendFile(int connection_fd, std::filesystem::path file_path) {
-	std::ifstream file(file_path, std::ios::in | std::ios::binary);
-	if (!file) {
-		std::cerr << "Error opening file: " << file_path << std::endl;
-		throw FileException();
-	}
-
-	char buffer[SOCKET_BUFFER_LEN];
-	while (file) {
-		file.read(buffer, SOCKET_BUFFER_LEN);
-		ssize_t bytes_read = (ssize_t) file.gcount();
-		ssize_t bytes_sent = 0;
-		while (bytes_sent < bytes_read) {
-			ssize_t sent = write(connection_fd, buffer + bytes_sent,
-			                     (size_t) (bytes_read - bytes_sent));
-			if (sent < 0) {
-				throw MessageSendException();
-			}
-			bytes_sent += sent;
-		}
-	}
-}
-
+/**
+ * @brief  Creates a file and writes data to it, if one with the same name
+ * exists it writes to it.
+ * @param  file_name: The name of the file.
+ * @param  path: The directory in which the file is or will be.
+ * @param  file_data: The data to be written.
+ * @throws FileException if the file can't be opened or created.
+ * @retval None
+ * */
 void saveToFile(std::string file_name, std::string path,
                 std::string file_data) {
 	std::string full_path = path + file_name;
@@ -137,6 +178,11 @@ void saveToFile(std::string file_name, std::string path,
 	file.close();
 }
 
+/**
+ * @brief  Reads the data from a file.
+ * @param  pathname: The path to the file.
+ * @retval The data retrieved.
+ */
 std::string readFromFile(std::string pathname) {
 	std::ifstream file(pathname);
 	std::stringstream buffer;
@@ -145,6 +191,11 @@ std::string readFromFile(std::string pathname) {
 	return buffer.str();
 }
 
+/**
+ * @brief  Obtains the file's size.
+ * @param  file_path: The path to the file.
+ * @retval The file's size.
+ */
 long getFileSize(std::filesystem::path file_path) {
 	try {
 		return static_cast<long long>(std::filesystem::file_size(file_path));
