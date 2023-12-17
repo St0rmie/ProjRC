@@ -1293,7 +1293,7 @@ int Database::Open(std::string user_id, std::string name, std::string password,
 		}
 	}
 
-	if (verify_auction_id(std::to_string(aid)) == -1) {
+	if (aid > 999) {
 		semaphore_post();
 		return DB_OPEN_CREATE_FAIL;
 	}
