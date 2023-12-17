@@ -1,6 +1,11 @@
 #ifndef __UTILS__
 #define __UTILS__
 
+/**
+ * @file utils.hpp
+ * @brief This file contains the declaration of utility functions.
+ */
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -8,6 +13,9 @@
 
 #include "verifications.hpp"
 
+/**
+ * @brief A struct containing the date and time.
+ */
 typedef struct {
 	std::string year;
 	std::string month;
@@ -17,6 +25,9 @@ typedef struct {
 	std::string seconds;
 } Datetime;
 
+/**
+ * @brief A struct containing the bid's iformation and time.
+ */
 typedef struct {
 	uint32_t bidder_UID;
 	uint32_t bid_value;
@@ -24,7 +35,9 @@ typedef struct {
 	uint32_t bid_sec_time;
 } Bid;
 
-// Thrown when the MessageID does not match what was expected
+/**
+ * @brief Thrown when the MessageID does not match what was expected.
+ */
 class FileException : public std::runtime_error {
    public:
 	FileException() : std::runtime_error("[ERROR] Couldn't open file.") {}
@@ -53,7 +66,6 @@ Datetime convert_str_to_date(std::string str);
 // | Reading and writing on files	 |
 // -----------------------------------
 
-void sendFile(int connection_fd, std::filesystem::path file_path);
 void readAndSaveToFile(const int fd, const std::string &file_name,
                        const size_t file_size);
 void saveToFile(std::string file_name, std::string path, std::string file_data);
