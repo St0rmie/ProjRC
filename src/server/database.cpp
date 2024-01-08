@@ -981,9 +981,17 @@ std::string Database::GetAssetDir(std::string a_id) {
 		return "";
 	}
 
-	std::string asset_dir;
-
+	std::string asset_dir = "";
 	std::string dir_name = "ASDIR/AUCTIONS/" + a_id;
+
+	bool auction_found = false;
+	for (const auto &entry : fs::directory_iterator("ASDIR/AUCTIONS")) {
+		if (dir_name == entry.path())
+			auction_found = true;
+	}
+	if (auction_found == false)
+		return "";
+
 	dir_name += "/ASSET";
 
 	if (fs::is_empty(dir_name)) {
